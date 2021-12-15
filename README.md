@@ -129,19 +129,36 @@ TroveManagerLiquidations External Contracts Called: ActivePool, StabilityPool, W
 
 TroveManagerLiquidations Libraries Used: LiquityMath, SafeMath
 
+TroveManagerRedemptions External Contracts Called: ActivePool, Whitelist, CollSurplusPool, YUSDToken, Sorted Troves, YETIToken, TroveManager, 
+
+TroveManagerRedemptions Libraries Used: LiquityMath, SafeMath
+
 ## StabilityPool.sol (638 loc)
 The stability pool is used to offset loans for liquidation purposes, and holding rewards after liquidations occur. Important external facing functions are: 
 - provideToSP(), withdrawFromSP(), functions to change the amount of YUSD that you have in the stability pool, and collect rewards. 
 
+External Contracts Called: TroveManager, ActivePool, YUSDToken, SortedTroves, CommunityIssuance, Whitelist
+
+Libraries Used: LiquityMath, SafeMath, LIquidateSafeMath128
+
 ## Whitelist.sol (273 loc) 
 Whitelist is where we keep track of allowed tokens for the protocol, and info relating to these tokens, such as oracles, safety ratios, and price curves. Has some onlyOwner functions which are secured by team multisig for adjusting token collateral parameters. Also has important getter functions like getValueVC() and getValueUSD() which are used throughout the code. 
+
+External Contracts Called: ActivePool, DefaultPool, StabilityPool, CollSurplusPool, PriceFeed (to get price of a given collateral), ThreePiecewiseLinearPriceCurve
+
+Libraries Used: LiquityMath, SafeMath
 
 ## ThreePieceWiseLinearPriceCurve.sol (100 loc)
 We are also adding a variable fee based on the collateral type, which will scale up if that collateral type is currently backing too much value of the protocol. The fee system change is discussed further [here](https://github.com/code-423n4/2021-12-yetifinance/edit/main/YETI_FINANCE_VARIABLE_FEES.pdf). To summarize, it is a one time borrow fee charged on the collateral, which will increase based on how much the system is collateralized by that asset. This price curve is where currently this fee is calculated.
 - getFeeAndUpdate is called to update the last time and fee percent, only called by Whitelist functions. 
 
+External Contracts Called: None
+
+Libraries Used: SafeMath
+
 ## sYETIToken.sol (202 loc)
 sYETI is the contract for the auto-compounding YETI staking mechanism, which receives fees from redemptions and trove adjustments. This contract buys back YETI, and adjusts the ratio of sYETI to YETI, adapted from the sSPELL contract. The YUSD Token itself is in the YUSDToken file. Follows ERC20 standard. 
+
 
 ## YUSDToken.sol (226 loc)
 YUSDToken follows the ERC20 standard and is our stablecoin which we mint from our protocol. This only allows BorrowerOperations.sol to mint using the user facing functions after respective checks. 
