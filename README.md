@@ -102,6 +102,8 @@ There are some special economic mechanisms to stabilize the protocol compared to
 
 Important: To keep track of the different token values in the system we use a system called “VC” or Virtual Coin which takes riskier assets to have less value in the system than safer assets. Essentially it standardizes the value of all the collateral in one user’s trove into one collateral value number. The VC for a collateral depends on a safety ratio which is defined as a risk parameter when adding the token to the whitelist. $VC = Safety ratio * Token amount * Token price in USD. Example: I have 0.75 wMEMO at $8000 dollars with a safety ratio of ⅔. $VC = 0.75 * ⅔ * 8000 = $4000. So, I can take a loan against this $4000 dollars as if it were $4000 of a safe asset with a safety ratio = 1.
 
+In the system, each trove has a tokens and amounts array, where `amounts[i]` corresponds to `tokens[i]` for that token. 
+
 ## BorrowerOperations.sol (837 loc)
 BorrowerOperations is where users can add/remove collateral, adjust their debt, close their trove, etc. This file has most of the external functions that people will generally interact with. It adjusts the troves stored in TroveManager. The main external functions are 
 - openTrove() opens a trove for the user. Does necessary checks on the system and collaterals / debt passed in.
@@ -149,3 +151,4 @@ We have written wrapper contracts with the intention of them keeping track of st
 - Price manipulation attacks: Ensure that economic attacks like CREAM hack on (an unrelated token to our YUSD) called yUSD was able to drain the entire pool. Since our stablecoin is backed by all the assets in one pool, this could decimate the protocol, and if a backdoor is open then could allow for draining of all collateral funds. We are using our fee system with hard caps to make sure that there is only a certain amount of risky collateral backing the protocol at once. Additionally, there is always incentives for liquidators to call liquidate (0.5% cut of collateral), so some price manipulation attack where a user could take out a lot of YUSD off essentially worthless collateral would be the most dangerous situation.
 - Something we have changed significantly and might be good to focus on are the fee system. This fee system is not very battle tested so it may have problems we have not thought about. As mentioned above, we have more detail on fees [here](https://github.com/code-423n4/2021-12-yetifinance/edit/main/YETI_FINANCE_VARIABLE_FEES.pdf)
 - Wrapped assets are new as well, and may be good to focus on.
+- Gas optimization, our code is quite gas heavy as of now. SumColls and other places where we are looping through all collateral types may a good place to start. 
