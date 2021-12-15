@@ -1,35 +1,38 @@
-// SPDX-License-Identifier: MIT
 
 pragma solidity 0.6.11;
 
 import "./Interfaces/IWAsset.sol";
 import "./Dependencies/TroveManagerBase.sol";
 
-/** 
- * TroveManagerRedemptions is derived from TroveManager and handles all redemption activity of troves. 
- * Instead of calculating redemption fees in ETH like Liquity used to, we now calculate it as a portion 
- * of YUSD passed in to redeem. The YUSDAmount is still how much we would like to redeem, but the 
- * YUSDFee is now the maximum amount of YUSD extra that will be paid and must be in the balance of the 
- * redeemer for the redemption to succeed. This fee is the same as before in terms of percentage of value, 
- * but now it is in terms of YUSD. We now use a helper function to be able to estimate how much YUSD will 
+/**
+ * TroveManagerRedemptions is derived from TroveManager and handles all redemption activity of troves.
+ * Instead of calculating redemption fees in ETH like Liquity used to, we now calculate it as a portion
+ * of YUSD passed in to redeem. The YUSDAmount is still how much we would like to redeem, but the
+ * YUSDFee is now the maximum amount of YUSD extra that will be paid and must be in the balance of the
+ * redeemer for the redemption to succeed. This fee is the same as before in terms of percentage of value,
+ * but now it is in terms of YUSD. We now use a helper function to be able to estimate how much YUSD will
  * be actually needed to perform a redemption of a certain amount, and also given an amount of YUSD balance,
- * the max amount of YUSD that can be used for a redemption, and a max fee such that it will always go through. 
- * 
- * Given a balance of YUSD, Z, the amount that can actually be redeemed is : 
+ * the max amount of YUSD that can be used for a redemption, and a max fee such that it will always go through.
+ *
+ * Given a balance of YUSD, Z, the amount that can actually be redeemed is :
  * Y = YUSD you can actually redeem
- * BR = decayed base rate 
+ * BR = decayed base rate
  * X = YUSD Fee
  * S = Total YUSD Supply
  * The redemption fee rate is = (Y / S * 1 / BETA + BR + 0.5%)
  * This is because the new base rate = BR + Y / S * 1 / BETA
- * We pass in X + Y = Z, and want to find X and Y. 
+ * We pass in X + Y = Z, and want to find X and Y.
  * Y is calculated to be = S * (sqrt((1.005 + BR)**2 + BETA * Z / S) - 1.005 - BR)
- * through the quadratic formula, and X = Z - Y. 
- * Therefore the amount we can actually redeem given Z is Y, and the max fee is X. 
- * 
- * To find how much the fee is given Y, we can multiply Y by the new base rate, which is BR + Y / S * 1 / BETA. 
- * 
- * To the redemption function, we pass in Y and X. 
+ * If you want to calculate the real values programatically you can use the following formula that accounts for all the various decimal places:
+ * S * (sqrt(int(1e18)*(((int(1005e15) + BR)**2)+(BETA * Z*int(1e36) / S))) - (int(1005e15) + BR)*int(1e9))/int(1e27)
+ * through the quadratic formula, and X = Z - Y.
+ * Therefore the amount we can actually redeem given Z is Y, and the max fee is X.
+ *
+ * To find how much the fee is given Y, we can multiply Y by the new base rate, which is BR + Y / S * 1 / BETA.
+ * If you want to calculate the real values programatically you can use the following formula that accounts for all the various decimal places:
+ * (((Y*int(1e18) / S) / BETA) + BR + int(5e15))*Y/int(1e18)
+ *
+ * To the redemption function, we pass in Y and X.
  */
 
 contract TroveManagerRedemptions is TroveManagerBase {
@@ -114,12 +117,19 @@ contract TroveManagerRedemptions is TroveManagerBase {
         _renounceOwnership();
     }
 
-    /** 
+    /**
+     * @notice
      * Main function for redeeming collateral. See above for how YUSDMaxFee is calculated.
-     * @param _YUSDamount is equal to the amount of YUSD to actually redeem. 
-     * @param _YUSDMaxFee is equal to the max fee in YUSD that the sender is willing to pay
      * _YUSDamount + _YUSDMaxFee must be less than the balance of the sender.
      */
+    /// @param _YUSDamount is equal to the amount of YUSD to actually redeem.
+    /// @param _YUSDMaxFee is equal to the max fee in YUSD that the sender is willing to pay
+    /// @param _firstRedemptionHint The address of the trove being redeemed against
+    /// @param _upperPartialRedemptionHint is the address of the adjacent Trove with a greater ICR than the trove after being partially redeemed against
+    /// @param _lowerPartialRedemptionHint is the address of the adjacent Trove with a lower ICR than the trove after being partially redeemed against
+    /// @param _partialRedemptionHintICR is the new ICR of the trove after being partially redeemed against
+    /// @param _maxIterations is the maximum number of iterations to perform before giving up. Only relevant if the hints are a little off by the type of redemption.
+    /// @param _redeemer is the address of the agent initiating the redemption. It will be msg.sender when called through troveManager.
     function redeemCollateral(
         uint256 _YUSDamount,
         uint256 _YUSDMaxFee,
@@ -190,7 +200,7 @@ contract TroveManagerRedemptions is TroveManagerBase {
 
                 if (singleRedemption.cancelledPartial) break; // Partial redemption was cancelled (out-of-date hint, or new net debt < minimum), therefore we could not redeem from the last Trove
 
-                totals.totalYUSDToRedeem = totals.totalYUSDToRedeem.add(singleRedemption.YUSDLot); 
+                totals.totalYUSDToRedeem = totals.totalYUSDToRedeem.add(singleRedemption.YUSDLot);
 
                 totals.CollsDrawn = _sumColls(totals.CollsDrawn, singleRedemption.CollLot);
                 totals.remainingYUSD = totals.remainingYUSD.sub(singleRedemption.YUSDLot);
@@ -242,19 +252,28 @@ contract TroveManagerRedemptions is TroveManagerBase {
         );
     }
 
-    /** 
+    /**
+     * @notice
      * Redeem as much collateral as possible from _borrower's Trove in exchange for YUSD up to _maxYUSDamount
-     * Special calculation for determining how much collateral to send of each type to send. 
+     * Special calculation for determining how much collateral to send of each type to send.
      * We want to redeem equivalent to the USD value instead of the VC value here, so we take the YUSD amount
-     * which we are redeeming from this trove, and calculate the ratios at which we would redeem a single 
-     * collateral type compared to all others. 
-     * For example if we are redeeming 10,000 from this trove, and it has collateral A with a safety ratio of 1, 
-     * collateral B with safety ratio of 0.5. Let's say their price is each 1. The trove is composed of 10,000 A and 
-     * 10,000 B, so we would redeem 5,000 A and 5,000 B, instead of 6,666 A and 3,333 B. To do calculate this we take 
-     * the USD value of that collateral type, and divide it by the total USD value of all collateral types. The price 
+     * which we are redeeming from this trove, and calculate the ratios at which we would redeem a single
+     * collateral type compared to all others.
+     * For example if we are redeeming 10,000 from this trove, and it has collateral A with a safety ratio of 1,
+     * collateral B with safety ratio of 0.5. Let's say their price is each 1. The trove is composed of 10,000 A and
+     * 10,000 B, so we would redeem 5,000 A and 5,000 B, instead of 6,666 A and 3,333 B. To do calculate this we take
+     * the USD value of that collateral type, and divide it by the total USD value of all collateral types. The price
      * actually cancels out here so we just do YUSD amount * token amount / total USD value, instead of
      * YUSD amount * token value / total USD value / token price, since we are trying to find token amount.
+     * _contractsCache is used to limit scope/gas savings
      */
+    /// @param _redeemCaller Address of the redeemer as referenced in redeemCollateral(). It will be msg.sender when called from TroveManager
+    /// @param _borrower Address of the borrower whose Trove is being redeemed
+    /// @param _maxYUSDAmount Maximum amount of YUSD to redeem
+    /// @param _upperPartialRedemptionHint The upper partial redemption hint referenced in redeemCollateral()
+    /// @param _lowerPartialRedemptionHint The lower partial redemption hint referenced in redeemCollateral()
+    /// @param _partialRedemptionHintICR The partial redemption hint ICR referenced in redeemCollateral()
+    /// @return singleRedemption The total YUSD redeemed, the total collateral redeemed, and if the redemption was cancelled due to a partial redemption hint being out of date or new net debt < minimum. Struct referenced in TroveManagerBase.sol
     function _redeemCollateralFromTrove(
         ContractsCache memory _contractsCache,
         address _redeemCaller,
@@ -279,14 +298,14 @@ contract TroveManagerRedemptions is TroveManagerBase {
         uint256 baseLot = singleRedemption.YUSDLot.mul(DECIMAL_PRECISION);
 
         // redemption addresses are the same as coll addresses for trove
-        // Calculation for how much collateral to send of each type. 
+        // Calculation for how much collateral to send of each type.
         singleRedemption.CollLot.tokens = colls.tokens;
         singleRedemption.CollLot.amounts = new uint256[](colls.tokens.length);
         for (uint256 i = 0; i < colls.tokens.length; i++) {
             uint tokenAmountToRedeem = baseLot.mul(colls.amounts[i]).div(totalCollUSD).div(10**(whitelist.getDecimals(colls.tokens[i])));
             finalAmounts[i] = colls.amounts[i].sub(tokenAmountToRedeem);
             singleRedemption.CollLot.amounts[i] = tokenAmountToRedeem;
-            // if it is a wrapped asset we need to reduce reward. 
+            // if it is a wrapped asset we need to reduce reward.
             // Later the asset will be transferred directly out, so no new reward is needed to be kept track of
             if (whitelist.isWrapped(colls.tokens[i])) {
                 IWAsset(colls.tokens[i]).updateReward(_borrower, _redeemCaller, tokenAmountToRedeem);
@@ -324,14 +343,14 @@ contract TroveManagerRedemptions is TroveManagerBase {
 
             /*
              * If the provided hint is too inaccurate of date, we bail since trying to reinsert without a good hint will almost
-             * certainly result in running out of gas. Arbitrary measures of this mean newICR must be greater than hint ICR - 2%, 
+             * certainly result in running out of gas. Arbitrary measures of this mean newICR must be greater than hint ICR - 2%,
              * and smaller than hint ICR + 2%.
              *
              * If the resultant net debt of the partial is less than the minimum, net debt we bail.
              */
 
-            if (newICR >= _partialRedemptionHintICR.add(2e16) || 
-                newICR <= _partialRedemptionHintICR.sub(2e16) || 
+            if (newICR >= _partialRedemptionHintICR.add(2e16) ||
+            newICR <= _partialRedemptionHintICR.sub(2e16) ||
                 _getNetDebt(newDebt) < MIN_NET_DEBT) {
                 singleRedemption.cancelledPartial = true;
                 return singleRedemption;
@@ -364,12 +383,18 @@ contract TroveManagerRedemptions is TroveManagerBase {
     }
 
     /*
+     * @notice
      * Called when a full redemption occurs, and closes the trove.
      * The redeemer swaps (debt - liquidation reserve) YUSD for (debt - liquidation reserve) worth of Collateral, so the YUSD liquidation reserve left corresponds to the remaining debt.
      * In order to close the trove, the YUSD liquidation reserve is burned, and the corresponding debt is removed from the active pool.
      * The debt recorded on the trove's struct is zero'd elswhere, in _closeTrove.
      * Any surplus Collateral left in the trove, is sent to the Coll surplus pool, and can be later claimed by the borrower.
      */
+    /// @param _contractsCache The contracts cache, used to get the contracts
+    /// @param _borrower Address of trove owner being redeemed against
+    /// @param _YUSD The amount of YUSD being redeemed/burned
+    /// @param _remainingColls The remaining collateral in trove after being fully redeemed against. Available for the borrower to claim.
+    /// @param _remainingCollsAmounts The amounts of the remaining collateral in trove after being fully redeemed against. Available for the borrower to claim.
     function _redeemCloseTrove(
         ContractsCache memory _contractsCache,
         address _borrower,
@@ -395,14 +420,18 @@ contract TroveManagerRedemptions is TroveManagerBase {
     }
 
     /*
+     * @notice
      * This function has two impacts on the baseRate state variable:
      * 1) decays the baseRate based on time passed since last redemption or YUSD borrowing operation.
      * then,
      * 2) increases the baseRate based on the amount redeemed, as a proportion of total supply
      */
+    /// @param _YUSDDrawn The amount of YUSD redeemed from the borrower's account
+    /// @param _totalYUSDSupply The total supply of YUSD
+    /// @return uint256 The new baseRate
     function _updateBaseRateFromRedemption(uint256 _YUSDDrawn, uint256 _totalYUSDSupply)
-        internal
-        returns (uint256)
+    internal
+    returns (uint256)
     {
         uint256 decayedBaseRate = troveManager.calcDecayedBaseRate();
 
@@ -416,11 +445,14 @@ contract TroveManagerRedemptions is TroveManagerBase {
         troveManager.updateBaseRate(newBaseRate);
         return newBaseRate;
     }
-
+    /// @notice checks if the address being redeemed against is the lowest ICR in the sortedTroves list.
+    /// @param _sortedTroves The address of the sortedTroves contract. This is where the doubly linked list of troves are stored.
+    /// @param _firstRedemptionHint The address of the trove being redeemed. This should be the first element in the sortedTroves list.
+    /// @return bool True if the address being redeemed against is the lowest ICR in the sortedTroves list.
     function _isValidFirstRedemptionHint(ISortedTroves _sortedTroves, address _firstRedemptionHint)
-        internal
-        view
-        returns (bool)
+    internal
+    view
+    returns (bool)
     {
         if (
             _firstRedemptionHint == address(0) ||
@@ -433,17 +465,21 @@ contract TroveManagerRedemptions is TroveManagerBase {
         address nextTrove = _sortedTroves.getNext(_firstRedemptionHint);
         return nextTrove == address(0) || troveManager.getCurrentICR(nextTrove) < MCR;
     }
-
+    /// @notice checks if the fee is lower than or equal to max fee specified by user
+    /// @param _actualFee The fee being paid
+    /// @param _maxFee The max fee specified by user
     function _requireUserAcceptsFeeRedemption(uint256 _actualFee, uint256 _maxFee) internal pure {
         require(_actualFee <= _maxFee, "User must accept fee");
     }
-
+    /// @notice checks if the fee rate is >0.5% and <100%
+    /// @param _YUSDAmount the amount of YUSD being redeemed
+    /// @param _maxYUSDFee the max amount of YUSD being paid as a fee
     function _requireValidMaxFee(uint256 _YUSDAmount, uint256 _maxYUSDFee) internal pure {
         uint256 _maxFeePercentage = _maxYUSDFee.mul(DECIMAL_PRECISION).div(_YUSDAmount);
         require(_maxFeePercentage >= REDEMPTION_FEE_FLOOR, "Max fee must be at least 0.5%");
         require(_maxFeePercentage <= DECIMAL_PRECISION, "Max fee must be at most 100%");
     }
-
+    /// @notice prevents redemptions during bootstrapping
     function _requireAfterBootstrapPeriod() internal view {
         uint256 systemDeploymentTime = yetiTokenContract.getDeploymentStartTime();
         require(
@@ -451,15 +487,19 @@ contract TroveManagerRedemptions is TroveManagerBase {
             "TroveManager: Redemptions are not allowed during bootstrap phase"
         );
     }
-
+    /// @notice prevents redemptions if the protocol is insolvent
     function _requireTCRoverMCR() internal view {
         require(_getTCR() >= MCR, "TroveManager: Cannot redeem when TCR < MCR");
     }
-
+    /// @notice checks if amount is >0
+    /// @param _amount amount being checked
     function _requireAmountGreaterThanZero(uint256 _amount) internal pure {
         require(_amount > 0, "TroveManager: Amount must be greater than zero");
     }
-
+    /// @notice checks if the redeemer has enough to cover the redemption fee + amount being redeemed
+    /// @param _yusdToken address of YUSD token
+    /// @param _redeemer address of redeemer
+    /// @param _amount amount being redeemed + fee
     function _requireYUSDBalanceCoversRedemption(
         IYUSDToken _yusdToken,
         address _redeemer,
@@ -470,7 +510,8 @@ contract TroveManagerRedemptions is TroveManagerBase {
             "TroveManager: Requested redemption amount must be <= user's YUSD token balance"
         );
     }
-
+    /// @notice makes sure collaterals being provided is nonzero
+    /// @param coll the collaterals given during redemption
     function _requireNonZeroRedemptionAmount(newColls memory coll) internal pure {
         uint256 total = 0;
         for (uint256 i = 0; i < coll.amounts.length; i++) {
@@ -478,19 +519,24 @@ contract TroveManagerRedemptions is TroveManagerBase {
         }
         require(total > 0, "must be non zero redemption amount");
     }
-
+    /// @notice only TroveManager can call this function
     function _requireCallerisTroveManager() internal view {
         require(msg.sender == troveManagerAddress);
     }
-
+    /// @notice calculated YUSD fee based on the amount being redeemed
+    /// @param _YUSDRedeemed The amount of YUSD redeemed from the borrower's account
+    /// @return uint256 The YUSD fee
     function _getRedemptionFee(uint256 _YUSDRedeemed) internal view returns (uint256) {
         return _calcRedemptionFee(troveManager.getRedemptionRate(), _YUSDRedeemed);
     }
-
+    /// @notice calculates the YUSD fee based on the current redemption rate and the amount being redeemed
+    /// @param _redemptionRate The current redemption rate
+    /// @param _YUSDRedeemed The amount of YUSD redeemed from the borrower's account
+    /// @return uint256 The YUSD fee
     function _calcRedemptionFee(uint256 _redemptionRate, uint256 _YUSDRedeemed)
-        internal
-        pure
-        returns (uint256)
+    internal
+    pure
+    returns (uint256)
     {
         uint256 redemptionFee = _redemptionRate.mul(_YUSDRedeemed).div(DECIMAL_PRECISION);
         require(
@@ -499,12 +545,14 @@ contract TroveManagerRedemptions is TroveManagerBase {
         );
         return redemptionFee;
     }
-
+    /// @notice calculated redemption rate based on baseRate
+    /// @param _baseRate The current base rate
+    /// @return uint256 The redemption rate
     function _calcRedemptionRate(uint256 _baseRate) internal pure returns (uint256) {
         return
-            LiquityMath._min(
-                REDEMPTION_FEE_FLOOR.add(_baseRate),
-                DECIMAL_PRECISION // cap at a maximum of 100%
-            );
+        LiquityMath._min(
+            REDEMPTION_FEE_FLOOR.add(_baseRate),
+            DECIMAL_PRECISION // cap at a maximum of 100%
+        );
     }
 }
