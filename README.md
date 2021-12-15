@@ -25,10 +25,10 @@ Some of the checklists in this doc are for **C4 (🐺)** and some of them are fo
 
 Under "SPONSORS ADD INFO HERE" heading below, include the following:
 
-- [ ] Name of each contract and:
-  - [ ] lines of code in each
-  - [ ] external contracts called in each
-  - [ ] libraries used in each
+- [x] Name of each contract and:
+  - [x] lines of code in each
+  - [x] external contracts called in each
+  - [x] libraries used in each
 - [x] Describe any novel or unique curve logic or mathematical models implemented in the contracts
 - [x] Does the token conform to the ERC-20 standard? In what specific ways does it differ?
 - [x] Describe anything else that adds any special logic that makes your approach unique
