@@ -9,7 +9,7 @@
 
 # Repo Walkthrough
 
-All contracts are in the packages/contracts/contracts folder. This includes some contracts that are out of the scope of this contest (details below). This repo also includes robust testing files that may be helpful to understand how the protocol is intended to function. These tests were adapted from Liquity's tests (https://github.com/liquity/dev). However, there may be a couple tests that have not been updated to fit the Yeti Finance protocol.
+All contracts are in the packages/contracts/contracts folder. All contracts in the contracts/TestContracts folder are not in scope-these are solely for testing purposes and will not be deployed. This includes some contracts that are out of the scope of this contest (details below). This repo also includes robust testing files that may be helpful to understand how the protocol is intended to function. These tests were adapted from Liquity's tests (https://github.com/liquity/dev). However, there may be a couple tests that have not been updated to fit the Yeti Finance protocol.
 
 To run tests, first run ```yarn``` to install dependencies. Then, cd into the packages/contracts folder and run ```npx hardhat test```. You can also run a specifc test file with ```npx hardhat test test/TestingFilename.js```. Thanks and good luck!
 
