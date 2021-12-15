@@ -105,7 +105,13 @@ Important: To keep track of the different token values in the system we use a sy
 In the system, each trove has a tokens and amounts array, where `amounts[i]` corresponds to `tokens[i]` for that token. 
 
 ## BorrowerOperations.sol (837 loc)
-BorrowerOperations is where users can add/remove collateral, adjust their debt, close their trove, etc. This file has most of the external functions that people will generally interact with. It adjusts the troves stored in TroveManager. The main external functions are 
+BorrowerOperations is where users can add/remove collateral, adjust their debt, close their trove, etc. This file has most of the external functions that people will generally interact with. It adjusts the troves stored in TroveManager. 
+
+External Contracts Called: TroveManager, ActivePool, Whitelist, CollSurplusPool, SortedTroves, YUSDToken
+
+Libraries Used: LiquityMath, SafeMath
+
+The main external functions are 
 - openTrove() opens a trove for the user. Does necessary checks on the system and collaterals / debt passed in.
 - adjustTrove() allows for any action on a trove as long as it stays above the min debt amount, and the ICR is above the minimum. This includes adjusting collateral (adding and removing) as well as taking out our paying back YUSD debt.
 - closeTrove() closes the trove by using YUSD from the sender, and returns collateral. This function will automatically unwrap wrapped assets prior to returning them to the sender.
@@ -114,6 +120,14 @@ BorrowerOperations is where users can add/remove collateral, adjust their debt, 
 TroveManager handles Liquidations, redemptions, and keeps track of the troves’ statuses, aka all the collateral they are holding, and the debt they have. In Liquity, all this funtionality was in one file called TroveManager.sol. We split it into three because it was too large. The redemptions and liquidations file handle those respective aspects of the protocol, and the main TroveManager handles the general keeping track of the trove. The main external facing functions are 
 - batchLiquidateTroves(), called on a list of troves and liquidates collateral from those troves
 - redeemCollateral(), which redeems a certain amount of YUSD from as many troves as it takes to get to that amount. 
+
+TroveManager External Contracts Called: ActivePool, DefaultPool, Whitelist, CollSurplusPool, SortedTroves, TroveManagerRedemptions, TroveManagerLiquidations
+
+TroveManager Libraries Used: LiquityMath, SafeMath
+
+TroveManagerLiquidations External Contracts Called: ActivePool, StabilityPool, Whitelist, YUSDToken, TroveManager
+
+TroveManagerLiquidations Libraries Used: LiquityMath, SafeMath
 
 ## StabilityPool.sol (638 loc)
 The stability pool is used to offset loans for liquidation purposes, and holding rewards after liquidations occur. Important external facing functions are: 
