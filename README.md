@@ -7,10 +7,6 @@
 - Starts December 16, 2021 00:00 UTC
 - Ends December 22, 2021 23:59 UTC
 
-This repo will be made public before the start of the contest. (C4 delete this line when made public)
-
-[ ⭐️ SPONSORS ADD INFO HERE ]
-
 # Repo Walkthrough
 
 All contracts are in the packages/contracts/contracts folder. This includes some contracts that are out of the scope of this contest (details below). This repo also includes robust testing files that may be helpful to understand how the protocol is intended to function. These tested were adapted from Liquity's codebase tests. However, there may be a couple tests that have not been updated to fit the Yeti Finance protocol.
