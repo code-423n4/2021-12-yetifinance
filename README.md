@@ -159,22 +159,46 @@ Libraries Used: SafeMath
 ## sYETIToken.sol (202 loc)
 sYETI is the contract for the auto-compounding YETI staking mechanism, which receives fees from redemptions and trove adjustments. This contract buys back YETI, and adjusts the ratio of sYETI to YETI, adapted from the sSPELL contract. The YUSD Token itself is in the YUSDToken file. Follows ERC20 standard. 
 
+External Contracts Called: YETIToken, YUSDToken
+
+Libraries Used: BoringMath, BoringMath128, BoringERC20
 
 ## YUSDToken.sol (226 loc)
 YUSDToken follows the ERC20 standard and is our stablecoin which we mint from our protocol. This only allows BorrowerOperations.sol to mint using the user facing functions after respective checks. 
 
+External Contracts Called: None
+
+Libraries Used: SafeMath
+
 ## ActivePool.sol (180 loc) 
 The Active Pool holds all of the collateral of the system. Handles transfer of collateral in and out, including auto unwrapping assets when called and sending them to a certain sender. 
+
+External Contracts Called: Whitelist, IERC20 contracts to transfer assets, IWAsset contracts to unwrap/send and claim rewards on behalf of user
+
+Libraries Used: SafeMath
 
 ## DefaultPool.sol (118 loc)
 The default pool holds collateral of defaulted troves after liquidation that have not been redistributed yet. 
 
+External Contracts Called: ActivePool, Whitelist, IERC20 contracts to transfer assets, IWAsset contracts to update rewards
+
+Libraries Used: SafeMath
+
 ## CollSurplusPool.sol (116 loc)
 CollSurplusPool holds additional collateral after redemptions and liquidations in certain ranges of collateral ratio.
 
-## WJLP.sol (176 loc) (and IWAsset.sol)
-We have written wrapper contracts with the intention of them keeping track of staking rewards on behalf of users. For instance, Trader Joe LP Tokens (JLP) can be staked to get rewards in JOE, which is Trader Joe’s token. We allow users to use this wrapped version of JLP that we have made to take out loans on our platform. Though they do not own the tokens that are being staked, they are still being staked on their behalf. When they pull that collateral out, are liquidated, or are redeemed against, they will be eligible for the same JOE rewards to claim as if they had staked themselves. For our protocol, the whitelist keeps track of which whitelisted collateral are ‘wrapped assets,’ because they are handled differently in some cases. Also acts as a normal ERC20
+External Contracts Called: Whitelist
 
+Libraries Used: SafeMath
+
+## WJLP.sol (176 loc) (and IWAsset.sol)
+We have written wrapper contracts with the intention of them keeping track of staking rewards on behalf of users. For instance, Trader Joe LP Tokens (JLP) can be staked to get rewards in JOE, which is Trader Joe’s token. We allow users to use this wrapped version of JLP that we have made to take out loans on our platform. Though they do not own the tokens that are being staked, the tokens are being staked on their behalfs. When they pull that collateral out, are liquidated, or are redeemed against, they will be eligible for the same JOE rewards to claim as if they had staked themselves. For our protocol, the whitelist keeps track of which whitelisted collateral are ‘wrapped assets,’ because they are handled differently in some cases. Also acts as a normal ERC20
+
+This contract is not well-tested! Just left it in here because it will be a helpful example of the type of thing we intend to do with Wrapped Assets. It is very possible that there are vulnerabilities in the current version of WJLP.sol or tha treward tracking is not done correctly.
+
+External Contracts Called: IERC20 contracts for JOE and Joe LP tokens, MasterChefJoe
+
+Libraries Used: SafeMath
 
 # Areas of Focus 
 - General vulnerabilities with multiple assets that may have been overlooked: users should be only able to interact with their own trove, liquidations and redemptions take the correct amount of collateral with edge cases like recovery mode, different safety ratios, etc. 
