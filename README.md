@@ -13,6 +13,8 @@ All contracts are in the packages/contracts/contracts folder. All contracts in t
 
 To run tests, first run ```yarn``` to install dependencies. Then, cd into the packages/contracts folder and run ```npx hardhat test```. You can also run a specifc test file with ```npx hardhat test test/TestingFilename.js```. Thanks and good luck!
 
+These contracts have been labeled with the MIT open-source license by default. However, they are not open source and not in the public domain.
+
 # Protocol Overview 
 
 Yeti Finance is a decentralized borrowing protocol with a stablecoin built on Avalanche. Think of it as Liquity + Abracadabra on steriods. Yeti Finance lets users borrow against their staked assets, LP tokens, and other interest-bearing and base-level assets with zero acccruing interest fees. Yeti Finance allows users to borrow against their entire portfolio at once, reducing the risk that one asset flash crashing would result in liquidation. After depositing their collateral in a smart contract and creating an individual position called a "trove", the user can get instant liquidity by minting YUSD, a USD-pegged stablecoin. Each trove is required to be collateralized at a minimum of 110%. Any owner of YUSD can redeem their stablecoins for the underlying collateral at any time. The redemption mechanism along with algorithmically adjusted fees guarantee a minimum stablecoin value of USD 1.
