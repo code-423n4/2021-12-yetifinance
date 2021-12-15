@@ -29,10 +29,10 @@ Under "SPONSORS ADD INFO HERE" heading below, include the following:
   - [ ] lines of code in each
   - [ ] external contracts called in each
   - [ ] libraries used in each
-- [ ] Describe any novel or unique curve logic or mathematical models implemented in the contracts
-- [ ] Does the token conform to the ERC-20 standard? In what specific ways does it differ?
-- [ ] Describe anything else that adds any special logic that makes your approach unique
-- [ ] Identify any areas of specific concern in reviewing the code
+- [x] Describe any novel or unique curve logic or mathematical models implemented in the contracts
+- [x] Does the token conform to the ERC-20 standard? In what specific ways does it differ?
+- [x] Describe anything else that adds any special logic that makes your approach unique
+- [x] Identify any areas of specific concern in reviewing the code
 - [ ] Add all of the code to this repo that you want reviewed
 - [ ] Create a PR to this repo with the above changes.
 
@@ -40,13 +40,13 @@ Under "SPONSORS ADD INFO HERE" heading below, include the following:
 
 # ⭐️ Sponsor: Provide marketing details
 
-- [ ] Your logo (URL or add file to this repo - SVG or other vector format preferred)
-- [ ] Your primary Twitter handle
-- [ ] Any other Twitter handles we can/should tag in (e.g. organizers' personal accounts, etc.)
-- [ ] Your Discord URI
-- [ ] Your website
-- [ ] Optional: Do you have any quirks, recurring themes, iconic tweets, community "secret handshake" stuff we could work in? How do your people recognize each other, for example? 
-- [ ] Optional: your logo in Discord emoji format
+- [x] Your logo (URL or add file to this repo - SVG or other vector format preferred)
+- [x] Your primary Twitter handle: @YetiFinance
+- [x] Any other Twitter handles we can/should tag in (e.g. organizers' personal accounts, etc.) @0xtruco, @0xRoboYeti, @0xTalent
+- [x] Your Discord URI: http://discord.gg/yetifinance
+- [x] Your website: www.yetifinance.co
+- [x] Optional: Do you have any quirks, recurring themes, iconic tweets, community "secret handshake" stuff we could work in? How do your people recognize each other, for example?: Refer ourselves as the Yeti Nation
+- [x] Optional: your logo in Discord emoji format
 
 ---
 
@@ -65,12 +65,12 @@ Under "SPONSORS ADD INFO HERE" heading below, include the following:
 ## ⭐️ Sponsor: Contest prep
 - [ ] Make sure your code is thoroughly commented using the [NatSpec format](https://docs.soliditylang.org/en/v0.5.10/natspec-format.html#natspec-format).
 - [ ] Modify the bottom of this `README.md` file to describe how your code is supposed to work with links to any relevent documentation and any other criteria/details that the C4 Wardens should keep in mind when reviewing. ([Here's a well-constructed example.](https://github.com/code-423n4/2021-06-gro/blob/main/README.md))
-- [ ] Please have final versions of contracts and documentation added/updated in this repo **no less than 8 hours prior to contest start time.**
-- [ ] Ensure that you have access to the _findings_ repo where issues will be submitted.
-- [ ] Promote the contest on Twitter (optional: tag in relevant protocols, etc.)
-- [ ] Share it with your own communities (blog, Discord, Telegram, email newsletters, etc.)
-- [ ] Optional: pre-record a high-level overview of your protocol (not just specific smart contract functions). This saves wardens a lot of time wading through documentation.
-- [ ] Designate someone (or a team of people) to monitor DMs & questions in the C4 Discord (**#questions** channel) daily (Note: please *don't* discuss issues submitted by wardens in an open channel, as this could give hints to other wardens.)
+- [x] Please have final versions of contracts and documentation added/updated in this repo **no less than 8 hours prior to contest start time.**
+- [x] Ensure that you have access to the _findings_ repo where issues will be submitted.
+- [x] Promote the contest on Twitter (optional: tag in relevant protocols, etc.)
+- [x] Share it with your own communities (blog, Discord, Telegram, email newsletters, etc.)
+- [x] Optional: pre-record a high-level overview of your protocol (not just specific smart contract functions). This saves wardens a lot of time wading through documentation.
+- [x] Designate someone (or a team of people) to monitor DMs & questions in the C4 Discord (**#questions** channel) daily (Note: please *don't* discuss issues submitted by wardens in an open channel, as this could give hints to other wardens.)
 - [ ] Delete this checklist and all text above the line below when you're ready.
 
 ---
@@ -98,25 +98,25 @@ A liquidation mechanism based on incentivized stability deposits and a redistrib
 
 More information about all of these systems in particular are available on our [docs](https://docs.yetifinance.co)
 
-There are some special economic mechanisms to stabilize the protocol compared to a more standard overcollateralized stablecoin lending protocol. If a user’s individual collateralization ratio (ICR = Value collateral / YUSD Debt) falls below 110%, then they are open to liquidations. These liquidations are done through the stability pool, which is an incentivized pool of YUSD which essentially pays back debt of undercollateralized troves, and gets value in collateral back. Another important mechanism implemented is redemptions, which was the idea that one dollar of YUSD can always redeem for one dollar value of collateral from the system. A less commonly used but still important system is redistributions, where if there is not enough YUSD in the stability pool but there is a trove eligible for liquidation, it will redistribute the debt and collateral to all troves in the system. These systems are quite similar to [Liquity's](https://github.com/liquity/dev), but instead use multiple collateral types at once in a single trove. 
+There are some special economic mechanisms to stabilize the protocol compared to a more standard overcollateralized stablecoin lending protocol. If a user’s individual collateralization ratio (ICR = Value collateral / YUSD Debt) falls below 110%, then they are open to liquidations. These liquidations are done through the stability pool, which is an incentivized pool of YUSD which essentially pays back debt of undercollateralized troves, and gets value in collateral back. Another important mechanism implemented is redemptions, which was the idea that one dollar of YUSD can always redeem for one dollar value of collateral from the system. A less commonly used but still important system is redistributions, where if there is not enough YUSD in the stability pool but there is a trove eligible for liquidation, it will redistribute the debt and collateral to other troves in the system. These systems are quite similar to [Liquity's](https://github.com/liquity/dev), but instead use multiple collateral types at once in a single trove. 
 
-Important: To keep track of the different token values in the system we use a system called “VC” or Virtual Coin which takes riskier assets to have less value in the system than safer assets. Essentially it standardizes the value of all the collateral in one user’s trove into one collateral value number. The VC for a collateral depends on a safety ratio which is defined as a risk parameter when adding the token to the whitelist. $VC = Safety ratio * Token amount * Token price in USD. Example: I have 0.75 wMEMO at $8000 dollars with a safety ratio of ⅔. $VC = 0.75 * ⅔ * 8000 = $4000. So, I can take a loan against this $4000 dollars as if it were $4000 of a safe asset with a safety ratio = 1.
+Important: To keep track of the different token values in the system we use a system called “VC” or Virtual Coin which takes riskier assets to have less value in the system than safer assets. Essentially it standardizes the value of all the collateral in one user’s trove into one collateral value number. The VC for a collateral depends on a safety ratio which is defined as a risk parameter when adding the token to the whitelist. $VC = Safety ratio * Token amount * Token price in USD. Example: I have 0.75 wMEMO at $8000 dollars with a safety ratio of ⅔. $VC = 0.75 * ⅔ * 8000 = $4000. So, I can take a loan against this $4000 dollars as if it were $4000 of a safe asset with a safety ratio = 1. All troves are eligible to be liquidated when the VC of collateral in the trove falls below 110% of debt on the trove. So with this 4000 VC wMEMO trove, I can borrow up to ~3636.4 YUSD (40000 / 1.10).
 
 In the system, each trove has a tokens and amounts array, where `amounts[i]` corresponds to `tokens[i]` for that token. 
 
 ## BorrowerOperations.sol (837 loc)
 BorrowerOperations is where users can add/remove collateral, adjust their debt, close their trove, etc. This file has most of the external functions that people will generally interact with. It adjusts the troves stored in TroveManager. The main external functions are 
 - openTrove() opens a trove for the user. Does necessary checks on the system and collaterals / debt passed in.
-- adjustTrove() allows for any action on a trove as long as it stays above the min debt amount, and the ICR is above the minimum.
-- closeTrove() closes the trove by using YUSD from the sender, and returns collateral. Auto unwraps wrapped assets.
+- adjustTrove() allows for any action on a trove as long as it stays above the min debt amount, and the ICR is above the minimum. This includes adjusting collateral (adding and removing) as well as taking out our paying back YUSD debt.
+- closeTrove() closes the trove by using YUSD from the sender, and returns collateral. This function will automatically unwrap wrapped assets prior to returning them to the sender.
 
 ## TroveManager.sol (591 loc), TroveManagerLiquidations.sol (646 loc), and TroveManagerRedemptions (356 loc)
-TroveManager handles Liquidations, redemptions, and keeps track of the troves’ statuses, aka all the collateral they are holding, and the debt they have. The file was too large so we had to split it into three to be able to deploy. The redemptions and liquidations file handle those respective aspects of the protocol, and the main TroveManager handles the general keeping track of the trove. The main external facing functions are 
+TroveManager handles Liquidations, redemptions, and keeps track of the troves’ statuses, aka all the collateral they are holding, and the debt they have. In Liquity, all this funtionality was in one file called TroveManager.sol. We split it into three because it was too large. The redemptions and liquidations file handle those respective aspects of the protocol, and the main TroveManager handles the general keeping track of the trove. The main external facing functions are 
 - batchLiquidateTroves(), called on a list of troves and liquidates collateral from those troves
 - redeemCollateral(), which redeems a certain amount of YUSD from as many troves as it takes to get to that amount. 
 
 ## StabilityPool.sol (638 loc)
-The stability pool is used to offset loans for liquidation purposes, and holding rewards after liquidations occur. Functions related to frontend operation are not important to look at as that is deprecated in our system. Important external facing functions are: 
+The stability pool is used to offset loans for liquidation purposes, and holding rewards after liquidations occur. Important external facing functions are: 
 - provideToSP(), withdrawFromSP(), functions to change the amount of YUSD that you have in the stability pool, and collect rewards. 
 
 ## Whitelist.sol (273 loc) 
