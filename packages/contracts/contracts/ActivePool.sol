@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: UNLICENSED
 
 pragma solidity 0.6.11;
 
@@ -33,7 +33,6 @@ contract ActivePool is Ownable, CheckContract, IActivePool, YetiCustomBase {
     address public defaultPoolAddress;
     address public troveManagerLiquidationsAddress;
     address public troveManagerRedemptionsAddress;
-    address public whitelistAddress;
     address public collSurplusPoolAddress;
 
     
@@ -50,6 +49,7 @@ contract ActivePool is Ownable, CheckContract, IActivePool, YetiCustomBase {
     event ActivePoolYUSDDebtUpdated(uint _YUSDDebt);
     event ActivePoolBalanceUpdated(address _collateral, uint _amount);
     event ActivePoolBalancesUpdated(address[] _collaterals, uint256[] _amounts);
+    event CollateralsSent(address[] _collaterals, uint256[] _amounts, address _to);
 
     // --- Contract setters ---
 
@@ -82,7 +82,6 @@ contract ActivePool is Ownable, CheckContract, IActivePool, YetiCustomBase {
         whitelist = IWhitelist(_whitelistAddress);
         troveManagerLiquidationsAddress = _troveManagerLiquidationsAddress;
         troveManagerRedemptionsAddress = _troveManagerRedemptionsAddress;
-        whitelistAddress = _whitelistAddress;
         collSurplusPoolAddress = _collSurplusPoolAddress;
 
         emit BorrowerOperationsAddressChanged(_borrowerOperationsAddress);
@@ -113,7 +112,6 @@ contract ActivePool is Ownable, CheckContract, IActivePool, YetiCustomBase {
     function getAllCollateral() public view override returns (address[] memory, uint256[] memory) {
         return (poolColl.tokens, poolColl.amounts);
     }
-
 
     // returns the VC value of a given collateralAddress in this contract
     function getCollateralVC(address _collateral) external view override returns (uint) {
@@ -171,6 +169,8 @@ contract ActivePool is Ownable, CheckContract, IActivePool, YetiCustomBase {
         if (_needsUpdateCollateral(_to)) {
             ICollateralReceiver(_to).receiveCollateral(_tokens, _amounts);
         }
+
+        emit CollateralsSent(_tokens, _amounts, _to);
         
         return true;
     }
@@ -250,7 +250,7 @@ contract ActivePool is Ownable, CheckContract, IActivePool, YetiCustomBase {
 
     function _requireCallerIsWhitelist() internal view {
         require(
-        msg.sender == whitelistAddress,
+        msg.sender == address(whitelist),
         "ActivePool: Caller is not whitelist");
     }
 

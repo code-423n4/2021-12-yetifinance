@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: UNLICENSED
 
 pragma solidity 0.6.11;
 
@@ -8,7 +8,7 @@ interface IPriceFeed {
     event LastGoodPriceUpdated(uint _lastGoodPrice);
 
     // --- Function ---
-    function fetchPrice() external returns (uint);
+    // function fetchPrice() external returns (uint);
 
     function fetchPrice_v() view external returns (uint);
 }

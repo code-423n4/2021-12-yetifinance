@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: UNLICENSED
 
 pragma solidity 0.6.11;
 
@@ -42,6 +42,22 @@ interface IBorrowerOperations {
         address[] calldata _colls,
         uint[] calldata _amounts) external;
 
+        function openTroveLeverUp(
+        uint256 _maxFeePercentage,
+        uint256 _YUSDAmount,
+        address _upperHint,
+        address _lowerHint,
+        address[] memory _colls,
+        uint256[] memory _amounts, 
+        uint256[] memory _leverages,
+        uint256[] memory _maxSlippages
+    ) external;
+
+    function closeTroveUnlever(
+        address[] memory _collsOut,
+        uint256[] memory _amountsOut,
+        uint256[] memory _maxSlippages
+    ) external;
 
     function closeTrove() external;
 
@@ -58,7 +74,27 @@ interface IBorrowerOperations {
 
     function addColl(address[] memory _collsIn, uint[] memory _amountsIn, address _upperHint, address _lowerHint, uint _maxFeePercentage) external;
 
+    function addCollLeverUp(
+        address[] memory _collsIn,
+        uint256[] memory _amountsIn,
+        uint256[] memory _leverages,
+        uint256[] memory _maxSlippages,
+        uint256 _YUSDAmount,
+        address _upperHint,
+        address _lowerHint, 
+        uint256 _maxFeePercentage
+    ) external;
+
     function withdrawColl(address[] memory _collsOut, uint[] memory _amountsOut, address _upperHint, address _lowerHint) external;
+
+    function withdrawCollUnleverUp(
+        address[] memory _collsOut,
+        uint256[] memory _amountsOut,
+        uint256[] memory _maxSlippages,
+        uint256 _YUSDAmount,
+        address _upperHint,
+        address _lowerHint
+    ) external;
 
     function withdrawYUSD(uint _maxFeePercentage, uint _YUSDAmount, address _upperHint, address _lowerHint) external;
 

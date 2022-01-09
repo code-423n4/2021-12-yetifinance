@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: UNLICENSED
 
 pragma solidity 0.6.11;
 
@@ -62,7 +62,7 @@ contract TroveManagerTester is TroveManager {
     }
 
     function callInternalRemoveTroveOwner(address _troveOwner) external {
-        uint troveOwnersArrayLength = TroveOwners.length;
+        uint troveOwnersArrayLength = getTroveOwnersCount();
         _removeTroveOwner(_troveOwner, troveOwnersArrayLength);
     }
 

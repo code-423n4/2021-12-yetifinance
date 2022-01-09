@@ -126,6 +126,7 @@ contract('WAssetTroveManagerTests', async accounts => {
         assert.equal(finalWJLPBalance.toString(), amount);
     })
 
+    // TODO test out that WAsset rewards increase after fast forwarding time
     it("open trove and liquidate-standard liquidation one Trove liquidated and one SP depositor", async () => {
       const minDebt = await contracts.borrowerOperations.MIN_NET_DEBT()
       const amount = await zapForWAVAX_WETH_JLP(harry, minDebt)
@@ -145,7 +146,7 @@ contract('WAssetTroveManagerTests', async accounts => {
       await ethers.provider.send('evm_increaseTime', [2592000]);
       await ethers.provider.send('evm_mine');
 
-      const pendingJOERewardsHarry = await WJLP.getPendingRewards(harry);
+      let pendingJOERewardsHarry = await WJLP.getPendingRewards(harry);
       console.log(pendingJOERewardsHarry);
       // assert.isTrue(pendingJOERewardsHarry.gt(toBN("0")));
 
@@ -168,6 +169,95 @@ contract('WAssetTroveManagerTests', async accounts => {
       const troveDebt = await troveManager.getTroveDebt(harry);
 
       console.log("VC and Debt: ", troveVC.toString())
+      console.log(troveDebt.toString())
+
+      // bob started with 0 JLP and WJLP
+      const initJLP_bob = await jlp.balanceOf(bob);
+      const initWJLP_bob = await WJLP.balanceOf(bob);
+      assert.equal(initJLP_bob.toString(), "0")
+      assert.equal(initWJLP_bob.toString(), "0")
+
+      await troveManager.liquidate(harry, {from: bob});
+
+      const finalWJLP_bob = await WJLP.balanceOf(bob);
+      const finalJLP_bob = await jlp.balanceOf(bob)
+
+      // Then Bob gets 0 WJLP and amount / 200 JLP after liquidation
+      assert.equal(finalWJLP_bob.toString(), "0")
+      const expectedFinalJLP_bob = amount.div(toBN(200));
+      assert.equal(finalJLP_bob.toString(), expectedFinalJLP_bob.toString())
+
+      harryRewards = await WJLP.getUserInfo(harry);
+      // After liquidation, Harry is no longer credited to be earning JOE on LP tokens
+      assert.equal(harryRewards["0"].toString(), "0")
+
+      // the WJLP that was not taken as liquidation should be in the SP
+      const expectedWJLP_inSP = amount.sub(expectedFinalJLP_bob);
+      const WJLP_inSP = await WJLP.balanceOf(stabilityPool.address);
+      assert.equal(WJLP_inSP.toString(), expectedWJLP_inSP.toString());
+
+      // after liquidation, JOE rewards for WJLP in SP go to treasury
+      let treasuryRewardsMid = await WJLP.getUserInfo(treasury.address);
+      assert.equal(treasuryRewardsMid["0"].toString(), expectedWJLP_inSP.toString())
+
+      // when Alice withdraws her liquidationRewards from SP, they should automatically be unwrapped for her
+      // alice started with 0 JLP and WJLP
+      const initJLP_alice = await jlp.balanceOf(alice);
+      const initWJLP_alice = await WJLP.balanceOf(alice);
+      assert.equal(initJLP_alice.toString(), "0")
+      assert.equal(initWJLP_alice.toString(), "0")
+
+      await stabilityPool.withdrawFromSP(YUSDBalance, {from: alice});
+      const finalWJLP_alice = await WJLP.balanceOf(alice);
+      const finalJLP_alice = await jlp.balanceOf(alice)
+
+      // after withdrawing, Alice gets 0 WJLP and gets back approximately
+      // (amount - liquidator's reward) of JLP (where amount is the amount of JLP in the trove)
+      assert.equal(finalWJLP_alice.toString(), "0")
+      const expectedFinalJLP_alice = expectedWJLP_inSP
+      th.assertIsApproximatelyEqual(finalJLP_alice, expectedFinalJLP_alice)
+
+      // after WJLP withdrawn from SP, Treasury is receiving rewards from 0 staked JLP
+      let treasuryRewardsFinal = await WJLP.getUserInfo(treasury.address);
+      th.assertIsApproximatelyEqual(treasuryRewardsFinal["0"], toBN(0))
+    })
+
+    // TODO: write this test
+    it.only("open trove and liquidate-redistribution", async () => {
+      const minDebt = await contracts.borrowerOperations.MIN_NET_DEBT()
+      const amount = await zapForWAVAX_WETH_JLP(harry, minDebt)
+
+      await approveJLP(harry, amount, WJLP.address)
+
+      await WJLP.wrap(amount, harry, harry, harry);
+
+      let harryRewards = await WJLP.getUserInfo(harry);
+      let treasuryRewardsInit = await WJLP.getUserInfo(treasury.address);
+      // Harry is credited to be earning JOE on amount of staked LP tokens
+      assert.equal(harryRewards["0"].toString(), amount.toString())
+      // treasury is credited to be earning JOE on 0 staked LP tokens
+      assert.equal(treasuryRewardsInit["0"].toString(), "0")
+
+
+      await WJLP.approve(borrowerOperations.address, amount, {from: harry})
+
+      const val = await contracts.whitelist.getValueVC(WJLP.address, amount)
+      console.log("Amount:", amount.toString());
+      console.log("VC:", val.toString());
+
+      // th.test opens a trove with WJLP as collateral for harry
+      await th.test(contracts, harry, WJLP.address, amount)
+      // alice opens a large trove with WETH collateral and a large debt position
+      await th.openTrove(contracts, { ICR: toBN(dec(16, 17)), extraYUSDAmount: toBN(dec(2, 25)), extraParams: { from: alice } })
+      const YUSDBalance = await yusdToken.balanceOf(alice);
+      await stabilityPool.provideToSP(YUSDBalance, zeroAddress, {from: alice});
+
+      await contracts.priceFeedJLP.setPrice(toBN(dec(155, 17)).toString())
+
+      const troveVC = await troveManager.getTroveVC(harry);
+      const troveDebt = await troveManager.getTroveDebt(harry);
+
+      console.log("harry VC and Debt: ", troveVC.toString())
       console.log(troveDebt.toString())
 
       // bob started with 0 JLP and WJLP

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: UNLICENSED
 
 pragma solidity 0.6.11;
 
@@ -14,4 +14,5 @@ interface IDefaultPool is IPool {
     
     function sendCollsToActivePool(address[] memory _collaterals, uint[] memory _amounts, address _borrower) external;
     function addCollateralType(address _collateral) external;
+    function getCollateralVC(address collateralAddress) external view returns (uint);
 }

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: UNLICENSED
 // Based on code and smartness by Ross Campbell and Keno
 // Uses immutable to store the domain separator to reduce gas usage
 // If the chain id changes due to a fork, the forked chain will calculate on the fly.

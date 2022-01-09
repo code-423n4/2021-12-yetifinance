@@ -10,6 +10,7 @@
     "hardhat": "hardhat",
     "prepare": "run-s prepare:*",
     "prepare:compile": "hardhat compile",
+    "prepare:set-version": "node scripts/set-version.js",
     "deploy:avalanche": "npx hardhat --network avalanche run mainnetDeployment/avalancheDeployment.js && node scripts/serializeDeployment.js mainnetDeployment/avalancheDeploymentOutput.json",
     "deploy:fuji": "npx hardhat --network fuji run mainnetDeployment/fujiDeployment.js && node scripts/serializeDeployment.js mainnetDeployment/fujiDeploymentOutput.json",
     "deploy:fuji-setreward": "npx hardhat --network fuji run mainnetDeployment/setPool2RewardFuji.js",

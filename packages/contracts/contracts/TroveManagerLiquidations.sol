@@ -1,10 +1,9 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: UNLICENSED
 
 pragma solidity 0.6.11;
 
 import "./Interfaces/IWAsset.sol";
 import "./Dependencies/TroveManagerBase.sol";
-import "hardhat/console.sol";
 
 /** 
  * TroveManagerLiquidations is derived from TroveManager and has all the functions 
@@ -424,7 +423,7 @@ contract TroveManagerLiquidations is TroveManagerBase {
             singleLiquidation.entireTroveDebt,
             TroveManagerOperation.liquidateInNormalMode
         );
-        newColls memory borrowerColls;// = troveManager.getTroveColls(_borrower);
+        newColls memory borrowerColls;
         emit TroveUpdated(
             _borrower,
             0,
@@ -517,7 +516,8 @@ contract TroveManagerLiquidations is TroveManagerBase {
             );
 
             // If 100% < ICR < MCR, offset as much as possible, and redistribute the remainder
-        } else if ((_ICR > _100pct) && (_ICR < MCR)) {
+            // ICR > 100% is implied by prevoius state. 
+        } else if (_ICR < MCR) {
 
             troveManager.movePendingTroveRewardsToActivePool(
                 _activePool,
@@ -562,9 +562,10 @@ contract TroveManagerLiquidations is TroveManagerBase {
              * and there is YUSD in the Stability Pool, only offset, with no redistribution,
              * but at a capped rate of 1.1 and only if the whole debt can be liquidated.
              * The remainder due to the capped rate will be claimable as collateral surplus.
+             * ICR >= 110% is implied from last else if statement. 
              */
         } else if (
-            (_ICR >= MCR) && (_ICR < _TCR) && (singleLiquidation.entireTroveDebt <= _YUSDInStabPool)
+           (_ICR < _TCR) && (singleLiquidation.entireTroveDebt <= _YUSDInStabPool)
         ) {
             troveManager.movePendingTroveRewardsToActivePool(
                 _activePool,

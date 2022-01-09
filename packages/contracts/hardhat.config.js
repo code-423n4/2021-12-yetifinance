@@ -92,7 +92,7 @@ module.exports = {
             allowUnlimitedContractSize: true,
             chainId: 1,
             // Uncomment when running normal tests, and comment when forking. set enabled to true
-            accounts: accountsList,
+            //accounts: accountsList,
             forking: {
                 enabled: true,
                 url: 'https://api.avax.network/ext/bc/C/rpc', // Mainnet

@@ -85,7 +85,9 @@ contract('TroveManager', async accounts => {
     await deploymentHelper.connectCoreContracts(contracts, LQTYContracts)
     await deploymentHelper.connectYETIContracts(LQTYContracts)
     await deploymentHelper.connectYETIContractsToCore(LQTYContracts, contracts)
-    await contracts.whitelist.addCollateral(contracts.dec16.address, "1000000000000000000", contracts.priceFeedDEC16.address, 20, contracts.PriceCurveDEC16.address, false);
+    
+    const newERC20Router = await ERC20Router.new(contracts.activePool.address)
+    await contracts.whitelist.addCollateral(contracts.dec16.address, "1000000000000000000", contracts.priceFeedDEC16.address, 20, contracts.PriceCurveDEC16.address, false, newERC20Router.address);
     contracts.weth = contracts.dec16
     contracts.priceFeedETH = contracts.priceFeedDEC16
     priceFeed = contracts.priceFeedETH

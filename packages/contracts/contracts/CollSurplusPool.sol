@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: UNLICENSED
 
 pragma solidity 0.6.11;
 
@@ -52,6 +52,7 @@ contract CollSurplusPool is Ownable, CheckContract, ICollSurplusPool, LiquityBas
         checkContract(_troveManagerAddress);
         checkContract(_troveManagerRedemptionsAddress);
         checkContract(_activePoolAddress);
+        checkContract(_whitelistAddress);
 
         borrowerOperationsAddress = _borrowerOperationsAddress;
         troveManagerAddress = _troveManagerAddress;

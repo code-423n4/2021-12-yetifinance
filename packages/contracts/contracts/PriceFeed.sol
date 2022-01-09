@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: UNLICENSED
 
 pragma solidity 0.6.11;
 
@@ -126,7 +126,7 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
     * it uses the last good price seen by Liquity.
     *
     */
-    function fetchPrice() external override returns (uint) {
+    function fetchPrice() external returns (uint) {
         // Get current and previous price data from Chainlink, and current price data from Tellor
         ChainlinkResponse memory chainlinkResponse = _getCurrentChainlinkResponse();
         ChainlinkResponse memory prevChainlinkResponse = _getPrevChainlinkResponse(chainlinkResponse.roundId, chainlinkResponse.decimals);

@@ -913,7 +913,7 @@ contract('StabilityPool', async accounts => {
       assert.equal(F3_Diff, deposit_C)
     })
 
-    it("provideToSP(), new deposit: depositor does not receive ETH gains", async () => {
+    it.only("provideToSP(), new deposit: depositor does not receive ETH gains", async () => {
       await openTrove({ extraYUSDAmount: toBN(dec(10000, 18)), ICR: toBN(dec(10, 18)), extraParams: { from: whale } })
 
       // Whale transfers YUSD to A, B

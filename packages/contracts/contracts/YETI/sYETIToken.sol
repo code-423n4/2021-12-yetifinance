@@ -228,7 +228,7 @@ contract sYETIToken is IERC20, Domain, BoringOwnable {
         require(YUSDToSell > 0, "Zero amount");
         require(lastBuybackTime + 69 hours < block.timestamp, "Must have 69 hours pass before another buyBack");
         yusdToken.approve(routerAddress, YUSDToSell);
-        uint256[] memory amounts = IRouter(routerAddress).swapExactTokensForTokens(YUSDToSell, YETIOutMin, path, address(this), block.timestamp + 5 minutes);
+        uint256[] memory amounts = IRouter(routerAddress).swapExactTokensForTokens(YUSDToSell, YETIOutMin, path, address(this), block.timestamp);
         lastBuybackTime = block.timestamp;
         // amounts[0] is the amount of YUSD that was sold, and amounts[1] is the amount of YETI that was gained in return. So the price is amounts[0] / amounts[1]
         lastBuybackPrice = div(amounts[0].mul(1e18), amounts[1]);
@@ -244,7 +244,7 @@ contract sYETIToken is IERC20, Domain, BoringOwnable {
         uint256 valueOfContract = _getValueOfContract(yetiTokenBalance);
         uint256 additionalYetiTokenBalance = div(valueOfContract.mul(transferRatio), (lastBuybackPrice));
         // Ensure that the amount of YETI tokens effectively added is >= the amount we have repurchased. 
-        if (yetiTokenBalance < additionalYetiTokenBalance) {
+        if (yetiTokenBalance - effectiveYetiTokenBalance < additionalYetiTokenBalance) {
             additionalYetiTokenBalance = yetiTokenBalance;
         }
         effectiveYetiTokenBalance = effectiveYetiTokenBalance.add(additionalYetiTokenBalance);

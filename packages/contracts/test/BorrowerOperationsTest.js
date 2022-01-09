@@ -580,8 +580,6 @@ contract('BorrowerOperations', async accounts => {
 
       const aliceColls = await th.getTroveEntireColl(contracts, alice)
       const aliceDebt = await th.getTroveEntireDebt(contracts, alice)
-      console.log("Alice colls 200% " + aliceColls[0].toString())
-      console.log("Alice debt 200% " + aliceDebt.toString())
 
       const aliceColl = (await th.getTroveEntireColl(contracts, alice))[0]
 

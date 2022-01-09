@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: UNLICENSED
 
 pragma solidity 0.6.11;
 
@@ -88,7 +88,7 @@ contract ThreePieceWiseLinearPriceCurve is IPriceCurve, Ownable {
     function getFee(uint256 _collateralVCInput, uint256 _totalCollateralVCBalance, uint256 _totalVCBalancePre, uint256 _totalVCBalancePost) override external view returns (uint256 fee) {
         // If dollarCap == 0, then it is not capped. Otherwise, then the total + the total input must be less than the cap.
         if (dollarCap != 0) {
-            require(_collateralVCInput <= dollarCap, "Collateral input exceeds cap");
+            require(_totalCollateralVCBalance.add(_collateralVCInput) <= dollarCap, "Collateral input exceeds cap");
         }
 
         uint feePre = _getFeePoint(_totalCollateralVCBalance, _totalVCBalancePre);
@@ -105,7 +105,7 @@ contract ThreePieceWiseLinearPriceCurve is IPriceCurve, Ownable {
         require(msg.sender == whitelistAddress, "Only whitelist can update fee");
         // If dollarCap == 0, then it is not capped. Otherwise, then the total + the total input must be less than the cap.
         if (dollarCap != 0) {
-            require(_collateralVCInput <= dollarCap, "Collateral input exceeds cap");
+            require(_totalCollateralVCBalance.add(_collateralVCInput) <= dollarCap, "Collateral input exceeds cap");
         }
         uint feePre = _getFeePoint(_totalCollateralVCBalance, _totalVCBalancePre);
         uint feePost = _getFeePoint(_totalCollateralVCBalance.add(_collateralVCInput), _totalVCBalancePost);

@@ -725,7 +725,8 @@ class TestHelper {
       params._oracle,
       params._decimals,
       params._priceCurve, 
-      false
+      false,
+      params._router
     );
     const validCollateral = await whitelist.getValidCollateral();
   }

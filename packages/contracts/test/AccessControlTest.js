@@ -14,7 +14,7 @@ on the Liquity admin address's capabilities during the first year are found in:
 
 test/launchSequenceTest/DuringLockupPeriodTest.js */
 
-contract('Access Control: Access to functions with the caller restricted to Yeti contract(s)', async accounts => {
+contract('Access Control: Liquity functions with the caller restricted to Liquity contract(s)', async accounts => {
 
   const [owner, alice, bob, carol] = accounts;
   const [bountyAddress, lpRewardsAddress, multisig] = accounts.slice(997, 1000)

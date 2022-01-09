@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: UNLICENSED
 
 pragma solidity 0.6.11;
 
@@ -19,12 +19,12 @@ contract PriceFeedTestnet is IPriceFeed {
         return _price;
     }
 
-    function fetchPrice() external override returns (uint256) {
-        // Fire an event just like the mainnet version would.
-        // This lets the subgraph rely on events to get the latest price even when developing locally.
-        emit LastGoodPriceUpdated(_price);
-        return _price;
-    }
+    // function fetchPrice() external override returns (uint256) {
+    //     // Fire an event just like the mainnet version would.
+    //     // This lets the subgraph rely on events to get the latest price even when developing locally.
+    //     emit LastGoodPriceUpdated(_price);
+    //     return _price;
+    // }
 
     function fetchPrice_v() view external override returns (uint) {
         return _price;

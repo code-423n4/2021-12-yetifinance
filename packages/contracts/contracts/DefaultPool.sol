@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: UNLICENSED
 
 pragma solidity 0.6.11;
 
@@ -83,6 +83,11 @@ contract DefaultPool is Ownable, CheckContract, IDefaultPool, YetiCustomBase {
      */
     function getAllCollateral() public view override returns (address[] memory, uint256[] memory) {
         return (poolColl.tokens, poolColl.amounts);
+    }
+
+    // returns the VC value of a given collateralAddress in this contract
+    function getCollateralVC(address _collateral) external view override returns (uint) {
+        return whitelist.getValueVC(_collateral, getCollateral(_collateral));
     }
 
     /*

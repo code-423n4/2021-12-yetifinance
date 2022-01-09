@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: UNLICENSED
 
 pragma solidity 0.6.11;
 
@@ -65,7 +65,7 @@ contract TroveManager is TroveManagerBase, ITroveManager {
     *
     * Where L_Coll[coll](0) and L_YUSDDebt(0) are snapshots of L_Coll[coll] and L_YUSDDebt for the active Trove taken at the instant the stake was made
     */
-    mapping (address => uint) public L_Coll;
+    mapping (address => uint) private L_Coll;
     mapping (address => uint) public L_YUSDDebt;
 
     // Map addresses with active troves to their RewardSnapshot
@@ -78,7 +78,7 @@ contract TroveManager is TroveManagerBase, ITroveManager {
     }
 
     // Array of all active trove addresses - used to to compute an approximate hint off-chain, for the sorted list insertion
-    address[] public TroveOwners;
+    address[] private TroveOwners;
 
     // Error trackers for the trove redistribution calculation
     mapping (address => uint) public lastCollError_Redistribution;
@@ -161,7 +161,7 @@ contract TroveManager is TroveManagerBase, ITroveManager {
 
     // --- Getters ---
 
-    function getTroveOwnersCount() external view override returns (uint) {
+    function getTroveOwnersCount() public view override returns (uint) {
         return TroveOwners.length;
     }
 
@@ -340,7 +340,7 @@ contract TroveManager is TroveManagerBase, ITroveManager {
     // Update borrower's snapshots of L_Coll and L_YUSDDebt to reflect the current values
     function updateTroveRewardSnapshots(address _borrower) external override {
         _requireCallerIsBorrowerOperations();
-        return _updateTroveRewardSnapshots(_borrower);
+        _updateTroveRewardSnapshots(_borrower);
     }
 
     function _updateTroveRewardSnapshots(address _borrower) internal {
@@ -805,6 +805,10 @@ contract TroveManager is TroveManagerBase, ITroveManager {
 
     function getTroveStatus(address _borrower) external view override returns (uint) {
         return uint(Troves[_borrower].status);
+    }
+
+    function isTroveActive(address _borrower) external view override returns (bool) {
+        return Troves[_borrower].status == Status.active;
     }
 
     function getTroveStake(address _borrower, address _token) external view override returns (uint) {

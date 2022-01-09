@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: UNLICENSED
 
 pragma solidity 0.6.11;
 
@@ -34,6 +34,7 @@ contract Whitelist is Ownable, IWhitelist, IBaseOracle, CheckContract {
         address priceCurve;
         uint256 index;
         bool isWrapped;
+        address defaultRouter;
     }
 
     IActivePool activePool;
@@ -60,6 +61,7 @@ contract Whitelist is Ownable, IWhitelist, IBaseOracle, CheckContract {
 
     // Require that the collateral exists in the whitelist. If it is not the 0th index, and the
     // index is still 0 then it does not exist in the mapping.
+    // no require here for valid collateral 0 index because that means it exists. 
     modifier exists(address _collateral) {
         if (validCollateral.length != 0 && validCollateral[0] != _collateral) {
             require(collateralParams[_collateral].index != 0, "collateral does not exists");
@@ -95,15 +97,17 @@ contract Whitelist is Ownable, IWhitelist, IBaseOracle, CheckContract {
         address _oracle,
         uint256 _decimals,
         address _priceCurve, 
-        bool _isWrapped
+        bool _isWrapped, 
+        address _routerAddress
     ) external onlyOwner {
         checkContract(_collateral);
         checkContract(_oracle);
         checkContract(_priceCurve);
+        checkContract(_routerAddress);
         // If collateral list is not 0, and if the 0th index is not equal to this collateral,
         // then if index is 0 that means it is not set yet.
-        if (validCollateral.length != 0 && validCollateral[0] != _collateral) {
-            require(collateralParams[_collateral].index == 0, "collateral already exists");
+        if (validCollateral.length != 0) {
+            require(validCollateral[0] != _collateral && collateralParams[_collateral].index == 0, "collateral already exists");
         }
 
         validCollateral.push(_collateral);
@@ -114,7 +118,8 @@ contract Whitelist is Ownable, IWhitelist, IBaseOracle, CheckContract {
             true,
             _priceCurve,
             validCollateral.length - 1, 
-            _isWrapped
+            _isWrapped,
+            _routerAddress
         );
 
         activePool.addCollateralType(_collateral);
@@ -202,6 +207,7 @@ contract Whitelist is Ownable, IWhitelist, IBaseOracle, CheckContract {
     {
         checkContract(_collateral);
         require(_ratio < 1100000000000000000, "ratio must be less than 1.10 => greater than 1.1 would mean taking out more YUSD than collateral VC");
+        require(collateralParams[_collateral].ratio < _ratio, "New SR must be greater than previous SR");
         collateralParams[_collateral].ratio = _ratio;
 
         // throw event
@@ -210,12 +216,13 @@ contract Whitelist is Ownable, IWhitelist, IBaseOracle, CheckContract {
 
     // -----------Routers--------------
 
-    function addValidRouter(address _router) external onlyOwner {
-        validRouter[_router] = true;
+    function setDefaultRouter(address _collateral, address _router) external override onlyOwner exists(_collateral) {
+        checkContract(_router);
+        collateralParams[_collateral].defaultRouter = _router;
     }
 
-    function removeValidRouter(address _router) external onlyOwner {
-        validRouter[_router] = false;
+    function getDefaultRouterAddress(address _collateral) external view override exists(_collateral) returns (address) {
+        return collateralParams[_collateral].defaultRouter;
     }
 
 

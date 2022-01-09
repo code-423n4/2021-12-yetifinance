@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: UNLICENSED
 
 pragma solidity 0.6.11;
 
@@ -1072,10 +1072,6 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
 
     // --- 'require' functions ---
 
-    function _requireCallerIsActivePool() internal view {
-        require(msg.sender == address(activePool), "StabilityPool: Caller is not ActivePool");
-    }
-
     function _requireCallerIsTroveManager() internal view {
         require(msg.sender == address(troveManager), "StabilityPool: Caller is not TroveManager");
     }
@@ -1097,13 +1093,6 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
 
     function _requireNonZeroAmount(uint256 _amount) internal pure {
         require(_amount > 0, "StabilityPool: Amount must be non-zero");
-    }
-
-    function _requireUserHasTrove(address _depositor) internal view {
-        require(
-            troveManager.getTroveStatus(_depositor) == 1,
-            "StabilityPool: caller must have an active trove to withdraw Collateral to"
-        );
     }
 
     function _requireCallerIsTML() internal view {
@@ -1138,12 +1127,19 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         require(msg.sender == whitelistAddress, "DefaultPool: Caller is not whitelist");
     }
 
+    function _requireCallerIsActivePool() internal view {
+        require(msg.sender == address(activePool),
+            "Caller is not active pool"
+        );
+    }
+
     // Should be called by ActivePool
     // __after__ collateral is transferred to this contract from Active Pool
     function receiveCollateral(address[] memory _tokens, uint256[] memory _amounts)
         external
         override
     {
+        _requireCallerIsActivePool();
         totalColl.amounts = _leftSumColls(totalColl, _tokens, _amounts);
         emit StabilityPoolBalancesUpdated(_tokens, _amounts);
     }

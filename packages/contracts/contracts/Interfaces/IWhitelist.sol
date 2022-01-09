@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: UNLICENSED
 
 pragma solidity 0.6.11;
 
@@ -24,7 +24,9 @@ interface IWhitelist {
     function getFeeAndUpdate(address _collateral, uint _collateralVCInput, uint256 _collateralVCBalancePost, uint256 _totalVCBalancePre, uint256 _totalVCBalancePost) external returns (uint256 fee);
     function getIndex(address _collateral) external view returns (uint256);
     function isWrapped(address _collateral) external view returns (bool);
+    function setDefaultRouter(address _collateral, address _router) external;
 
     function getValueVC(address _collateral, uint _amount) view external returns (uint);
     function getValueUSD(address _collateral, uint _amount) view external returns (uint256);
+    function getDefaultRouterAddress(address _collateral) external view returns (address);
 }
