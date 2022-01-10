@@ -149,7 +149,7 @@ contract ActivePool is Ownable, CheckContract, IActivePool, YetiCustomBase {
     // --- Pool functionality ---
 
     // Internal function to send collateral to a different pool. 
-    function _sendCollateral(address _to, address _collateral, uint _amount) internal returns (bool) {
+    function _sendCollateral(address _to, address _collateral, uint _amount) internal {
         uint index = whitelist.getIndex(_collateral);
         poolColl.amounts[index] = poolColl.amounts[index].sub(_amount);
         IERC20(_collateral).safeTransfer(_to, _amount);
