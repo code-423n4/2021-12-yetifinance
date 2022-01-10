@@ -42,7 +42,7 @@ library SafeERC20 {
         require((value == 0) || (token.allowance(address(this), spender) == 0),
             "SafeERC20: approve from non-zero to non-zero allowance"
         );
-        _callOptionalReturn(token, abi.encodeWithSelector(token.approve.selector, spender, value));
+        _callOptionalReturn(token, abi.encodeWithSelector(token.increaseAllowance.selector, spender, value));
     }
 
     function safeIncreaseAllowance(IERC20 token, address spender, uint256 value) internal {
