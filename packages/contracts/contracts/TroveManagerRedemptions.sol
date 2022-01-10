@@ -4,6 +4,7 @@ pragma solidity 0.6.11;
 
 import "./Interfaces/IWAsset.sol";
 import "./Dependencies/TroveManagerBase.sol";
+import "./Dependencies/SafeERC20.sol";
 
 /** 
  * TroveManagerRedemptions is derived from TroveManager and handles all redemption activity of troves. 
@@ -33,6 +34,8 @@ import "./Dependencies/TroveManagerBase.sol";
  */
 
 contract TroveManagerRedemptions is TroveManagerBase {
+    using SafeERC20 for IYUSDToken;
+
     struct RedemptionTotals {
         uint256 remainingYUSD;
         uint256 totalYUSDToRedeem;
@@ -220,7 +223,7 @@ contract TroveManagerRedemptions is TroveManagerBase {
         _requireUserAcceptsFeeRedemption(totals.YUSDfee, _YUSDMaxFee);
 
         // send fee from user to YETI stakers
-        contractsCache.yusdToken.transferFrom(
+        contractsCache.yusdToken.safeTransferFrom(
             _redeemer,
             address(contractsCache.sYETI),
             totals.YUSDfee
@@ -454,7 +457,7 @@ contract TroveManagerRedemptions is TroveManagerBase {
         _requireUserAcceptsFeeRedemption(totals.YUSDfee, _YUSDMaxFee);
 
         // send fee from user to YETI stakers
-        contractsCache.yusdToken.transferFrom(
+        contractsCache.yusdToken.safeTransferFrom(
             msg.sender,
             address(contractsCache.sYETI),
             totals.YUSDfee
