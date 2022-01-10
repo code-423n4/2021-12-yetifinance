@@ -11,7 +11,7 @@ import "./Dependencies/SafeMath.sol";
 import "./Dependencies/Ownable.sol";
 import "./Dependencies/CheckContract.sol";
 import "./Dependencies/YetiCustomBase.sol";
-
+import "./Dependencies/SafeERC20.sol";
 
 /*
  * The Default Pool holds the collateral and YUSD debt (but not YUSD tokens) from liquidations that have been redistributed
@@ -22,6 +22,7 @@ import "./Dependencies/YetiCustomBase.sol";
  */
 contract DefaultPool is Ownable, CheckContract, IDefaultPool, YetiCustomBase {
     using SafeMath for uint256;
+    using SafeERC20 for IERC20;
 
     string public constant NAME = "DefaultPool";
 
@@ -123,8 +124,7 @@ contract DefaultPool is Ownable, CheckContract, IDefaultPool, YetiCustomBase {
         emit DefaultPoolBalanceUpdated(_collateral, _amount);
         emit CollateralSent(_collateral, activePool, _amount);
 
-        bool success = IERC20(_collateral).transfer(activePool, _amount);
-        require(success, "DefaultPool: sending collateral failed");
+        IERC20(_collateral).safeTransfer(activePool, _amount);
     }
 
     // Returns true if all payments were successfully sent. Must be called by borrower operations, trove manager, or stability pool. 
@@ -134,7 +134,7 @@ contract DefaultPool is Ownable, CheckContract, IDefaultPool, YetiCustomBase {
     {
         _requireCallerIsTroveManager();
         address activePool = activePoolAddress;
-        require(_tokens.length == _amounts.length);
+        require(_tokens.length == _amounts.length, "sendCollsToActivePool: length mismatch");
         for (uint256 i = 0; i < _tokens.length; i++) {
             _sendCollateral(_tokens[i], _amounts[i]);
             if (whitelist.isWrapped(_tokens[i])) {

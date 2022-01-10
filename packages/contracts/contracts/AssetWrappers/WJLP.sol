@@ -4,6 +4,7 @@ pragma solidity 0.8.7;
 
 import "./ERC20_8.sol";
 import "./Interfaces/IWAsset.sol";
+import "./SafeERC20.sol";
 
 interface IRewarder {}
 
@@ -33,6 +34,7 @@ interface IMasterChefJoeV2 {
 // Wrapped Joe LP token Contract (represents staked JLP token earning JOE Rewards)
 // ----------------------------------------------------------------------------
 contract WJLP is ERC20_8, IWAsset {
+    using SafeERC20 for IERC20;
 
     IERC20 public JLP;
     IERC20 public JOE;
@@ -102,7 +104,7 @@ contract WJLP is ERC20_8, IWAsset {
         address _defaultPool,
         address _stabilityPool,
         address _YetiFinanceTreasury) external {
-        require(!addressesSet);
+        require(!addressesSet, "setAddresses: Addresses already set");
         activePool = _activePool;
         TML = _TML;
         TMR = _TMR;
@@ -121,7 +123,11 @@ contract WJLP is ERC20_8, IWAsset {
     // future yields from the newly minted WAssets
     function wrap(uint _amount, address _to) external override {
         JLP.transferFrom(msg.sender, address(this), _amount);
-        require(JLP.increaseAllowance(address(_MasterChefJoe), _amount));
+        require(JLP.approve(address(_MasterChefJoe), 0));
+        JLP.safeTransferFrom(msg.sender, address(this), _amount);
+
+        require(JLP.approve(address(_MasterChefJoe), 0));
+        require(JLP.increaseAllowance(address(_MasterChefJoe), _amount), "wrap: failed to increase allowance");
 
         // stake LP tokens in Trader Joe's.
         // In process of depositing, all this contract's
@@ -139,7 +145,7 @@ contract WJLP is ERC20_8, IWAsset {
         // each one has the ability to unwrap and burn WAssets they own and
         // send them to someone else
         _burn(msg.sender, _amount);
-        JLP.transfer(msg.sender, _amount);
+        JLP.safeTransfer(msg.sender, _amount);
     }
 
 
@@ -157,7 +163,7 @@ contract WJLP is ERC20_8, IWAsset {
         // each one has the ability to unwrap and burn WAssets they own and
         // send them to someone else
         _burn(msg.sender, _amount);
-        JLP.transfer(_to, _amount);
+        JLP.safeTransfer(_to, _amount);
 
     }
 
@@ -238,7 +244,7 @@ contract WJLP is ERC20_8, IWAsset {
      * They have the right to less or more future rewards depending
      * on whether it is or isn't a deposit
     */
-    function _userUpdate(address _user, uint256 _amount, bool _isDeposit) private returns (uint pendingJoeSent) {
+    function _userUpdate(address _user, uint256 _amount, bool _isDeposit) private{
         // latest accumulated Joe Per Share:
         uint256 accJoePerShare = _MasterChefJoe.poolInfo(_poolPid).accJoePerShare;
         UserInfo storage user = userInfo[_user];
@@ -263,9 +269,9 @@ contract WJLP is ERC20_8, IWAsset {
     function _safeJoeTransfer(address _to, uint256 _amount) internal {
         uint256 joeBal = JOE.balanceOf(address(this));
         if (_amount > joeBal) {
-            JOE.transfer(_to, joeBal);
+            JOE.safeTransfer(_to, joeBal);
         } else {
-            JOE.transfer(_to, _amount);
+            JOE.safeTransfer(_to, _amount);
         }
     }
 

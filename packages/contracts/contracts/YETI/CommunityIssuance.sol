@@ -9,10 +9,12 @@ import "../Dependencies/LiquityMath.sol";
 import "../Dependencies/Ownable.sol";
 import "../Dependencies/CheckContract.sol";
 import "../Dependencies/SafeMath.sol";
+import "../Dependencies/SafeERC20.sol";
 
 
 contract CommunityIssuance is ICommunityIssuance, Ownable, CheckContract, BaseMath {
     using SafeMath for uint;
+    using SafeERC20 for IYETIToken;
 
     // --- Data ---
 
@@ -42,7 +44,6 @@ contract CommunityIssuance is ICommunityIssuance, Ownable, CheckContract, BaseMa
     * 
     * Set to 32M (slightly less than 1/3) of total YETI supply.
     */
-    // TODO: @KingYeti-change allocations
     uint constant public YETISupplyCap = 32e24; // 32 million
 
     IYETIToken public yetiToken;
@@ -122,7 +123,7 @@ contract CommunityIssuance is ICommunityIssuance, Ownable, CheckContract, BaseMa
     function sendYETI(address _account, uint _YETIamount) external override {
         _requireCallerIsStabilityPool();
 
-        yetiToken.transfer(_account, _YETIamount);
+        yetiToken.safeTransfer(_account, _YETIamount);
     }
 
     // --- 'require' functions ---

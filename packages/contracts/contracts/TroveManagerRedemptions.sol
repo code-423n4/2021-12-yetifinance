@@ -4,6 +4,7 @@ pragma solidity 0.6.11;
 
 import "./Interfaces/IWAsset.sol";
 import "./Dependencies/TroveManagerBase.sol";
+import "./Dependencies/SafeERC20.sol";
 
 /** 
  * TroveManagerRedemptions is derived from TroveManager and handles all redemption activity of troves. 
@@ -33,6 +34,8 @@ import "./Dependencies/TroveManagerBase.sol";
  */
 
 contract TroveManagerRedemptions is TroveManagerBase {
+    using SafeERC20 for IYUSDToken;
+
     struct RedemptionTotals {
         uint256 remainingYUSD;
         uint256 totalYUSDToRedeem;
@@ -203,7 +206,7 @@ contract TroveManagerRedemptions is TroveManagerBase {
             currentBorrower = nextUserToCheck;
         }
 
-        require(isNonzero(totals.CollsDrawn));
+        require(isNonzero(totals.CollsDrawn), "redeemCollateral: not nonzero collsDrawn");
         // Decay the baseRate due to time passed, and then increase it according to the size of this redemption.
         // Use the saved total YUSD supply value, from before it was reduced by the redemption.
         _updateBaseRateFromRedemption(totals.totalYUSDToRedeem, totals.totalYUSDSupplyAtStart);
@@ -220,7 +223,7 @@ contract TroveManagerRedemptions is TroveManagerBase {
         _requireUserAcceptsFeeRedemption(totals.YUSDfee, _YUSDMaxFee);
 
         // send fee from user to YETI stakers
-        contractsCache.yusdToken.transferFrom(
+        contractsCache.yusdToken.safeTransferFrom(
             _redeemer,
             address(contractsCache.sYETI),
             totals.YUSDfee
@@ -437,7 +440,7 @@ contract TroveManagerRedemptions is TroveManagerBase {
         totals.CollsDrawn = singleRedemption.CollLot;
         // totals.remainingYUSD = totals.remainingYUSD.sub(singleRedemption.YUSDLot);
 
-        require(isNonzero(totals.CollsDrawn));
+        require(isNonzero(totals.CollsDrawn), "redeemCollateralSingle: non zero collsDrawn");
         // Decay the baseRate due to time passed, and then increase it according to the size of this redemption.
         // Use the saved total YUSD supply value, from before it was reduced by the redemption.
         _updateBaseRateFromRedemption(totals.totalYUSDToRedeem, totals.totalYUSDSupplyAtStart);
@@ -454,7 +457,7 @@ contract TroveManagerRedemptions is TroveManagerBase {
         _requireUserAcceptsFeeRedemption(totals.YUSDfee, _YUSDMaxFee);
 
         // send fee from user to YETI stakers
-        contractsCache.yusdToken.transferFrom(
+        contractsCache.yusdToken.safeTransferFrom(
             msg.sender,
             address(contractsCache.sYETI),
             totals.YUSDfee
@@ -719,7 +722,7 @@ contract TroveManagerRedemptions is TroveManagerBase {
     }
 
     function _requireCallerisTroveManager() internal view {
-        require(msg.sender == address(troveManager));
+        require(msg.sender == address(troveManager), "Caller not trove manager");
     }
 
     function _getRedemptionFee(uint256 _YUSDRedeemed) internal view returns (uint256) {

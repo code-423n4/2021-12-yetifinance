@@ -17,6 +17,7 @@ import "./Dependencies/SafeMath.sol";
 import "./Dependencies/LiquitySafeMath128.sol";
 import "./Dependencies/Ownable.sol";
 import "./Dependencies/CheckContract.sol";
+import "./Dependencies/SafeERC20.sol";
 
 
 /*
@@ -150,6 +151,7 @@ import "./Dependencies/CheckContract.sol";
  */
 contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
     using LiquitySafeMath128 for uint128;
+    using SafeERC20 for IERC20;
 
     string public constant NAME = "StabilityPool";
 
@@ -938,13 +940,13 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         address[] memory assets,
         uint256[] memory amounts
     ) internal {
-        require(assets.length == amounts.length);
+        require(assets.length == amounts.length, "_sendGainsToDepositor: length mismatch");
         for (uint256 i = 0; i < assets.length; i++) {
             if (whitelist.isWrapped(assets[i])){
                 IWAsset(assets[i]).endTreasuryReward(amounts[i]);
                 IWAsset(assets[i]).unwrapFor(_to, amounts[i]);
             } else {
-                IERC20(assets[i]).transfer(_to, amounts[i]);
+                IERC20(assets[i]).safeTransfer(_to, amounts[i]);
             }
         }
         totalColl.amounts = _leftSubColls(totalColl, assets, amounts);

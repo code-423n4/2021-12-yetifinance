@@ -89,11 +89,11 @@ contract EchidnaTester {
             address(troveManagerLiquidations), address(troveManagerRedemptions), address(collSurplusPool)
         );
 
-        defaultPool.setAddresses(address(troveManager), address(activePool), address(whitelist), address(0)); // todo
+        defaultPool.setAddresses(address(troveManager), address(activePool), address(whitelist), address(0));
         
         stabilityPool.setAddresses(address(borrowerOperations), 
             address(troveManager), address(activePool), address(yusdToken), 
-            address(sortedTroves), address(0), address(0), address(troveManagerLiquidations)); // TODO set this 
+            address(sortedTroves), address(0), address(0), address(troveManagerLiquidations)); 
 
         collSurplusPool.setAddresses(address(borrowerOperations), 
              address(troveManager), address(troveManagerRedemptions), address(activePool), address(whitelist));
@@ -103,21 +103,21 @@ contract EchidnaTester {
         for (uint i = 0; i < NUMBER_OF_ACTORS; i++) {
             echidnaProxies[i] = new EchidnaProxy(troveManager, borrowerOperations, stabilityPool, yusdToken);
             (bool success, ) = address(echidnaProxies[i]).call{value: INITIAL_BALANCE}("");
-            require(success);
+            require(success, "proxy called failed");
         }
 
         MCR = borrowerOperations.MCR();
         CCR = borrowerOperations.CCR();
         YUSD_GAS_COMPENSATION = borrowerOperations.YUSD_GAS_COMPENSATION();
-        require(MCR > 0);
-        require(CCR > 0);
+        require(MCR > 0, "MCR <= 0");
+        require(CCR > 0, "CCR <= 0");
 
         priceFeedTestnet.setPrice(1e22);
     }
 
     // @KingYeti: added this helper function
     function _getVC(address[] memory _tokens, uint[] memory _amounts) internal view returns (uint totalVC) {
-        require(_tokens.length == _amounts.length);
+        require(_tokens.length == _amounts.length, "_getVC: length mismatch");
         for (uint i = 0; i < _tokens.length; i++) {
             address token = _tokens[i];
             uint tokenVC = whitelist.getValueVC(token, _amounts[i]);
@@ -250,10 +250,8 @@ contract EchidnaTester {
 //        uint ETH = getAdjustedETH(actorBalance, _ETH, MCR);
 //        uint debtChange = _debtChange;
 //        if (_isDebtIncrease) {
-//            // TODO: add current amount already withdrawn:
 //            debtChange = getAdjustedYUSD(ETH, uint(_debtChange), MCR);
 //        }
-//        // TODO: collWithdrawal, debtChange
 //        echidnaProxy.adjustTrovePrx(ETH, _collWithdrawal, debtChange, _isDebtIncrease, address(0), address(0), 0);
 //    }
 //
@@ -415,7 +413,6 @@ contract EchidnaTester {
 //        return true;
 //    }
 //
-//    // TODO: What should we do with this? Should it be allowed? Should it be a canary?
 //    function echidna_price() public view returns(bool) {
 //        uint price = priceFeedTestnet.getPrice();
 //

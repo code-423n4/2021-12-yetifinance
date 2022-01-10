@@ -72,6 +72,7 @@ contract LPTokenWrapper is ILPTokenWrapper {
  * or first liquidity provider stakes UNIv2 LP tokens into it.
  */
 contract Unipool is LPTokenWrapper, Ownable, CheckContract, IUnipool {
+    using SafeERC20 for IYETIToken;
     string constant public NAME = "Unipool";
 
     uint256 public duration;
@@ -108,9 +109,6 @@ contract Unipool is LPTokenWrapper, Ownable, CheckContract, IUnipool {
         yetiToken = IYETIToken(_yetiTokenAddress);
         duration = _duration;
 
-        // TODO: @KingYeti modified the parameters this function is called with
-        // However, at some point, this whole contract has to be reworked to work in a situation
-        // where the team have the right to specify and change reward rates
         _notifyRewardAmount(yetiToken.balanceOf(address(this)), _duration);
 
         emit YETITokenAddressChanged(_yetiTokenAddress);
@@ -189,7 +187,7 @@ contract Unipool is LPTokenWrapper, Ownable, CheckContract, IUnipool {
         require(reward > 0, "Nothing to claim");
 
         rewards[msg.sender] = 0;
-        yetiToken.transfer(msg.sender, reward);
+        yetiToken.safeTransfer(msg.sender, reward);
         emit RewardPaid(msg.sender, reward);
     }
 
