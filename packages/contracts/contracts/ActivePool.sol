@@ -13,7 +13,7 @@ import "./Dependencies/Ownable.sol";
 import "./Dependencies/CheckContract.sol";
 import "./Dependencies/LiquityBase.sol";
 import "./Dependencies/YetiCustomBase.sol";
-
+import "./Dependencies/SafeERC20.sol";
 
 /*
  * The Active Pool holds the all collateral and YUSD debt (but not YUSD tokens) for all active troves.
@@ -24,6 +24,7 @@ import "./Dependencies/YetiCustomBase.sol";
  */
 contract ActivePool is Ownable, CheckContract, IActivePool, YetiCustomBase {
     using SafeMath for uint256;
+    using SafeERC20 for IERC20;
 
     string constant public NAME = "ActivePool";
 
@@ -151,8 +152,7 @@ contract ActivePool is Ownable, CheckContract, IActivePool, YetiCustomBase {
     function _sendCollateral(address _to, address _collateral, uint _amount) internal returns (bool) {
         uint index = whitelist.getIndex(_collateral);
         poolColl.amounts[index] = poolColl.amounts[index].sub(_amount);
-        bool sent = IERC20(_collateral).transfer(_to, _amount);
-        require(sent);
+        IERC20(_collateral).safeTransfer(_to, _amount);
 
         emit ActivePoolBalanceUpdated(_collateral, _amount);
         emit CollateralSent(_collateral, _to, _amount);
