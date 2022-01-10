@@ -3,12 +3,14 @@
 pragma solidity 0.6.11;
 
 import "./Interfaces/IERC20.sol";
+import "./Dependencies/SafeERC20.sol";
 
 /*
  * Brought to you by @YetiFinance
  * Holds/Distributes Yeti Finance Team Tokens
 */
 contract TeamAllocation {
+    using SafeERC20 for IERC20;
 
     IERC20 YETI;
     address teamWallet;
@@ -66,7 +68,7 @@ contract TeamAllocation {
         for (uint i = 0; i < 7; i++) {
             address member = team[i];
             uint amount = allocations[i];
-            require(YETI.transfer(member, amount));
+            YETI.safeTransfer(member, amount);
         }
         allocationClaimed = true;
     }
@@ -74,7 +76,7 @@ contract TeamAllocation {
 
     function sendUnallocatedYETI(address _to, uint _amount) external onlyTeam {
         require(allocationClaimed);
-        YETI.transfer(_to, _amount);
+        YETI.safeTransfer(_to, _amount);
     }
 
 
