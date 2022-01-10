@@ -123,7 +123,7 @@ contract WJLP is ERC20_8, IWAsset {
     // future yields from the newly minted WAssets
     function wrap(uint _amount, address _to) external override {
         JLP.safeTransferFrom(msg.sender, address(this), _amount);
-        JLP.approve(address(_MasterChefJoe), _amount);
+        JLP.safeApprove(address(_MasterChefJoe), _amount);
 
         // stake LP tokens in Trader Joe's.
         // In process of depositing, all this contract's
