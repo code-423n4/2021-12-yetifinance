@@ -103,21 +103,21 @@ contract EchidnaTester {
         for (uint i = 0; i < NUMBER_OF_ACTORS; i++) {
             echidnaProxies[i] = new EchidnaProxy(troveManager, borrowerOperations, stabilityPool, yusdToken);
             (bool success, ) = address(echidnaProxies[i]).call{value: INITIAL_BALANCE}("");
-            require(success);
+            require(success, "proxy called failed");
         }
 
         MCR = borrowerOperations.MCR();
         CCR = borrowerOperations.CCR();
         YUSD_GAS_COMPENSATION = borrowerOperations.YUSD_GAS_COMPENSATION();
-        require(MCR > 0);
-        require(CCR > 0);
+        require(MCR > 0, "MCR <= 0");
+        require(CCR > 0, "CCR <= 0");
 
         priceFeedTestnet.setPrice(1e22);
     }
 
     // @KingYeti: added this helper function
     function _getVC(address[] memory _tokens, uint[] memory _amounts) internal view returns (uint totalVC) {
-        require(_tokens.length == _amounts.length);
+        require(_tokens.length == _amounts.length, "_getVC: length mismatch");
         for (uint i = 0; i < _tokens.length; i++) {
             address token = _tokens[i];
             uint tokenVC = whitelist.getValueVC(token, _amounts[i]);

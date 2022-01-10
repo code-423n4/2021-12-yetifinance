@@ -134,7 +134,7 @@ contract DefaultPool is Ownable, CheckContract, IDefaultPool, YetiCustomBase {
     {
         _requireCallerIsTroveManager();
         address activePool = activePoolAddress;
-        require(_tokens.length == _amounts.length);
+        require(_tokens.length == _amounts.length, "sendCollsToActivePool: length mismatch");
         for (uint256 i = 0; i < _tokens.length; i++) {
             _sendCollateral(_tokens[i], _amounts[i]);
             if (whitelist.isWrapped(_tokens[i])) {

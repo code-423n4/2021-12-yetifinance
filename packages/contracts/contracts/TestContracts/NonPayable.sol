@@ -14,10 +14,10 @@ contract NonPayable {
 
     function forward(address _dest, bytes calldata _data) external payable {
         (bool success, bytes memory returnData) = _dest.call{ value: msg.value }(_data);
-        require(success, string(returnData));
+        require(success, string(returnData), "forward: failed to forward");
     }
 
     receive() external payable {
-        require(isPayable);
+        require(isPayable, "Not payable");
     }
 }

@@ -49,7 +49,7 @@ contract TeamAllocation {
 
 
     modifier onlyTeam() {
-        require(msg.sender == teamWallet);
+        require(msg.sender == teamWallet, "Not a team wallet");
         _;
     }
 
@@ -61,8 +61,8 @@ contract TeamAllocation {
 
 
     function sendAllocatedYETI() external {
-        require(yetiSet);
-        require(!allocationClaimed);
+        require(yetiSet, "sendAllocatedYETI: yeti team address not set");
+        require(!allocationClaimed, "sendAllocatedYETI: allocation claimed");
         for (uint i = 0; i < 7; i++) {
             address member = team[i];
             uint amount = allocations[i];
@@ -73,7 +73,7 @@ contract TeamAllocation {
 
 
     function sendUnallocatedYETI(address _to, uint _amount) external onlyTeam {
-        require(allocationClaimed);
+        require(allocationClaimed, "sendUnallocatedYETI: allocation already claimed");
         YETI.transfer(_to, _amount);
     }
 

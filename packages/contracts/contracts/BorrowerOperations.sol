@@ -269,8 +269,8 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     ) external override {
         require(_colls.length != 0, "Must pass in collateral");
         _requireValidDepositCollateral(_colls, _amounts);
-        require(_colls.length == _leverages.length);
-        require(_colls.length == _maxSlippages.length);
+        require(_colls.length == _leverages.length, "openTroveLeverUp: leverages length mismatch");
+        require(_colls.length == _maxSlippages.length, "openTroveLeverUp: maxSlippages length mismatch");
         _requireNoDuplicateColls(_colls);
         uint additionalTokenAmount;
         uint additionalYUSDDebt;
@@ -499,10 +499,10 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         params._maxFeePercentage = _maxFeePercentage;
 
         // check that all _collsIn collateral types are in the whitelist
-        require(_collsIn.length != 0);
+        require(_collsIn.length != 0, "addCollLeverUp: colls length 0");
         _requireValidDepositCollateral(params._collsIn, params._amountsIn);
-        require(_collsIn.length == _leverages.length);
-        require(_collsIn.length == _maxSlippages.length);
+        require(_collsIn.length == _leverages.length, "addCollLeverUp: leverages length mismatch");
+        require(_collsIn.length == _maxSlippages.length, "addCollLeverUp: maxSlippages length mismatch");
         _requireNoDuplicateColls(params._collsIn); // Check that there is no overlap with in or out in itself
 
         uint additionalTokenAmount;
@@ -1363,18 +1363,18 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         uint[] memory _amounts,
         uint[] memory _minSwapAmounts,
         IYetiRouter[] memory _routers) internal view {
-        require(_finalRoutedColls.length == _amounts.length);
-        require(_amounts.length == _routers.length);
-        require(_amounts.length == _minSwapAmounts.length);
+        require(_finalRoutedColls.length == _amounts.length,  "_requireValidRouterParams: _finalRoutedColls length mismatch");
+        require(_amounts.length == _routers.length, "_requireValidRouterParams: _routers length mismatch");
+        require(_amounts.length == _minSwapAmounts.length, "_minSwapAmounts: finalRoutedColls length mismatch");
         for (uint i = 0; i < _routers.length; i++) {
-            require(whitelist.isValidRouter(address(_routers[i])));
+            require(whitelist.isValidRouter(address(_routers[i])), "_requireValidRouterParams: not a valid router");
         }
     }
 
     // requires that avax indices are in order
     function _requireRouterAVAXIndicesInOrder(uint[] memory _indices) internal pure {
         for (uint i = 0; i < _indices.length - 1; i++) {
-            require(_indices[i] < _indices[i + 1]);
+            require(_indices[i] < _indices[i + 1], "_requireRouterAVAXIndicesInOrder: indices out of order");
         }
     }
 

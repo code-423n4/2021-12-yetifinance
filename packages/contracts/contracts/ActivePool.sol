@@ -161,7 +161,7 @@ contract ActivePool is Ownable, CheckContract, IActivePool, YetiCustomBase {
     // Returns true if all payments were successfully sent. Must be called by borrower operations, trove manager, or stability pool. 
     function sendCollaterals(address _to, address[] memory _tokens, uint[] memory _amounts) external override returns (bool) {
         _requireCallerIsBOorTroveMorTMLorSP();
-        require(_tokens.length == _amounts.length);
+        require(_tokens.length == _amounts.length, "SendCollaterals: Length mismatch");
         for (uint i = 0; i < _tokens.length; i++) {
             _sendCollateral(_to, _tokens[i], _amounts[i]); // reverts if send fails
         }
@@ -180,7 +180,7 @@ contract ActivePool is Ownable, CheckContract, IActivePool, YetiCustomBase {
     // It also harvests rewards on the user's behalf. 
     function sendCollateralsUnwrap(address _to, address[] memory _tokens, uint[] memory _amounts, bool _collectRewards) external override returns (bool) {
         _requireCallerIsBOorTroveMorTMLorSP();
-        require(_tokens.length == _amounts.length);
+        require(_tokens.length == _amounts.length, "sendCollateralsUnwrap: Length Mismatch");
         for (uint i = 0; i < _tokens.length; i++) {
             if (whitelist.isWrapped(_tokens[i])) {
                 IWAsset(_tokens[i]).unwrapFor(_to, _amounts[i]);
