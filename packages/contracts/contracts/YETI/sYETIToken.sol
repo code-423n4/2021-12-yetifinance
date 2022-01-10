@@ -237,6 +237,7 @@ contract sYETIToken is IERC20, Domain, BoringOwnable {
     function buyBack(address routerAddress, uint256 YUSDToSell, uint256 YETIOutMin, address[] memory path) external onlyOwner {
         require(YUSDToSell > 0, "Zero amount");
         require(lastBuybackTime + 69 hours < block.timestamp, "Must have 69 hours pass before another buyBack");
+        require(yusdToken.approve(routerAddress, 0));
         require(yusdToken.increaseAllowance(routerAddress, YUSDToSell));
         uint256[] memory amounts = IRouter(routerAddress).swapExactTokensForTokens(YUSDToSell, YETIOutMin, path, address(this), block.timestamp);
         lastBuybackTime = block.timestamp;
