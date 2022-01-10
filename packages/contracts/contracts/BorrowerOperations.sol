@@ -32,7 +32,7 @@ import "./Interfaces/IERC20.sol";
   */
 
 contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOperations {
-    using SafeMath for *;
+    using SafeMath for uint256;
     string public constant NAME = "BorrowerOperations";
 
     // --- Connected contract declarations ---
