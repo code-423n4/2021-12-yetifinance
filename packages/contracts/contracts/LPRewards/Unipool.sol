@@ -109,9 +109,6 @@ contract Unipool is LPTokenWrapper, Ownable, CheckContract, IUnipool {
         yetiToken = IYETIToken(_yetiTokenAddress);
         duration = _duration;
 
-        // TODO: @KingYeti modified the parameters this function is called with
-        // However, at some point, this whole contract has to be reworked to work in a situation
-        // where the team have the right to specify and change reward rates
         _notifyRewardAmount(yetiToken.balanceOf(address(this)), _duration);
 
         emit YETITokenAddressChanged(_yetiTokenAddress);

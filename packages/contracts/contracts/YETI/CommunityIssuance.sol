@@ -44,7 +44,6 @@ contract CommunityIssuance is ICommunityIssuance, Ownable, CheckContract, BaseMa
     * 
     * Set to 32M (slightly less than 1/3) of total YETI supply.
     */
-    // TODO: @KingYeti-change allocations
     uint constant public YETISupplyCap = 32e24; // 32 million
 
     IYETIToken public yetiToken;
