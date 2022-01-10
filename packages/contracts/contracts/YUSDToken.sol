@@ -226,8 +226,8 @@ contract YUSDToken is CheckContract, IYUSDToken {
     // Warning: sanity checks (for sender and recipient) should have been done before calling these internal functions
 
     function _transfer(address sender, address recipient, uint256 amount) internal {
-        require(owner != address(0), "_transfer: owner is address(0)");
-        require(sender != address(0), "_transfer: spender is address(0)");
+        require(sender != address(0), "_transfer: sender is address(0)");
+        require(recipient != address(0), "_transfer: recipient is address(0)");
 
         _balances[sender] = _balances[sender].sub(amount, "ERC20: transfer amount exceeds balance");
         _balances[recipient] = _balances[recipient].add(amount);
