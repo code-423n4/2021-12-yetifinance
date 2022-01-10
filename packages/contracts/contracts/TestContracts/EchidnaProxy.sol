@@ -140,6 +140,7 @@ contract EchidnaProxy {
     }
 
     function increaseAllowancePrx(address spender, uint256 addedValue) external returns (bool) {
+        require(yusdToken.approve(spender, 0));
         return yusdToken.increaseAllowance(spender, addedValue);
     }
 
