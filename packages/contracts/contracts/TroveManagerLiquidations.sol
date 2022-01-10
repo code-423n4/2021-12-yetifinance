@@ -848,6 +848,6 @@ contract TroveManagerLiquidations is TroveManagerBase {
     }
 
     function _requireCallerisTroveManager() internal view {
-        require(msg.sender == troveManagerAddress);
+        require(msg.sender == troveManagerAddress, "_requireCallerisTroveManager: caller not trove manager");
     }
 }

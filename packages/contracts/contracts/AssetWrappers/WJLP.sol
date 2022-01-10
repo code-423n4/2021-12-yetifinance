@@ -104,7 +104,7 @@ contract WJLP is ERC20_8, IWAsset {
         address _defaultPool,
         address _stabilityPool,
         address _YetiFinanceTreasury) external {
-        require(!addressesSet);
+        require(!addressesSet, "setAddresses: Addresses already set");
         activePool = _activePool;
         TML = _TML;
         TMR = _TMR;
@@ -123,7 +123,7 @@ contract WJLP is ERC20_8, IWAsset {
     // future yields from the newly minted WAssets
     function wrap(uint _amount, address _to) external override {
         JLP.safeTransferFrom(msg.sender, address(this), _amount);
-        require(JLP.increaseAllowance(address(_MasterChefJoe), _amount));
+        require(JLP.increaseAllowance(address(_MasterChefJoe), _amount), "wrap: failed to increase allowance");
 
         // stake LP tokens in Trader Joe's.
         // In process of depositing, all this contract's

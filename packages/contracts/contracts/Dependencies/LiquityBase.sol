@@ -144,7 +144,7 @@ contract LiquityBase is ILiquityBase, YetiCustomBase {
 
     // get Colls struct for the given tokens and amounts
     function _getColls(address[] memory tokens, uint[] memory amounts) internal view returns (newColls memory coll) {
-        require(tokens.length == amounts.length);
+        require(tokens.length == amounts.length, "_getColls: length mismatch");
         coll.tokens = tokens;
         for (uint i = 0; i < tokens.length; i++) {
             coll.amounts[whitelist.getIndex(tokens[i])] = amounts[i];

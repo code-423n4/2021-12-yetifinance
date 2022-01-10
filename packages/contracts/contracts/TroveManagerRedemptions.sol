@@ -206,7 +206,7 @@ contract TroveManagerRedemptions is TroveManagerBase {
             currentBorrower = nextUserToCheck;
         }
 
-        require(isNonzero(totals.CollsDrawn));
+        require(isNonzero(totals.CollsDrawn), "redeemCollateral: not nonzero collsDrawn");
         // Decay the baseRate due to time passed, and then increase it according to the size of this redemption.
         // Use the saved total YUSD supply value, from before it was reduced by the redemption.
         _updateBaseRateFromRedemption(totals.totalYUSDToRedeem, totals.totalYUSDSupplyAtStart);
@@ -440,7 +440,7 @@ contract TroveManagerRedemptions is TroveManagerBase {
         totals.CollsDrawn = singleRedemption.CollLot;
         // totals.remainingYUSD = totals.remainingYUSD.sub(singleRedemption.YUSDLot);
 
-        require(isNonzero(totals.CollsDrawn));
+        require(isNonzero(totals.CollsDrawn), "redeemCollateralSingle: non zero collsDrawn");
         // Decay the baseRate due to time passed, and then increase it according to the size of this redemption.
         // Use the saved total YUSD supply value, from before it was reduced by the redemption.
         _updateBaseRateFromRedemption(totals.totalYUSDToRedeem, totals.totalYUSDSupplyAtStart);
@@ -722,7 +722,7 @@ contract TroveManagerRedemptions is TroveManagerBase {
     }
 
     function _requireCallerisTroveManager() internal view {
-        require(msg.sender == address(troveManager));
+        require(msg.sender == address(troveManager), "Caller not trove manager");
     }
 
     function _getRedemptionFee(uint256 _YUSDRedeemed) internal view returns (uint256) {
