@@ -3,12 +3,14 @@
 pragma solidity 0.6.11;
 
 import "./Interfaces/IERC20.sol";
+import "./Dependencies/SafeERC20.sol";
 
 /*
  * Brought to you by @YetiFinance
  * Holds/Distributes Yeti Finance Treasury Tokens
 */
 contract YetiFinanceTreasury {
+    using SafeERC20 for IERC20;
 
     address teamWallet;
 
@@ -22,7 +24,7 @@ contract YetiFinanceTreasury {
     }
 
     function sendToken(IERC20 _token, address _to, uint _amount) external onlyTeam {
-        _token.transfer(_to, _amount);
+        _token.safeTransfer(_to, _amount);
     }
 
     function updateTeamWallet(address _newTeamWallet) external onlyTeam {
