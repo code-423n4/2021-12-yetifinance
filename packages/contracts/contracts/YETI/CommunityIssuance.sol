@@ -83,7 +83,7 @@ contract CommunityIssuance is ICommunityIssuance, Ownable, CheckContract, BaseMa
 
         // When YETIToken deployed, it should have transferred CommunityIssuance's YETI entitlement
         uint YETIBalance = yetiToken.balanceOf(address(this));
-        assert(YETIBalance >= YETISupplyCap);
+        require(YETIBalance >= YETISupplyCap, "setAddresses: balance must be less than supplycap");
 
         emit YETITokenAddressSet(_yetiTokenAddress);
         emit StabilityPoolAddressSet(_stabilityPoolAddress);
@@ -116,7 +116,7 @@ contract CommunityIssuance is ICommunityIssuance, Ownable, CheckContract, BaseMa
 
         //  (1 - f^t)
         uint cumulativeIssuanceFraction = (uint(DECIMAL_PRECISION).sub(power));
-        assert(cumulativeIssuanceFraction <= DECIMAL_PRECISION); // must be in range [0,1]
+        require(cumulativeIssuanceFraction <= DECIMAL_PRECISION, "Fraction must be in range [0,1]"); // must be in range [0,1]
 
         return cumulativeIssuanceFraction;
     }

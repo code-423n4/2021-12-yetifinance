@@ -499,7 +499,7 @@ contract TroveManager is TroveManagerBase, ITroveManager {
             * - When we close or liquidate a trove, we redistribute the pending rewards, so if all troves were closed/liquidated,
             * rewards would’ve been emptied and totalCollateralSnapshot would be zero too.
             */
-            assert(totalStakesSnapshot[token] > 0);
+            require(totalStakesSnapshot[token] > 0, "_computeNewStake: stake must be > 0");
             stake = _coll.mul(totalStakesSnapshot[token]).div(totalCollateralSnapshot[token]);
         }
         return stake;
@@ -568,7 +568,7 @@ contract TroveManager is TroveManagerBase, ITroveManager {
     }
 
     function _closeTrove(address _borrower, Status closedStatus) internal {
-        assert(closedStatus != Status.nonExistent && closedStatus != Status.active);
+        require(closedStatus != Status.nonExistent && closedStatus != Status.active, "Status must be active and exists");
 
         uint TroveOwnersArrayLength = TroveOwners.length;
         _requireMoreThanOneTroveInSystem(TroveOwnersArrayLength);
@@ -637,13 +637,13 @@ contract TroveManager is TroveManagerBase, ITroveManager {
     function _removeTroveOwner(address _borrower, uint TroveOwnersArrayLength) internal {
         Status troveStatus = Troves[_borrower].status;
         // It’s set in caller function `_closeTrove`
-        assert(troveStatus != Status.nonExistent && troveStatus != Status.active);
+        require(troveStatus != Status.nonExistent && troveStatus != Status.active, "_removeTroveOwner: trove must exists and be active");
 
         uint128 index = Troves[_borrower].arrayIndex;
         uint length = TroveOwnersArrayLength;
         uint idxLast = length.sub(1);
 
-        assert(index <= idxLast);
+        require(index <= idxLast, "_removeTroveOwner: index must be > last index");
 
         address addressToMove = TroveOwners[idxLast];
 
@@ -669,7 +669,7 @@ contract TroveManager is TroveManagerBase, ITroveManager {
 
     function updateBaseRate(uint newBaseRate) external override {
         _requireCallerIsTMR();
-        assert(newBaseRate > 0);
+        require(newBaseRate > 0, "updateBaseRate: newBaseRate must be > 0");
         baseRate = newBaseRate;
         emit BaseRateUpdated(newBaseRate);
         _updateLastFeeOpTime();
@@ -740,7 +740,7 @@ contract TroveManager is TroveManagerBase, ITroveManager {
         _requireCallerIsBorrowerOperations();
 
         uint decayedBaseRate = calcDecayedBaseRate();
-        assert(decayedBaseRate <= DECIMAL_PRECISION);  // The baseRate can decay to 0
+        require(decayedBaseRate <= DECIMAL_PRECISION, "decayBaseRateFromBorrowing: decayed base rate too small");  // The baseRate can decay to 0
 
         baseRate = decayedBaseRate;
         emit BaseRateUpdated(decayedBaseRate);

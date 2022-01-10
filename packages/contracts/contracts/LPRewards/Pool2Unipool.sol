@@ -210,9 +210,9 @@ contract Pool2Unipool is LPTokenWrapper, Ownable, CheckContract, IUnipool {
 
     // Used only on initialization, sets the reward rate and the end time for the program
     function _notifyRewardAmount(uint256 _reward, uint256 _duration) internal {
-        assert(_reward > 0);
-        assert(_reward == yetiToken.balanceOf(address(this)));
-        assert(periodFinish == 0);
+        require(_reward > 0, "_notifyRewardAmount: reward is 0");
+        require(_reward == yetiToken.balanceOf(address(this)), "_notifyRewardAmount: reward not equal to balance");
+        require(periodFinish == 0, "_notifyRewardAmount: periodFinish != 0");
 
         _updateReward();
 
@@ -226,7 +226,7 @@ contract Pool2Unipool is LPTokenWrapper, Ownable, CheckContract, IUnipool {
     // Adjusts end time for the program after periods of zero total supply
     function _updatePeriodFinish() internal {
         if (totalSupply() == 0) {
-            assert(periodFinish > 0);
+            require(periodFinish > 0, "_updatePeriodFinish: periodFinish <= 0");
             /*
              * If the finish period has been reached (but there are remaining rewards due to zero stake),
              * to get the new finish date we must add to the current timestamp the difference between
@@ -253,7 +253,7 @@ contract Pool2Unipool is LPTokenWrapper, Ownable, CheckContract, IUnipool {
     function _updateAccountReward(address account) internal {
         _updateReward();
 
-        assert(account != address(0));
+        require(account != address(0), "_updateAccountReward: account is address(0)");
 
         rewards[account] = earned(account);
         userRewardPerTokenPaid[account] = rewardPerTokenStored;

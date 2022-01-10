@@ -158,7 +158,7 @@ contract TroveManagerRedemptions is TroveManagerBase {
         totals.totalYUSDSupplyAtStart = getEntireSystemDebt();
 
         // Confirm redeemer's balance is less than total YUSD supply
-        assert(contractsCache.yusdToken.balanceOf(_redeemer) <= totals.totalYUSDSupplyAtStart);
+        require(contractsCache.yusdToken.balanceOf(_redeemer) <= totals.totalYUSDSupplyAtStart, "redeemCollateral: redeemer balance > total YUSD Supply" );
 
         totals.remainingYUSD = _YUSDamount;
         address currentBorrower;
@@ -290,7 +290,7 @@ contract TroveManagerRedemptions is TroveManagerBase {
         totals.totalYUSDSupplyAtStart = getEntireSystemDebt();
 
         // Confirm redeemer's balance is less than total YUSD supply
-        assert(contractsCache.yusdToken.balanceOf(msg.sender) <= totals.totalYUSDSupplyAtStart);
+        require(contractsCache.yusdToken.balanceOf(msg.sender) <= totals.totalYUSDSupplyAtStart, "redeemCollateralSingle: redeemer balance > YUSD supply");
 
         totals.remainingYUSD = _YUSDamount;
         require(_isValidFirstRedemptionHint(contractsCache.sortedTroves, hints.target), "Invalid first redemption hint");
