@@ -76,7 +76,7 @@ contract TeamAllocation {
 
     function sendUnallocatedYETI(address _to, uint _amount) external onlyTeam {
         require(allocationClaimed);
-        YETI.transfer(_to, _amount);
+        YETI.safeTransfer(_to, _amount);
     }
 
 

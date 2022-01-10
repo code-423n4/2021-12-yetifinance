@@ -3,6 +3,7 @@
 pragma solidity 0.6.11;
 
 import "../Dependencies/SafeMath.sol";
+import "../Dependencies/SafeERC20.sol";
 import "../Interfaces/IYETIToken.sol";
 
 /*
@@ -18,6 +19,7 @@ import "../Interfaces/IYETIToken.sol";
 */
 contract ShortLockupContract {
     using SafeMath for uint;
+    using SafeERC20 for IYETIToken;
 
     // --- Data ---
     string constant public NAME = "LockupContract";
@@ -64,7 +66,7 @@ contract ShortLockupContract {
 
         IYETIToken yetiTokenCached = yetiToken;
         uint YETIBalance = yetiTokenCached.balanceOf(address(this));
-        yetiTokenCached.transfer(beneficiary, YETIBalance);
+        yetiTokenCached.safeTransfer(beneficiary, YETIBalance);
         emit LockupContractEmptied(YETIBalance);
     }
 
