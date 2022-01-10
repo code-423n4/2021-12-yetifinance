@@ -136,6 +136,16 @@ contract sYETIToken is IERC20, Domain, BoringOwnable {
         return true;
     }
 
+    /// @notice Approves `amount` from sender to be spend by `spender`.
+    /// @param spender Address of the party that can draw from msg.sender's account.
+    /// @param amount The maximum collective amount that `spender` can draw.
+    /// @return (bool) Returns True if approved.
+    function increaseAllowance(address spender, uint256 amount) public override returns (bool) {
+        allowance[msg.sender][spender] += amount;
+        emit Approval(msg.sender, spender, amount);
+        return true;
+    }
+    
     // solhint-disable-next-line func-name-mixedcase
     function DOMAIN_SEPARATOR() external view returns (bytes32) {
         return _domainSeparator();
@@ -227,7 +237,7 @@ contract sYETIToken is IERC20, Domain, BoringOwnable {
     function buyBack(address routerAddress, uint256 YUSDToSell, uint256 YETIOutMin, address[] memory path) external onlyOwner {
         require(YUSDToSell > 0, "Zero amount");
         require(lastBuybackTime + 69 hours < block.timestamp, "Must have 69 hours pass before another buyBack");
-        yusdToken.approve(routerAddress, YUSDToSell);
+        require(yusdToken.increaseAllowance(routerAddress, YUSDToSell));
         uint256[] memory amounts = IRouter(routerAddress).swapExactTokensForTokens(YUSDToSell, YETIOutMin, path, address(this), block.timestamp);
         lastBuybackTime = block.timestamp;
         // amounts[0] is the amount of YUSD that was sold, and amounts[1] is the amount of YETI that was gained in return. So the price is amounts[0] / amounts[1]
