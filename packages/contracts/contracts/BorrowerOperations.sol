@@ -13,6 +13,7 @@ import "./Interfaces/IYetiRouter.sol";
 import "./Dependencies/LiquityBase.sol";
 import "./Dependencies/Ownable.sol";
 import "./Dependencies/CheckContract.sol";
+import "./Dependencies/SafeMath.sol";
 import "./Interfaces/IERC20.sol";
 
 /** 
@@ -31,6 +32,7 @@ import "./Interfaces/IERC20.sol";
   */
 
 contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOperations {
+    using SafeMath for *;
     string public constant NAME = "BorrowerOperations";
 
     // --- Connected contract declarations ---
@@ -956,7 +958,6 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
 
     /**
      * Claim remaining collateral from a redemption or from a liquidation with ICR > MCR in Recovery Mode
-     * TODO: this function is optional, but the idea is that a borrower only needs to call this contract
      * to do all necessary interactions. Can delete if this is the only way to reduce size.
      */
     function claimCollateral() external override {
@@ -1235,7 +1236,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
 
     function _requireNoDuplicateColls(address[] memory _colls) internal pure {
         for (uint256 i = 0; i < _colls.length; i++) {
-            for (uint256 j = i + 1; j < _colls.length; j++) {
+            for (uint256 j = i.add(1); j < _colls.length; j++) {
                 require(_colls[i] != _colls[j], "BorrowerOps: Collateral passed in overlaps");
             }
         }
@@ -1374,7 +1375,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     // requires that avax indices are in order
     function _requireRouterAVAXIndicesInOrder(uint[] memory _indices) internal pure {
         for (uint i = 0; i < _indices.length - 1; i++) {
-            require(_indices[i] < _indices[i + 1]);
+            require(_indices[i] < _indices[i.add(1)]);
         }
     }
 
