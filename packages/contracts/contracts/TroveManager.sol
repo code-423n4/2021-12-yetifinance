@@ -228,8 +228,8 @@ contract TroveManager is TroveManagerBase, ITroveManager {
     // Yeti Finance will also be running a bot to assist with keeping the list from becoming
     // too stale.
     function updateTroves(address[] memory _borrowers, address[] memory _lowerHints, address[] memory _upperHints) external {
-        require(_borrowers.length == _lowerHints.length);
-        require(_lowerHints.length == _upperHints.length);
+        require(_borrowers.length == _lowerHints.length, "updateTroves: borrowers length mismatch");
+        require(_lowerHints.length == _upperHints.length, "updateTroves: hints length mismatch");
 
         for (uint i = 0; i < _lowerHints.length; i++) {
             _updateTrove(_borrowers[i], _lowerHints[i], _upperHints[i]);
@@ -889,7 +889,7 @@ contract TroveManager is TroveManagerBase, ITroveManager {
 
     function updateTroveColl(address _borrower, address[] memory _tokens, uint[] memory _amounts) external override {
         _requireCallerIsBorrowerOperations();
-        require(_tokens.length == _amounts.length);
+        require(_tokens.length == _amounts.length, "updateTroveColl: length mismatch");
         Troves[_borrower].colls.tokens = _tokens;
         Troves[_borrower].colls.amounts = _amounts;
     }

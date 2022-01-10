@@ -940,7 +940,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         address[] memory assets,
         uint256[] memory amounts
     ) internal {
-        require(assets.length == amounts.length);
+        require(assets.length == amounts.length, "_sendGainsToDepositor: length mismatch");
         for (uint256 i = 0; i < assets.length; i++) {
             if (whitelist.isWrapped(assets[i])){
                 IWAsset(assets[i]).endTreasuryReward(amounts[i]);
