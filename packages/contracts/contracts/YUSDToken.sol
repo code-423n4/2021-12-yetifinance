@@ -226,8 +226,8 @@ contract YUSDToken is CheckContract, IYUSDToken {
     // Warning: sanity checks (for sender and recipient) should have been done before calling these internal functions
 
     function _transfer(address sender, address recipient, uint256 amount) internal {
-        assert(sender != address(0));
-        assert(recipient != address(0));
+        require(sender != address(0), "_transfer: sender is address(0)");
+        require(recipient != address(0), "_transfer: recipient is address(0)");
 
         _balances[sender] = _balances[sender].sub(amount, "ERC20: transfer amount exceeds balance");
         _balances[recipient] = _balances[recipient].add(amount);
@@ -235,7 +235,7 @@ contract YUSDToken is CheckContract, IYUSDToken {
     }
 
     function _mint(address account, uint256 amount) internal {
-        assert(account != address(0));
+        require(account != address(0), "_mint: account is address(0)");
 
         _totalSupply = _totalSupply.add(amount);
         _balances[account] = _balances[account].add(amount);
@@ -243,7 +243,7 @@ contract YUSDToken is CheckContract, IYUSDToken {
     }
 
     function _burn(address account, uint256 amount) internal {
-        assert(account != address(0));
+        require(account != address(0), "_burn: account is address(0)");
         
         _balances[account] = _balances[account].sub(amount, "ERC20: burn amount exceeds balance");
         _totalSupply = _totalSupply.sub(amount);
@@ -251,8 +251,8 @@ contract YUSDToken is CheckContract, IYUSDToken {
     }
 
     function _approve(address owner, address spender, uint256 amount) internal {
-        assert(owner != address(0));
-        assert(spender != address(0));
+        require(owner != address(0), "_approve: owner is address(0)");
+        require(spender != address(0), "_approve: spender is address(0)");
 
         _allowances[owner][spender] = amount;
         emit Approval(owner, spender, amount);

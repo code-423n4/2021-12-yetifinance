@@ -576,7 +576,7 @@ contract TroveManagerLiquidations is TroveManagerBase {
                 _borrower
             );
 
-            assert(_YUSDInStabPool != 0);
+            require(_YUSDInStabPool != 0, "_liquidateRecoveryMode: zero YUSD in Pool");
 
             troveManager.removeStakeTLR(_borrower);
 

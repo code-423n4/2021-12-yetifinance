@@ -179,7 +179,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         address _whitelistAddress
     ) external override onlyOwner {
         // This makes impossible to open a trove with zero withdrawn YUSD
-        assert(MIN_NET_DEBT > 0);
+        require(MIN_NET_DEBT > 0, "setAddresses: MIN_NET_DEBT <= 0");
 
         deploymentTime = block.timestamp;
 
@@ -401,7 +401,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         // ICR is based on the composite debt, i.e. the requested YUSD amount + YUSD borrowing fee + YUSD gas comp.
         // _getCompositeDebt returns  vars.netDebt + YUSD gas comp.
         vars.compositeDebt = _getCompositeDebt(vars.netDebt);
-        assert(vars.compositeDebt > 0);
+        require(vars.compositeDebt > 0, "_openTroveInternal: composite debt <= 0");
 
         vars.ICR = LiquityMath._computeCR(vars.VC, vars.compositeDebt);
         if (vars.isRecoveryMode) {

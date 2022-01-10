@@ -568,7 +568,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
             );
         }
 
-        assert(_debtToOffset <= _totalYUSDDeposits);
+        require(_debtToOffset <= _totalYUSDDeposits, "_computeRewardsPerUnitStaked: debt less than total Deposits");
         if (_debtToOffset == _totalYUSDDeposits) {
             YUSDLossPerUnitStaked = DECIMAL_PRECISION; // When the Pool depletes to 0, so does each deposit
             lastYUSDLossError_Offset = 0;
@@ -610,7 +610,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         uint256 currentP = P;
         uint256 newP;
 
-        assert(_YUSDLossPerUnitStaked <= DECIMAL_PRECISION);
+        require(_YUSDLossPerUnitStaked <= DECIMAL_PRECISION, "_updateRewardSumAndProduct: not enough decimal precision");
         /*
          * The newProductFactor is the factor by which to change all deposits, due to the depletion of Stability Pool YUSD in the liquidation.
          * We make the product factor 0 if there was a pool-emptying. Otherwise, it is (1 - YUSDLossPerUnitStaked)
@@ -655,7 +655,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
             newP = currentP.mul(newProductFactor).div(DECIMAL_PRECISION);
         }
 
-        assert(newP > 0);
+        require(newP > 0, "_updateRewardSumAndProduct: product <= 0");
         P = newP;
         emit P_Updated(newP);
     }
