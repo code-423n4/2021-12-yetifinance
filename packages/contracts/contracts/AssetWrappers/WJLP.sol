@@ -4,6 +4,7 @@ pragma solidity 0.8.7;
 
 import "./ERC20_8.sol";
 import "./Interfaces/IWAsset.sol";
+import "./SafeERC20.sol";
 
 interface IRewarder {}
 
@@ -33,6 +34,7 @@ interface IMasterChefJoeV2 {
 // Wrapped Joe LP token Contract (represents staked JLP token earning JOE Rewards)
 // ----------------------------------------------------------------------------
 contract WJLP is ERC20_8, IWAsset {
+    using SafeERC20 for IERC20;
 
     IERC20 public JLP;
     IERC20 public JOE;
@@ -120,7 +122,7 @@ contract WJLP is ERC20_8, IWAsset {
     // _rewardOwner's reward tracking such that it now has the right to
     // future yields from the newly minted WAssets
     function wrap(uint _amount, address _to) external override {
-        JLP.transferFrom(msg.sender, address(this), _amount);
+        JLP.safeTransferFrom(msg.sender, address(this), _amount);
         JLP.approve(address(_MasterChefJoe), _amount);
 
         // stake LP tokens in Trader Joe's.
@@ -139,7 +141,7 @@ contract WJLP is ERC20_8, IWAsset {
         // each one has the ability to unwrap and burn WAssets they own and
         // send them to someone else
         _burn(msg.sender, _amount);
-        JLP.transfer(msg.sender, _amount);
+        JLP.safeTransfer(msg.sender, _amount);
     }
 
 
@@ -157,7 +159,7 @@ contract WJLP is ERC20_8, IWAsset {
         // each one has the ability to unwrap and burn WAssets they own and
         // send them to someone else
         _burn(msg.sender, _amount);
-        JLP.transfer(_to, _amount);
+        JLP.safeTransfer(_to, _amount);
 
     }
 
@@ -263,9 +265,9 @@ contract WJLP is ERC20_8, IWAsset {
     function _safeJoeTransfer(address _to, uint256 _amount) internal {
         uint256 joeBal = JOE.balanceOf(address(this));
         if (_amount > joeBal) {
-            JOE.transfer(_to, joeBal);
+            JOE.safeTransfer(_to, joeBal);
         } else {
-            JOE.transfer(_to, _amount);
+            JOE.safeTransfer(_to, _amount);
         }
     }
 
