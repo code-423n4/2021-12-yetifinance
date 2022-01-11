@@ -31,7 +31,7 @@ contract YetiFinanceTreasury {
     }
 
     function updateTeamWallet(address _newTeamWallet) external onlyTeam {
-        require(_newTeamWallet != 0, "New team wallet cannot be 0");
+        require(_newTeamWallet != address(0), "New team wallet cannot be 0");
         teamWallet = _newTeamWallet;
         emit teamWalletUpdated(_newTeamWallet);
     }

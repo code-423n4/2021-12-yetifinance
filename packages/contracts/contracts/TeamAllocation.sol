@@ -85,6 +85,7 @@ contract TeamAllocation {
 
 
     function updateTeamAddress(address _newTeamWallet) external onlyTeam {
+        require(_newTeamWallet != address(0), "updateTeamAddress: new team wallet cannot be the zero address");
         teamWallet = _newTeamWallet;
         emit teamAddressUpdated(teamWallet);
     }
