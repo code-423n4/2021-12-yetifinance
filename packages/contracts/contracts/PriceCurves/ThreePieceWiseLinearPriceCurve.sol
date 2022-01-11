@@ -145,10 +145,12 @@ contract ThreePieceWiseLinearPriceCurve is IPriceCurve, Ownable {
 
     function calculateDecayedFee() public override view returns (uint256 fee) {
         uint256 decay = block.timestamp.sub(lastFeeTime);
-        if (decay > 0 && decay < decayTime) {
+        // Decay within bounds of decay time, then decay the fee. 
+        if (decay <= decayTime) {
             fee = lastFeePercent.sub(lastFeePercent.mul(decay).div(decayTime));
         } else {
-            fee = lastFeePercent;
+            // If it has been longer than decay time, then reset fee to 0.
+            fee = 0;
         }
         return fee;
     }
