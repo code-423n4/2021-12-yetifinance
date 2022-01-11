@@ -16,15 +16,15 @@ import "./YetiCustomBase.sol";
 */
 contract LiquityBase is ILiquityBase, YetiCustomBase {
 
-    uint constant public _100pct = 1000000000000000000; // 1e18 == 100%
+    uint constant public _100pct = 1e18; // 1e18 == 100%
 
-    uint constant public _110pct = 1100000000000000000; // 1.1e18 == 110%
+    uint constant public _110pct = 11e17; // 1.1e18 == 110%
 
     // Minimum collateral ratio for individual troves
-    uint constant public MCR = 1100000000000000000; // 110%
+    uint constant public MCR = 11e17; // 110%
 
     // Critical system collateral ratio. If the system's total collateral ratio (TCR) falls below the CCR, Recovery Mode is triggered.
-    uint constant public CCR = 1500000000000000000; // 150%
+    uint constant public CCR = 15e17; // 150%
 
     // Amount of YUSD to be locked in gas pool on opening troves
     uint constant public YUSD_GAS_COMPENSATION = 200e18;
