@@ -10,7 +10,7 @@ import "./Dependencies/TroveManagerBase.sol";
  * related to Liquidations. 
  */
 
-contract TroveManagerLiquidations is TroveManagerBase {
+contract TroveManagerLiquidations is TroveManagerBase, ITroveManagerLiquidations {
 
     address yetiFinanceTreasury;
 
@@ -144,7 +144,7 @@ contract TroveManagerLiquidations is TroveManagerBase {
      * Function for liquidating a list of troves in a single transaction. Will perform as many as it can 
      * and looks at if it is eligible for liquidation based on the current ICR value. 
      */
-    function batchLiquidateTroves(address[] memory _troveArray, address _liquidator) public {
+    function batchLiquidateTroves(address[] memory _troveArray, address _liquidator) external override {
         _requireCallerisTroveManager();
         require(_troveArray.length != 0, "TroveManager: Calldata address array must not be empty");
 
