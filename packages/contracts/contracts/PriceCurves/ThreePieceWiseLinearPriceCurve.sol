@@ -42,6 +42,7 @@ contract ThreePieceWiseLinearPriceCurve is IPriceCurve, Ownable {
      * Function for setting slopes and intercepts of linear functions used for fee calculations. 
      */
     function adjustParams(string memory _name, uint256 _m1, uint256 _b1, uint256 _m2, uint256 _cutoff1, uint256 _m3, uint256 _cutoff2, uint _dollarCap) public onlyOwner {
+        require(_cutoff1 <= _cutoff2, "Cutoffs must be increasing");
         name = _name;
         m1 = _m1;
         b1 = _b1;
