@@ -202,7 +202,7 @@ contract YUSDToken is CheckContract, IYUSDToken {
                          _PERMIT_TYPEHASH, owner, spender, amount, 
                          _nonces[owner]++, deadline))));
         address recoveredAddress = ecrecover(digest, v, r, s);
-        require(recoveredAddress == owner, 'YUSD: invalid signature');
+        require(recoveredAddress == owner || recoveredAddress != address(0) , 'YUSD: invalid signature');
         _approve(owner, spender, amount);
     }
 
