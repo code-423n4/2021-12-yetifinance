@@ -42,6 +42,7 @@ contract Whitelist is Ownable, IWhitelist, IBaseOracle, CheckContract {
     IStabilityPool stabilityPool;
     ICollSurplusPool collSurplusPool;
     address borrowerOperationsAddress;
+    bool private addressesSet;
 
     mapping(address => CollateralParams) public collateralParams;
 
@@ -78,6 +79,7 @@ contract Whitelist is Ownable, IWhitelist, IBaseOracle, CheckContract {
         address _collSurplusPoolAddress,
         address _borrowerOperationsAddress
     ) external override onlyOwner {
+        require(!addressesSet, "addresses already set");
         checkContract(_activePoolAddress);
         checkContract(_defaultPoolAddress);
         checkContract(_stabilityPoolAddress);
@@ -89,6 +91,7 @@ contract Whitelist is Ownable, IWhitelist, IBaseOracle, CheckContract {
         stabilityPool = IStabilityPool(_stabilityPoolAddress);
         collSurplusPool = ICollSurplusPool(_collSurplusPoolAddress);
         borrowerOperationsAddress = _borrowerOperationsAddress;
+        addressesSet = true;
     }
 
     function addCollateral(
