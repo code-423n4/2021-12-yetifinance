@@ -44,6 +44,7 @@ contract sYETIToken is IERC20, Domain, BoringOwnable {
     uint256 public transferRatio; // 100% = 1e18. Amount to transfer over each rebase. 
     IYETIToken public yetiToken;
     IERC20 public yusdToken;
+    bool private addressesSet;
 
     struct User {
         uint128 balance;
@@ -67,8 +68,10 @@ contract sYETIToken is IERC20, Domain, BoringOwnable {
     }
 
     function setAddresses(IYETIToken _yeti, IERC20 _yusd) external onlyOwner {
+        require(!addressesSet, "addresses already set");
         yetiToken = _yeti;
         yusdToken = _yusd;
+        addressesSet = true;
     }
 
     function _transfer(
