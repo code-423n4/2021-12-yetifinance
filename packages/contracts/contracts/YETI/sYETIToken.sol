@@ -251,23 +251,33 @@ contract sYETIToken is IERC20, Domain, BoringOwnable {
         require(block.timestamp >= lastRebaseTime + 8 hours, "Must have 8 hours pass before another rebase");
         // Use last buyback price to transfer some of the actual YETI Tokens that this contract owns 
         // to the effective yeti token balance. Transfer a portion of the value over to the effective balance
-        uint256 yetiTokenBalance = yetiToken.balanceOf(address(this));
-        uint256 valueOfContract = _getValueOfContract(yetiTokenBalance);
-        uint256 additionalYetiTokenBalance = div(valueOfContract.mul(transferRatio), (lastBuybackPrice));
+
+        // raw balance of the contract
+        uint256 yetiTokenBalance = yetiToken.balanceOf(address(this));  
+        // amount of YETI free / available to give out
+        uint256 adjustedYetiTokenBalance = yetiTokenBalance.sub(effectiveYetiTokenBalance); 
+        // in YETI, amount that should be eligible to give out.
+        uint256 valueOfContract = _getValueOfContract(adjustedYetiTokenBalance); 
+        // in YETI, amount to rebase
+        uint256 amountYetiToRebase = div(valueOfContract.mul(transferRatio), 1e18); 
         // Ensure that the amount of YETI tokens effectively added is >= the amount we have repurchased. 
-        if (yetiTokenBalance - effectiveYetiTokenBalance < additionalYetiTokenBalance) {
-            additionalYetiTokenBalance = yetiTokenBalance;
+        // Amount available = adjustdYetiTokenBalance, amount to distribute is amountYetiToRebase
+        if (amountYetiToRebase > adjustedYetiTokenBalance) {
+            amountYetiToRebase = adjustedYetiTokenBalance;
         }
-        effectiveYetiTokenBalance = effectiveYetiTokenBalance.add(additionalYetiTokenBalance);
+        // rebase amount joins the effective supply. 
+        effectiveYetiTokenBalance = effectiveYetiTokenBalance.add(amountYetiToRebase);
+        // update rebase time
         lastRebaseTime = block.timestamp;
-        emit Rebase(additionalYetiTokenBalance);
+        emit Rebase(amountYetiToRebase);
     }
 
     // Sums YUSD balance + old price. 
-    function _getValueOfContract(uint _yetiTokenBalance) internal view returns (uint256) {
-        uint256 adjustedYetiTokenBalance = _yetiTokenBalance.sub(effectiveYetiTokenBalance);
+    // Should take add the YUSD balance / last buyback price to get value of the YUSD in YETI 
+    // added to the YETI balance of the contract. Essentially the amount it is eligible to give out.
+    function _getValueOfContract(uint _adjustedYetiTokenBalance) internal view returns (uint256) {
         uint256 yusdTokenBalance = yusdToken.balanceOf(address(this));
-        return div(lastBuybackPrice.mul(adjustedYetiTokenBalance), (1e18)).add(yusdTokenBalance);
+        return div(yusdTokenBalance.mul(1e18), lastBuybackPrice).add(_adjustedYetiTokenBalance);
     }
 
     // Sets new transfer ratio for rebasing
