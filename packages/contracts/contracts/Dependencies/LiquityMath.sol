@@ -50,7 +50,7 @@ library LiquityMath {
     */
     function _decPow(uint _base, uint _minutes) internal pure returns (uint) {
        
-        if (_minutes > 525600000) {_minutes = 525600000;}  // cap to avoid overflow
+        if (_minutes > 5256e5) {_minutes = 5256e5;}  // cap to avoid overflow
     
         if (_minutes == 0) {return DECIMAL_PRECISION;}
 
