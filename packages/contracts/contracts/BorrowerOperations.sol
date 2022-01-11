@@ -228,7 +228,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         address[] memory _colls,
         uint256[] memory _amounts
     ) external override {
-        require(_amounts.length != 0, "Amounts == 0");
+        _requireLengthNonzero(_amounts.length);
         _requireValidDepositCollateral(_colls, _amounts);
         _requireNoDuplicateColls(_colls); // Check that there is no overlap in _colls
 
@@ -269,10 +269,11 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         uint256[] memory _leverages,
         uint256[] memory _maxSlippages
     ) external override {
-        require(_colls.length != 0, "Must pass in collateral");
+        _requireLengthNonzero(_colls.length);
         _requireValidDepositCollateral(_colls, _amounts);
-        require(_colls.length == _leverages.length, "openTroveLeverUp: leverages length mismatch");
-        require(_colls.length == _maxSlippages.length, "openTroveLeverUp: maxSlippages length mismatch");
+        // Must check additional passed in arrays
+        _requireLengthsEqual(_colls.length, _leverages.length);
+        _requireLengthsEqual(_colls.length, _maxSlippages.length);
         _requireNoDuplicateColls(_colls);
         uint additionalTokenAmount;
         uint additionalYUSDDebt;
@@ -501,10 +502,10 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         params._maxFeePercentage = _maxFeePercentage;
 
         // check that all _collsIn collateral types are in the whitelist
-        require(_collsIn.length != 0, "addCollLeverUp: colls length 0");
         _requireValidDepositCollateral(params._collsIn, params._amountsIn);
-        require(_collsIn.length == _leverages.length, "addCollLeverUp: leverages length mismatch");
-        require(_collsIn.length == _maxSlippages.length, "addCollLeverUp: maxSlippages length mismatch");
+        // Must check that other passed in arrays are correct length
+        _requireLengthsEqual(_collsIn.length, _leverages.length);
+        _requireLengthsEqual(_collsIn.length, _maxSlippages.length);
         _requireNoDuplicateColls(params._collsIn); // Check that there is no overlap with in or out in itself
 
         uint additionalTokenAmount;
@@ -546,7 +547,6 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     }
 
     // Withdraw collateral from a trove. Calls _adjustTrove with correct params. 
-
     function withdrawColl(
         address[] memory _collsOut,
         uint256[] memory _amountsOut,
@@ -558,6 +558,11 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         params._amountsOut = _amountsOut;
         params._upperHint = _upperHint;
         params._lowerHint = _lowerHint;
+
+        // check that all _collsOut collateral types are in the whitelist
+        _requireValidDepositCollateral(params._collsOut, params._amountsOut);
+        _requireNoDuplicateColls(params._collsOut); // Check that there is no overlap with in or out in itself
+
         _adjustTrove(params);
     }
 
@@ -609,6 +614,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         _requireValidDepositCollateral(_collsIn, _amountsIn);
         _requireValidDepositCollateral(_collsOut, _amountsOut);
         _requireNoOverlapColls(_collsIn, _collsOut); // check that there are no overlap between _collsIn and _collsOut
+        _requireNoDuplicateColls(_collsIn);
         _requireNoDuplicateColls(_collsOut);
 
         // pull in deposit collateral
@@ -653,6 +659,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
             _requireNonZeroDebtChange(params._YUSDChange);
         }
 
+        // Checks that at least one array is non-empty, and also that at least one value is 1. 
         _requireNonZeroAdjustment(params._amountsIn, params._amountsOut, params._YUSDChange);
         _requireTroveisActive(contractsCache.troveManager, msg.sender);
 
@@ -858,9 +865,10 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         address _upperHint,
         address _lowerHint
         ) external override {
-        // check that all _collsIn collateral types are in the whitelist
+        // check that all _collsOut collateral types are in the whitelist
         _requireValidDepositCollateral(_collsOut, _amountsOut);
-        _requireNoDuplicateColls(_collsOut);
+        _requireNoDuplicateColls(_collsOut); // Check that there is no overlap with out in itself
+        _requireLengthsEqual(_amountsOut.length, _maxSlippages.length);
 
         AdjustTrove_Params memory params; 
         params._collsOut = _collsOut;
@@ -1176,10 +1184,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     // --- 'Require' wrapper functions ---
 
     function _requireValidDepositCollateral(address[] memory _colls, uint256[] memory _amounts) internal view {
-        require(
-            _colls.length == _amounts.length,
-            "Length of collateral arrays must be equal"
-        );
+        _requireLengthsEqual(_colls.length, _amounts.length);
         for (uint256 i = 0; i < _colls.length; i++) {
             require(whitelist.getIsActive(_colls[i]), "BOps: Collateral not in whitelist");
             require(_amounts[i] > 0, "BOps: Collateral amount must be greater than 0");
@@ -1251,6 +1256,16 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
             !_arrayIsNonzero(_amountOut),
             "BorrowerOps: Collateral withdrawal not permitted Recovery Mode"
         );
+    }
+
+    // Function require length nonzero, used to save contract size on revert strings. 
+    function _requireLengthNonzero(uint256 length) internal pure {
+        require(length != 0, "BOps:Passed in length 0");
+    }
+
+    // Function require length equal, used to save contract size on revert strings.
+    function _requireLengthsEqual(uint256 length1, uint256 length2) internal pure {
+        require(length1 == length2, "BOps:Passed in lengths !=");
     }
 
     function _requireValidAdjustmentInCurrentMode(
@@ -1359,25 +1374,25 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     }
 
     // checks lengths are all good and that all passed in routers are valid routers
-    function _requireValidRouterParams(
-        address[] memory _finalRoutedColls,
-        uint[] memory _amounts,
-        uint[] memory _minSwapAmounts,
-        IYetiRouter[] memory _routers) internal view {
-        require(_finalRoutedColls.length == _amounts.length,  "_requireValidRouterParams: _finalRoutedColls length mismatch");
-        require(_amounts.length == _routers.length, "_requireValidRouterParams: _routers length mismatch");
-        require(_amounts.length == _minSwapAmounts.length, "_minSwapAmounts: finalRoutedColls length mismatch");
-        for (uint i = 0; i < _routers.length; i++) {
-            require(whitelist.isValidRouter(address(_routers[i])), "_requireValidRouterParams: not a valid router");
-        }
-    }
+    // function _requireValidRouterParams(
+    //     address[] memory _finalRoutedColls,
+    //     uint[] memory _amounts,
+    //     uint[] memory _minSwapAmounts,
+    //     IYetiRouter[] memory _routers) internal view {
+    //     require(_finalRoutedColls.length == _amounts.length,  "_requireValidRouterParams: _finalRoutedColls length mismatch");
+    //     require(_amounts.length == _routers.length, "_requireValidRouterParams: _routers length mismatch");
+    //     require(_amounts.length == _minSwapAmounts.length, "_minSwapAmounts: finalRoutedColls length mismatch");
+    //     for (uint i = 0; i < _routers.length; i++) {
+    //         require(whitelist.isValidRouter(address(_routers[i])), "_requireValidRouterParams: not a valid router");
+    //     }
+    // }
 
-    // requires that avax indices are in order
-    function _requireRouterAVAXIndicesInOrder(uint[] memory _indices) internal pure {
-        for (uint i = 0; i < _indices.length - 1; i++) {
-            require(_indices[i] < _indices[i.add(1)], "_requireRouterAVAXIndicesInOrder: indices out of order");
-        }
-    }
+    // // requires that avax indices are in order
+    // function _requireRouterAVAXIndicesInOrder(uint[] memory _indices) internal pure {
+    //     for (uint i = 0; i < _indices.length - 1; i++) {
+    //         require(_indices[i] < _indices[i.add(1)], "_requireRouterAVAXIndicesInOrder: indices out of order");
+    //     }
+    // }
 
 
     // --- ICR and TCR getters ---
