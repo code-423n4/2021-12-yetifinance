@@ -206,7 +206,7 @@ contract Whitelist is Ownable, IWhitelist, IBaseOracle, CheckContract {
         onlyOwner
     {
         checkContract(_collateral);
-        require(_ratio < 1100000000000000000, "ratio must be less than 1.10 => greater than 1.1 would mean taking out more YUSD than collateral VC");
+        require(_ratio < 11e17, "ratio must be less than 1.10 => greater than 1.1 would mean taking out more YUSD than collateral VC");
         require(collateralParams[_collateral].ratio < _ratio, "New SR must be greater than previous SR");
         collateralParams[_collateral].ratio = _ratio;
 
