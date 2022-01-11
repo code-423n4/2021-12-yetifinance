@@ -29,6 +29,7 @@ contract ThreePieceWiseLinearPriceCurve is IPriceCurve, Ownable {
     uint lastFeePercent;
     uint dollarCap;
     address whitelistAddress;
+    bool private addressesSet;
 
     /** 
      * f1 = m1 * x + b1
@@ -58,7 +59,9 @@ contract ThreePieceWiseLinearPriceCurve is IPriceCurve, Ownable {
 
     // Set the whitelist address so that the fee can only be updated by whitelistAddress
     function setAddresses(address _whitelistAddress) public override onlyOwner {
+        require(!addressesSet, "addresses already set");
         whitelistAddress = _whitelistAddress;
+        addressesSet = true;
     }
 
     // Set the decay time in seconds
