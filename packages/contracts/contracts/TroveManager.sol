@@ -284,7 +284,7 @@ contract TroveManager is TroveManagerBase, ITroveManager {
 
     // Return the current collateral ratio (ICR) of a given Trove.
     // Takes a trove's pending coll and debt rewards from redistributions into account.
-    function getCurrentICR(address _borrower) public view override returns (uint) {
+    function getCurrentICR(address _borrower) external view override returns (uint) {
         (newColls memory colls, uint currentYUSDDebt) = _getCurrentTroveState(_borrower);
 
         uint ICR = _getICRColls(colls, currentYUSDDebt);

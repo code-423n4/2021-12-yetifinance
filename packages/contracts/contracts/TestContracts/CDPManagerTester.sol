@@ -75,9 +75,9 @@ contract TroveManagerTester is TroveManager {
     }
 
     // _price is no longer used but just useful so we don't have to rewrite test cases
-    function getCurrentICR(address _troveAddress, uint _price) external view returns (uint) {
-        return getCurrentICR(_troveAddress);
-    }
+    // function getCurrentICR(address _troveAddress, uint _price) external view returns (uint) {
+    //     return getCurrentICR(_troveAddress);
+    // }
 
     function getEDC(address _troveAddress) external view returns (address[] memory, uint[] memory, uint) {
         (newColls memory colls, uint YUSDdebt) = _getCurrentTroveState(_troveAddress);

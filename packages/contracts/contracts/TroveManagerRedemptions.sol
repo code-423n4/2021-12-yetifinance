@@ -33,7 +33,7 @@ import "./Dependencies/SafeERC20.sol";
  * To the redemption function, we pass in Y and X. 
  */
 
-contract TroveManagerRedemptions is TroveManagerBase {
+contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
     using SafeERC20 for IYUSDToken;
 
     struct RedemptionTotals {
@@ -137,7 +137,7 @@ contract TroveManagerRedemptions is TroveManagerBase {
         uint256 _partialRedemptionHintICR,
         uint256 _maxIterations,
         address _redeemer
-    ) external {
+    ) external override {
         _requireCallerisTroveManager();
         ContractsCache memory contractsCache = ContractsCache(
             activePool,
