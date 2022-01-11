@@ -12,8 +12,11 @@ contract YetiFinanceTreasury {
 
     address teamWallet;
 
+    event teamWalletUpdated(address newTeamWallet);
+
     constructor() public {
         teamWallet = msg.sender;
+        emit teamWalletUpdated(msg.sender);
     }
 
     modifier onlyTeam() {
@@ -26,7 +29,9 @@ contract YetiFinanceTreasury {
     }
 
     function updateTeamWallet(address _newTeamWallet) external onlyTeam {
+        require(_newTeamWallet != 0, "New team wallet cannot be 0");
         teamWallet = _newTeamWallet;
+        emit teamWalletUpdated(_newTeamWallet);
     }
 
     function getTeamWallet() external view returns (address) {
