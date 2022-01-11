@@ -63,8 +63,8 @@ contract Whitelist is Ownable, IWhitelist, IBaseOracle, CheckContract {
     // index is still 0 then it does not exist in the mapping.
     // no require here for valid collateral 0 index because that means it exists. 
     modifier exists(address _collateral) {
-        if (validCollateral.length != 0 && validCollateral[0] != _collateral) {
-            require(collateralParams[_collateral].index != 0, "collateral does not exists");
+        if (validCollateral[0] != _collateral) {
+            require(collateralParams[_collateral].index != 0, "collateral does not exist");
         }
         _;
     }
