@@ -12,8 +12,10 @@ import "./Interfaces/ISYETI.sol";
 import "./Interfaces/IWhitelist.sol";
 import "./Interfaces/ITroveManagerLiquidations.sol";
 import "./Interfaces/ITroveManagerRedemptions.sol";
-import "./Dependencies/TroveManagerBase.sol";
 import "./Interfaces/IERC20.sol";
+import "./Dependencies/TroveManagerBase.sol";
+import "./Dependencies/ReentrancyGuard.sol";
+
 
 /** 
  * Trove Manager is the contract which deals with the state of a user's trove. It has all the 
@@ -21,7 +23,7 @@ import "./Interfaces/IERC20.sol";
  * BorrowerOperations function calls. 
  */
 
-contract TroveManager is TroveManagerBase, ITroveManager {
+contract TroveManager is TroveManagerBase, ITroveManager, ReentrancyGuard {
     string constant public NAME = "TroveManager";
 
     // --- Data structures ---
@@ -268,6 +270,7 @@ contract TroveManager is TroveManagerBase, ITroveManager {
     )
     external
     override
+    nonReentrant
     {
         troveManagerRedemptions.redeemCollateral(
             _YUSDamount,
@@ -304,7 +307,7 @@ contract TroveManager is TroveManagerBase, ITroveManager {
     }
 
     // Add the borrowers's coll and debt rewards earned from redistributions, to their Trove
-    function applyPendingRewards(address _borrower) external override {
+    function applyPendingRewards(address _borrower) external override nonReentrant {
         _requireCallerIsBOorTMR();
         return _applyPendingRewards(activePool, defaultPool, _borrower);
     }
