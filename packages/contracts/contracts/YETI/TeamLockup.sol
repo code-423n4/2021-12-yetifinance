@@ -12,7 +12,7 @@ contract TeamLockup {
     IERC20 YETI;
 
     uint immutable vestingStart;
-    uint immutable vestingLength; // number of YETI that are claimable every day after vesting starts
+    uint immutable vestingLength; // number of YETI that are claimable every second after vesting starts
     uint immutable totalVest;
     uint totalClaimed;
 
