@@ -23,6 +23,8 @@ contract TeamAllocation {
 
     uint internal _94_5_thousand = 945e20; // 70% * 27% * 500,000
 
+    event teamAddressUpdated(address newTeamAddress);
+
 
     constructor() public {
 
@@ -47,6 +49,8 @@ contract TeamAllocation {
         _94_5_thousand * 30,
         _94_5_thousand * 15
         ];
+
+        emit teamAddressUpdated(teamWallet);
     }
 
 
@@ -82,6 +86,7 @@ contract TeamAllocation {
 
     function updateTeamAddress(address _newTeamWallet) external onlyTeam {
         teamWallet = _newTeamWallet;
+        emit teamAddressUpdated(teamWallet);
     }
 
 
