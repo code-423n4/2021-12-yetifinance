@@ -109,6 +109,8 @@ contract Whitelist is Ownable, IWhitelist, IBaseOracle, CheckContract {
         checkContract(_routerAddress);
         // If collateral list is not 0, and if the 0th index is not equal to this collateral,
         // then if index is 0 that means it is not set yet.
+        require(_minRatio < 11e17, "ratio must be less than 1.10 => greater than 1.1 would mean taking out more YUSD than collateral VC");
+
         if (validCollateral.length != 0) {
             require(validCollateral[0] != _collateral && collateralParams[_collateral].index == 0, "collateral already exists");
         }
