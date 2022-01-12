@@ -270,7 +270,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         uint256[] memory _amounts, 
         uint256[] memory _leverages,
         uint256[] memory _maxSlippages
-    ) external override {
+    ) external override nonReentrant {
         _requireLengthNonzero(_colls.length);
         _requireValidDepositCollateral(_colls, _amounts);
         // Must check additional passed in arrays
@@ -497,7 +497,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         address _upperHint,
         address _lowerHint, 
         uint256 _maxFeePercentage
-    ) external override {
+    ) external override nonReentrant {
         AdjustTrove_Params memory params;
         params._upperHint = _upperHint;
         params._lowerHint = _lowerHint;
@@ -866,7 +866,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         uint256 _YUSDAmount,
         address _upperHint,
         address _lowerHint
-        ) external override {
+        ) external override nonReentrant {
         // check that all _collsOut collateral types are in the whitelist
         _requireValidDepositCollateral(_collsOut, _amountsOut);
         _requireNoDuplicateColls(_collsOut); // Check that there is no overlap with out in itself
@@ -888,7 +888,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         address[] memory _collsOut,
         uint256[] memory _amountsOut,
         uint256[] memory _maxSlippages
-    ) external override {
+    ) external override nonReentrant {
         CloseTrove_Params memory params = CloseTrove_Params({
             _collsOut: _collsOut,
             _amountsOut: _amountsOut,
