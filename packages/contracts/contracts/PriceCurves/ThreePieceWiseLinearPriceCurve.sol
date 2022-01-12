@@ -20,9 +20,11 @@ contract ThreePieceWiseLinearPriceCurve is IPriceCurve, Ownable {
     uint256 cutoff1;
     uint256 m2;
     uint256 b2;
+    bool b2Negative;
     uint256 cutoff2;
     uint256 m3;
     uint256 b3;
+    bool b3Negative;
     uint256 decayTime;
 
     uint lastFeeTime;
@@ -48,10 +50,26 @@ contract ThreePieceWiseLinearPriceCurve is IPriceCurve, Ownable {
         m1 = _m1;
         b1 = _b1;
         m2 = _m2;
-        b2 = _m1.mul(_cutoff1).div(1e18).add(_b1).sub(_m2.mul(_cutoff1).div(1e18));
+        uint256 m1Val = _m1.mul(_cutoff1).div(1e18).add(_b1);
+        uint256 m2Val = _m2.mul(_cutoff1).div(1e18);
+        if (m2Val > m1Val) {
+            b2Negative = true;
+            b2 = m2Val.sub(m1Val);
+        } else {
+            b2 = m1Val.sub(m2Val);
+        }
+        // b2 = _m1.mul(_cutoff1).div(1e18).add(_b1).sub(_m2.mul(_cutoff1).div(1e18));
         cutoff1 = _cutoff1;
         m3 = _m3;
-        b3 = _m2.mul(_cutoff2).div(1e18).add(b2).sub(_m3.mul(_cutoff2).div(1e18));
+        m2Val = _m2.mul(_cutoff2).div(1e18).add(b2);
+        uint256 m3Val = _m3.mul(_cutoff2).div(1e18);
+        if (m3Val > m2Val) {
+            b3Negative = true;
+            b3 = m3Val.sub(m2Val);
+        } else {
+            b3 = m2Val.sub(m3Val);
+        }
+        // b3 = _m2.mul(_cutoff2).div(1e18).add(b2).sub(_m3.mul(_cutoff2).div(1e18));
         cutoff2 = _cutoff2;
         dollarCap = _dollarCap; // Cap in VC terms of max of this asset. dollarCap = 0 means no cap. No cap.
         decayTime = 5 days;
@@ -137,9 +155,19 @@ contract ThreePieceWiseLinearPriceCurve is IPriceCurve, Ownable {
         if (percentBacked <= cutoff1) { // use function 1
             return _min(m1.mul(percentBacked).div(1e18).add(b1), 1e18);
         } else if (percentBacked <= cutoff2) { // use function 2
-            return _min(m2.mul(percentBacked).div(1e18).add(b2), 1e18);
+            if (b2Negative) {
+                return _min(m2.mul(percentBacked).div(1e18).sub(b2), 1e18);
+            } else {
+                return _min(m2.mul(percentBacked).div(1e18).add(b2), 1e18);
+            }
+            // return _min(m2.mul(percentBacked).div(1e18).add(b2), 1e18);
         } else { // use function 3
-            return _min(m3.mul(percentBacked).div(1e18).add(b3), 1e18);
+            if (b3Negative) {
+                return _min(m3.mul(percentBacked).div(1e18).sub(b3), 1e18);
+            } else {
+                return _min(m3.mul(percentBacked).div(1e18).add(b3), 1e18);
+            }
+            // return _min(m3.mul(percentBacked).div(1e18).add(b3), 1e18);
         }
     }
 
