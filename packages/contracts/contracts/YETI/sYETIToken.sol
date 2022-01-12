@@ -101,7 +101,9 @@ contract sYETIToken is IERC20, Domain, BoringOwnable {
         // If allowance is infinite, don't decrease it to save on gas (breaks with EIP-20).
         if (spenderAllowance != type(uint256).max) {
             require(spenderAllowance >= shares, "Low allowance");
-            allowance[from][msg.sender] = spenderAllowance - shares; // Underflow is checked
+            uint256 newAllowance = spenderAllowance - shares;
+            allowance[from][msg.sender] = newAllowance; // Underflow is checked
+            emit Approval(from, msg.sender, newAllowance);
         }
     }
 
