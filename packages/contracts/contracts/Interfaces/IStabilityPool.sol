@@ -147,7 +147,7 @@ interface IStabilityPool is ICollateralReceiver {
      //*
 //     * Calculates and returns the total gains a depositor has accumulated 
 //     */
-    function  getDepositorGains(address _depositor) external view returns (address[] memory assets, uint[] memory amounts);
+    function  getDepositorGains(address _depositor) external view returns (address[] memory, uint[] memory);
 
 
     /*

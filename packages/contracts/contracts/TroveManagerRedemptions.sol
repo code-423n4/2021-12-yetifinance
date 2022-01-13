@@ -601,7 +601,7 @@ contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
             );
         }
 
-        return singleRedemption;
+        // returns singleRedemption;
     }
 
     /*

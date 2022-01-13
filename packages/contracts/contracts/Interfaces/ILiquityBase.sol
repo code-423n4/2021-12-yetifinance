@@ -7,5 +7,5 @@ import "./IPriceFeed.sol";
 
 interface ILiquityBase {
 
-    function getEntireSystemDebt() external view returns (uint entireSystemDebt);
+    function getEntireSystemDebt() external view returns (uint);
 }

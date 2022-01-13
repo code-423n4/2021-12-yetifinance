@@ -63,6 +63,7 @@ contract MultiTroveGetter {
                 _troves = _getMultipleSortedTrovesFromTail(startIdx, _count);
             }
         }
+        // returns _troves;
     }
 
     function _getMultipleSortedTrovesFromHead(uint _startIdx, uint _count)
@@ -80,6 +81,7 @@ contract MultiTroveGetter {
             _troves[idx] = _getCombinedTroveData(currentTroveowner);
             currentTroveowner = sortedTroves.getNext(currentTroveowner);
         }
+        // returns _troves;
     }
 
     function _getMultipleSortedTrovesFromTail(uint _startIdx, uint _count)
@@ -97,6 +99,7 @@ contract MultiTroveGetter {
             _troves[idx] = _getCombinedTroveData(currentTroveowner);
             currentTroveowner = sortedTroves.getPrev(currentTroveowner);
         }
+        // returns _troves;
     }
 
     function _getCombinedTroveData(address _troveOwner) internal view returns (CombinedTroveData memory data) {

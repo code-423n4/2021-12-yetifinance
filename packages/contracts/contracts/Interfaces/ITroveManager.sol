@@ -91,7 +91,7 @@ interface ITroveManager is ILiquityBase {
 
     function updateTroveRewardSnapshots(address _borrower) external;
 
-    function addTroveOwnerToArray(address _borrower) external returns (uint index);
+    function addTroveOwnerToArray(address _borrower) external returns (uint);
 
     function applyPendingRewards(address _borrower) external;
 
