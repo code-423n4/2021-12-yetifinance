@@ -85,8 +85,9 @@ contract sYETIToken is IERC20, Domain, BoringOwnable {
             if (from != to) {
                 require(to != address(0), "Zero address"); // Moved down so other failed calls safe some gas
                 User memory toUser = users[to];
-                users[from].balance = fromUser.balance - shares.to128(); // Underflow is checked
-                users[to].balance = toUser.balance + shares.to128(); // Can't overflow because totalSupply would be greater than 2^128-1;
+                uint128 shares128 = shares.to128();
+                users[from].balance = fromUser.balance - shares128; // Underflow is checked
+                users[to].balance = toUser.balance + shares128; // Can't overflow because totalSupply would be greater than 2^128-1;
             }
         }
         emit Transfer(from, to, shares);

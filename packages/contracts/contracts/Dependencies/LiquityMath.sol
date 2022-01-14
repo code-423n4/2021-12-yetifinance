@@ -27,7 +27,7 @@ library LiquityMath {
     function decMul(uint x, uint y) internal pure returns (uint decProd) {
         uint prod_xy = x.mul(y);
 
-        decProd = prod_xy.add(DECIMAL_PRECISION / 2).div(DECIMAL_PRECISION);
+        decProd = prod_xy.add(5e17).div(DECIMAL_PRECISION);
     }
 
     /* 
