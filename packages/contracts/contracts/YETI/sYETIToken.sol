@@ -7,7 +7,6 @@ import "./BoringCrypto/BoringERC20.sol";
 import "./BoringCrypto/Domain.sol";
 import "./BoringCrypto/ERC20.sol";
 import "./BoringCrypto/IERC20.sol";
-import "./BoringCrypto/BoringBatchable.sol";
 import "./BoringCrypto/BoringOwnable.sol";
 
 
