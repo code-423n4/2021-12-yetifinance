@@ -670,7 +670,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         vars.VCout = _getVC(params._collsOut, params._amountsOut);
 
         if (params._isDebtIncrease) {
-            vars.maxFeePercentageFactor = _max(vars.VCin, params._YUSDChange);
+            vars.maxFeePercentageFactor = LiquityMath._max(vars.VCin, params._YUSDChange);
         } else {
             vars.maxFeePercentageFactor = vars.VCin;
         }
@@ -1020,7 +1020,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
                         activePoolVCPost
                     );
             if (_isBeforeFeeBootstrapPeriod()) {
-                whitelistFee = _min(whitelistFee, 1e16); // cap at 1%
+                whitelistFee = LiquityMath._min(whitelistFee, 1e16); // cap at 1%
             } 
             vars.collateralYUSDFee = vars.collateralInputVC
                 .mul(whitelistFee).div(1e18);
@@ -1428,13 +1428,5 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
 
     function getCompositeDebt(uint256 _debt) external pure override returns (uint256) {
         return _getCompositeDebt(_debt);
-    }
-
-    function _max(uint256 _a, uint256 _b) internal pure returns (uint256) {
-        return _a > _b ? _a : _b;
-    }
-
-    function _min(uint256 _a, uint256 _b) internal pure returns (uint256) {
-        return _a < _b ? _a : _b;
     }
 }
