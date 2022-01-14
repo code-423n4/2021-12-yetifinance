@@ -109,8 +109,9 @@ contract ThreePieceWiseLinearPriceCurve is IPriceCurve, Ownable {
      */
     function getFee(uint256 _collateralVCInput, uint256 _totalCollateralVCBalance, uint256 _totalVCBalancePre, uint256 _totalVCBalancePost) override external view returns (uint256 fee) {
         // If dollarCap == 0, then it is not capped. Otherwise, then the total + the total input must be less than the cap.
-        if (dollarCap != 0) {
-            require(_totalCollateralVCBalance.add(_collateralVCInput) <= dollarCap, "Collateral input exceeds cap");
+        uint256 cachedDollarCap = dollarCap;
+        if (cachedDollarCap != 0) {
+            require(_totalCollateralVCBalance.add(_collateralVCInput) <= cachedDollarCap, "Collateral input exceeds cap");
         }
 
         uint feePre = _getFeePoint(_totalCollateralVCBalance, _totalVCBalancePre);
@@ -126,8 +127,9 @@ contract ThreePieceWiseLinearPriceCurve is IPriceCurve, Ownable {
     function getFeeAndUpdate(uint256 _collateralVCInput, uint256 _totalCollateralVCBalance, uint256 _totalVCBalancePre, uint256 _totalVCBalancePost) override external returns (uint256 fee) {
         require(msg.sender == whitelistAddress, "Only whitelist can update fee");
         // If dollarCap == 0, then it is not capped. Otherwise, then the total + the total input must be less than the cap.
-        if (dollarCap != 0) {
-            require(_totalCollateralVCBalance.add(_collateralVCInput) <= dollarCap, "Collateral input exceeds cap");
+        uint256 cachedDollarCap = dollarCap;
+        if (cachedDollarCap != 0) {
+            require(_totalCollateralVCBalance.add(_collateralVCInput) <= cachedDollarCap, "Collateral input exceeds cap");
         }
         uint feePre = _getFeePoint(_totalCollateralVCBalance, _totalVCBalancePre);
         uint feePost = _getFeePoint(_totalCollateralVCBalance.add(_collateralVCInput), _totalVCBalancePost);
@@ -174,13 +176,14 @@ contract ThreePieceWiseLinearPriceCurve is IPriceCurve, Ownable {
     function calculateDecayedFee() public override view returns (uint256 fee) {
         uint256 decay = block.timestamp.sub(lastFeeTime);
         // Decay within bounds of decay time, then decay the fee. 
-        if (decay <= decayTime) {
-            fee = lastFeePercent.sub(lastFeePercent.mul(decay).div(decayTime));
+        uint256 cachedDecayTime = decayTime;
+        if (decay <= cachedDecayTime) {
+            fee = lastFeePercent.sub(lastFeePercent.mul(decay).div(cachedDecayTime));
         } else {
             // If it has been longer than decay time, then reset fee to 0.
             fee = 0;
         }
-        return fee;
+        // returns fee;
     }
 
     function _min(uint256 a, uint256 b) internal pure returns (uint256) {
