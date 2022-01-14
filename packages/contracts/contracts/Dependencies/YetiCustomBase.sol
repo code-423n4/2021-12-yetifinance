@@ -160,17 +160,20 @@ contract YetiCustomBase is BaseMath {
 
         address[] memory diffTokens = new address[](n);
         uint256[] memory diffAmounts = new uint256[](n);
-        uint256 j = 0;
-
-        for (uint256 i = 0; i < coll3.tokens.length; i++) {
-            if (coll3.amounts[i] != 0) {
-                diffTokens[j] = coll3.tokens[i];
-                diffAmounts[j] = coll3.amounts[i];
-                j++;
+        
+        if (n != 0) {
+            uint256 j = 0;
+            for (uint256 i = 0; i < coll3.tokens.length; i++) {
+                if (coll3.amounts[i] != 0) {
+                    diffTokens[j] = coll3.tokens[i];
+                    diffAmounts[j] = coll3.amounts[i];
+                    j++;
+                }
             }
         }
         finalColls.tokens = diffTokens;
         finalColls.amounts = diffAmounts;
+        // returns finalColls;
     }
 
     function _getArrayCopy(uint[] memory _arr) internal pure returns (uint[] memory){
