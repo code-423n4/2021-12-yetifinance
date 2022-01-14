@@ -4,14 +4,11 @@ pragma solidity 0.6.11;
 
 import './Interfaces/IActivePool.sol';
 import "./Interfaces/IWhitelist.sol";
-import "./Interfaces/IStabilityPool.sol";
-import "./Interfaces/IDefaultPool.sol";
 import './Interfaces/IERC20.sol';
 import "./Interfaces/IWAsset.sol";
 import "./Dependencies/SafeMath.sol";
 import "./Dependencies/Ownable.sol";
 import "./Dependencies/CheckContract.sol";
-import "./Dependencies/LiquityBase.sol";
 import "./Dependencies/YetiCustomBase.sol";
 import "./Dependencies/SafeERC20.sol";
 
