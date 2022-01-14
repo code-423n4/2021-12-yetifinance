@@ -499,7 +499,7 @@ contract TroveManager is TroveManagerBase, ITroveManager {
             * - When we close or liquidate a trove, we redistribute the pending rewards, so if all troves were closed/liquidated,
             * rewards would’ve been emptied and totalCollateralSnapshot would be zero too.
             */
-            require(totalStakesSnapshot[token] > 0, "_computeNewStake: stake must be > 0");
+            require(totalStakesSnapshot[token] != 0, "_computeNewStake: stake must be != 0");
             stake = _coll.mul(totalStakesSnapshot[token]).div(totalCollateralSnapshot[token]);
         }
         return stake;
@@ -531,7 +531,7 @@ contract TroveManager is TroveManagerBase, ITroveManager {
             uint dec = IERC20(token).decimals();
             uint CollNumerator = amount.mul(10 ** dec).add(lastCollError_Redistribution[token]);
             uint YUSDDebtNumerator = proratedDebtForCollateral.mul(DECIMAL_PRECISION).add(lastYUSDDebtError_Redistribution[token]);
-            if (totalStakes[token] > 0) {
+            if (totalStakes[token] != 0) {
                 // Get the per-unit-staked terms
                 uint CollRewardPerUnitStaked = CollNumerator.div(totalStakes[token]);
                 uint YUSDDebtRewardPerUnitStaked = YUSDDebtNumerator.div(totalStakes[token].mul(10 ** (18 - dec)));
@@ -669,7 +669,7 @@ contract TroveManager is TroveManagerBase, ITroveManager {
 
     function updateBaseRate(uint newBaseRate) external override {
         _requireCallerIsTMR();
-        require(newBaseRate > 0, "updateBaseRate: newBaseRate must be > 0");
+        require(newBaseRate != 0, "updateBaseRate: newBaseRate must be !=0");
         baseRate = newBaseRate;
         emit BaseRateUpdated(newBaseRate);
         _updateLastFeeOpTime();

@@ -156,7 +156,7 @@ contract LiquityBase is ILiquityBase, YetiCustomBase {
     // checks coll has a nonzero balance of at least one token in coll.tokens
     function _CollsIsNonZero(newColls memory coll) internal pure returns (bool) {
         for (uint i = 0; i < coll.tokens.length; i++) {
-            if (coll.amounts[i] > 0) {
+            if (coll.amounts[i] != 0) {
                 return true;
             }
         }

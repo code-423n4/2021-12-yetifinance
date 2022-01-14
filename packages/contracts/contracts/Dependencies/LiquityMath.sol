@@ -80,7 +80,7 @@ library LiquityMath {
     //  _coll should be the amount of VC and _debt is debt of YUSD\
     // new collateral ratio is 10**18 times the collateral ratio. (150% => 1.5e18)
     function _computeCR(uint _coll, uint _debt) internal pure returns (uint) {
-        if (_debt > 0) {
+        if (_debt != 0) {
             uint newCollRatio = _coll.mul(10**18).div(_debt);
             return newCollRatio;
         }

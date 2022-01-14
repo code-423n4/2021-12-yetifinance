@@ -179,7 +179,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         address _whitelistAddress
     ) external override onlyOwner {
         // This makes impossible to open a trove with zero withdrawn YUSD
-        require(MIN_NET_DEBT > 0, "setAddresses: MIN_NET_DEBT <= 0");
+        require(MIN_NET_DEBT != 0, "setAddresses: MIN_NET_DEBT <= 0");
 
         deploymentTime = block.timestamp;
 
@@ -402,7 +402,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         // ICR is based on the composite debt, i.e. the requested YUSD amount + YUSD borrowing fee + YUSD gas comp.
         // _getCompositeDebt returns  vars.netDebt + YUSD gas comp.
         vars.compositeDebt = _getCompositeDebt(vars.netDebt);
-        require(vars.compositeDebt > 0, "_openTroveInternal: composite debt <= 0");
+        require(vars.compositeDebt != 0, "_openTroveInternal: composite debt == 0");
 
         vars.ICR = LiquityMath._computeCR(vars.VC, vars.compositeDebt);
         if (vars.isRecoveryMode) {
@@ -716,7 +716,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
 
         vars.debt = contractsCache.troveManager.getTroveDebt(msg.sender);
 
-        if (params._collsIn.length > 0) {
+        if (params._collsIn.length != 0) {
             vars.variableYUSDFee = _getTotalVariableDepositFee(
                     params._collsIn,
                     params._amountsIn,
@@ -748,13 +748,13 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         );
 
         // When the adjustment is a debt repayment, check it's a valid amount and that the caller has enough YUSD
-        if (!params._isUnlever && !params._isDebtIncrease && params._YUSDChange > 0) {
+        if (!params._isUnlever && !params._isDebtIncrease && params._YUSDChange != 0) {
             _requireAtLeastMinNetDebt(_getNetDebt(vars.debt).sub(vars.netDebtChange));
             _requireValidYUSDRepayment(vars.debt, vars.netDebtChange);
             _requireSufficientYUSDBalance(contractsCache.yusdToken, msg.sender, vars.netDebtChange);
         }
 
-        if (params._collsIn.length > 0) {
+        if (params._collsIn.length != 0) {
             contractsCache.activePool.receiveCollateral(params._collsIn, params._amountsIn);
         }
 
@@ -1187,7 +1187,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         _requireLengthsEqual(_colls.length, _amounts.length);
         for (uint256 i = 0; i < _colls.length; i++) {
             require(whitelist.getIsActive(_colls[i]), "BOps: Collateral not in whitelist");
-            require(_amounts[i] > 0, "BOps: Collateral amount must be greater than 0");
+            require(_amounts[i] != 0, "BOps: Collateral amount must be greater than 0");
         }
     }
 
@@ -1224,7 +1224,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     }
 
     function _requireNonZeroDebtChange(uint256 _YUSDChange) internal pure {
-        require(_YUSDChange > 0, "BorrowerOps: Debt increase requires non-zero debtChange");
+        require(_YUSDChange != 0, "BorrowerOps: Debt increase requires non-zero debtChange");
     }
 
     function _requireNoOverlapColls(address[] memory _colls1, address[] memory _colls2)

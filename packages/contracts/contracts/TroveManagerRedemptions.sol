@@ -177,7 +177,7 @@ contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
         if (_maxIterations == 0) {
             _maxIterations = uint256(-1);
         }
-        while (currentBorrower != address(0) && totals.remainingYUSD > 0 && _maxIterations > 0) {
+        while (currentBorrower != address(0) && totals.remainingYUSD != 0 && _maxIterations != 0) {
             _maxIterations--;
             // Save the address of the Trove preceding the current one, before potentially modifying the list
             address nextUserToCheck = contractsCache.sortedTroves.getPrev(currentBorrower);
@@ -698,7 +698,7 @@ contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
     }
 
     function _requireAmountGreaterThanZero(uint256 _amount) internal pure {
-        require(_amount > 0, "TroveManager: Amount must be greater than zero");
+        require(_amount != 0, "TroveManager: Amount must be greater than zero");
     }
 
     function _requireYUSDBalanceCoversRedemption(
@@ -714,7 +714,7 @@ contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
 
     function isNonzero(newColls memory coll) internal pure returns (bool) {
         for (uint256 i = 0; i < coll.amounts.length; i++) {
-            if (coll.amounts[i] > 0) {
+            if (coll.amounts[i] != 0) {
                 return true;
             }
         }

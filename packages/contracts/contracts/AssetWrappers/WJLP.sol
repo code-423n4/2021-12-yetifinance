@@ -250,7 +250,7 @@ contract WJLP is ERC20_8, IWAsset {
         UserInfo storage user = userInfo[_user];
         uint256 cachedUserAmount = user.amount;
 
-        if (cachedUserAmount > 0) {
+        if (cachedUserAmount != 0) {
             user.unclaimedJOEReward = (cachedUserAmount * accJoePerShare / 1e12) - user.rewardDebt;
         }
 

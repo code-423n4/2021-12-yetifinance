@@ -35,7 +35,7 @@ contract YetiCustomBase is BaseMath {
         uint256 n = 0;
         for (uint256 i = 0; i < _coll1.tokens.length; i++) {
             uint256 tokenIndex = whitelist.getIndex(_coll1.tokens[i]);
-            if (_coll1.amounts[i] > 0) {
+            if (_coll1.amounts[i] != 0) {
                 n++;
                 coll3.amounts[tokenIndex] = _coll1.amounts[i];
             }
@@ -43,7 +43,7 @@ contract YetiCustomBase is BaseMath {
 
         for (uint256 i = 0; i < _coll2.tokens.length; i++) {
             uint256 tokenIndex = whitelist.getIndex(_coll2.tokens[i]);
-            if (_coll2.amounts[i] > 0) {
+            if (_coll2.amounts[i] != 0) {
                 if (coll3.amounts[tokenIndex] == 0) {
                     n++;
                 }
@@ -57,7 +57,7 @@ contract YetiCustomBase is BaseMath {
 
         // should only find n amounts over 0
         for (uint256 i = 0; i < coll3.tokens.length; i++) {
-            if (coll3.amounts[i] > 0) {
+            if (coll3.amounts[i] != 0) {
                 sumTokens[j] = coll3.tokens[i];
                 sumAmounts[j] = coll3.amounts[i];
                 j++;
@@ -142,7 +142,7 @@ contract YetiCustomBase is BaseMath {
         uint256 n = 0;
 
         for (uint256 i = 0; i < _coll1.tokens.length; i++) {
-            if (_coll1.amounts[i] > 0) {
+            if (_coll1.amounts[i] != 0) {
                 uint256 tokenIndex = whitelist.getIndex(_coll1.tokens[i]);
                 coll3.amounts[tokenIndex] = _coll1.amounts[i];
                 n++;
@@ -163,7 +163,7 @@ contract YetiCustomBase is BaseMath {
         uint256 j = 0;
 
         for (uint256 i = 0; i < coll3.tokens.length; i++) {
-            if (coll3.amounts[i] > 0) {
+            if (coll3.amounts[i] != 0) {
                 diffTokens[j] = coll3.tokens[i];
                 diffAmounts[j] = coll3.amounts[i];
                 j++;

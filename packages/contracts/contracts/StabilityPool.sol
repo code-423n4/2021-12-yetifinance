@@ -655,7 +655,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
             newP = currentP.mul(newProductFactor).div(DECIMAL_PRECISION);
         }
 
-        require(newP > 0, "_updateRewardSumAndProduct: product <= 0");
+        require(newP != 0, "_updateRewardSumAndProduct: product <= 0");
         P = newP;
         emit P_Updated(newP);
     }
@@ -1085,7 +1085,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
     }
 
     function _requireUserHasDeposit(uint256 _initialDeposit) internal pure {
-        require(_initialDeposit > 0, "StabilityPool: User must have a non-zero deposit");
+        require(_initialDeposit != 0, "StabilityPool: User must have a non-zero deposit");
     }
 
     function _requireUserHasNoDeposit(address _address) internal view {
@@ -1094,7 +1094,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
     }
 
     function _requireNonZeroAmount(uint256 _amount) internal pure {
-        require(_amount > 0, "StabilityPool: Amount must be non-zero");
+        require(_amount != 0, "StabilityPool: Amount must be non-zero");
     }
 
     function _requireCallerIsTML() internal view {

@@ -176,7 +176,7 @@ contract TroveManagerLiquidations is TroveManagerBase, ITroveManagerLiquidations
             );
         }
 
-        require(totals.totalDebtInSequence > 0, "TroveManager: nothing to liquidate");
+        require(totals.totalDebtInSequence != 0, "TroveManager: nothing to liquidate");
         // Move liquidated Collateral and YUSD to the appropriate pools
         stabilityPoolCached.offset(
             totals.totalDebtToOffset,
@@ -655,7 +655,7 @@ contract TroveManagerLiquidations is TroveManagerBase, ITroveManagerLiquidations
         or_vals.collToRedistribute.tokens = _collsToLiquidate.tokens;
         or_vals.collToRedistribute.amounts = new uint256[](_collsToLiquidate.tokens.length);
 
-        if (_YUSDInStabPool > 0) {
+        if (_YUSDInStabPool != 0) {
             /*
              * Offset as much debt & collateral as possible against the Stability Pool, and redistribute the remainder
              * between all active troves.
@@ -825,7 +825,7 @@ contract TroveManagerLiquidations is TroveManagerBase, ITroveManagerLiquidations
         address[] memory _tokens,
         uint256[] memory _amounts
     ) internal {
-        if (_YUSD > 0) {
+        if (_YUSD != 0) {
             yusdTokenContract.returnFromPool(gasPoolAddress, _liquidator, _YUSD);
         }
 

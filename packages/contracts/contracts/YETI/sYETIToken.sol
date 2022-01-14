@@ -238,7 +238,7 @@ contract sYETIToken is IERC20, Domain, BoringOwnable {
      * Buyback function called by owner of function. Keeps track of the 
      */
     function buyBack(address routerAddress, uint256 YUSDToSell, uint256 YETIOutMin, address[] memory path) external onlyOwner {
-        require(YUSDToSell > 0, "Zero amount");
+        require(YUSDToSell != 0, "Zero amount");
         require(lastBuybackTime + 69 hours < block.timestamp, "Must have 69 hours pass before another buyBack");
         require(yusdToken.approve(routerAddress, 0));
         require(yusdToken.increaseAllowance(routerAddress, YUSDToSell));
@@ -285,14 +285,14 @@ contract sYETIToken is IERC20, Domain, BoringOwnable {
 
     // Sets new transfer ratio for rebasing
     function setTransferRatio(uint256 newTransferRatio) external onlyOwner {
-        require(newTransferRatio > 0, "Zero transfer ratio");
+        require(newTransferRatio != 0, "Zero transfer ratio");
         require(newTransferRatio <= 1e18, "Transfer ratio too high");
         transferRatio = newTransferRatio;
     }
 
     // Safe divide
     function div(uint256 a, uint256 b) internal pure returns (uint256 c) {
-        require(b > 0, "BoringMath: Div By 0");
+        require(b != 0, "BoringMath: Div By 0");
         return a / b;
     }
 
