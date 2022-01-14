@@ -149,19 +149,23 @@ contract YetiCustomBase is BaseMath {
         uint256 coll3Len = coll3.tokens.length;
         coll3.amounts = new uint256[](coll3Len);
         uint256 n = 0;
-
-        for (uint256 i; i < coll1Len; ++i) {
+        uint256 tokenIndex;
+        uint256 i;
+        for (; i < coll1Len; ++i) {
             if (_coll1.amounts[i] > 0) {
-                uint256 tokenIndex = whitelist.getIndex(_coll1.tokens[i]);
+                tokenIndex = whitelist.getIndex(_coll1.tokens[i]);
                 coll3.amounts[tokenIndex] = _coll1.amounts[i];
                 n++;
             }
         }
-
-        for (uint256 i; i < tokensLen; ++i) {
-            uint256 tokenIndex = whitelist.getIndex(_tokens[i]);
-            require(coll3.amounts[tokenIndex] >= _amounts[i], "illegal sub");
-            coll3.amounts[tokenIndex] = coll3.amounts[tokenIndex].sub(_amounts[i]);
+        uint256 thisAmounts;
+        tokenIndex = 0;
+        i = 0;
+        for (; i < tokensLen; ++i) {
+            tokenIndex = whitelist.getIndex(_tokens[i]);
+            thisAmounts = _amounts[i];
+            require(coll3.amounts[tokenIndex] >= thisAmounts, "illegal sub");
+            coll3.amounts[tokenIndex] = coll3.amounts[tokenIndex].sub(thisAmounts);
             if (coll3.amounts[tokenIndex] == 0) {
                 n--;
             }
@@ -170,8 +174,8 @@ contract YetiCustomBase is BaseMath {
         address[] memory diffTokens = new address[](n);
         uint256[] memory diffAmounts = new uint256[](n);
         uint j;
-
-        for (uint256 i; i < coll3Len; ++i) {
+        i = 0;
+        for (; i < coll3Len; ++i) {
             if (coll3.amounts[i] > 0) {
                 diffTokens[j] = coll3.tokens[i];
                 diffAmounts[j] = coll3.amounts[i];

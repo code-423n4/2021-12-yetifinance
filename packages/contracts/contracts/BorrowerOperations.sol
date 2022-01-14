@@ -1250,7 +1250,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     function _requireNoDuplicateColls(address[] memory _colls) internal pure {
         uint256 collsLen = _colls.length;
         for (uint256 i; i < collsLen; ++i) {
-            for (uint256 j = i.add(1); j < _colls.length; j++) {
+            for (uint256 j = i.add(1); j < collsLen; j++) {
                 require(_colls[i] != _colls[j], "BorrowerOps: Collateral passed in overlaps");
             }
         }

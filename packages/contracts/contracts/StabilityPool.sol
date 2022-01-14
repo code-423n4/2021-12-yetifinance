@@ -945,12 +945,14 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
     ) internal {
         uint256 assetsLen = assets.length;
         require(assetsLen == amounts.length, "_sendGainsToDepositor: length mismatch");
+        uint256 thisAmounts;
         for (uint256 i; i < assetsLen; ++i) {
+            thisAmounts = amounts[i];
             if (whitelist.isWrapped(assets[i])){
-                IWAsset(assets[i]).endTreasuryReward(amounts[i]);
-                IWAsset(assets[i]).unwrapFor(_to, amounts[i]);
+                IWAsset(assets[i]).endTreasuryReward(thisAmounts);
+                IWAsset(assets[i]).unwrapFor(_to, thisAmounts);
             } else {
-                IERC20(assets[i]).safeTransfer(_to, amounts[i]);
+                IERC20(assets[i]).safeTransfer(_to, thisAmounts);
             }
         }
         totalColl.amounts = _leftSubColls(totalColl, assets, amounts);

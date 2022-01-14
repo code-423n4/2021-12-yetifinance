@@ -541,11 +541,12 @@ contract TroveManager is TroveManagerBase, ITroveManager {
             uint YUSDDebtNumerator = proratedDebtForCollateral.mul(DECIMAL_PRECISION).add(lastYUSDDebtError_Redistribution[token]);
             if (totalStakes[token] > 0) {
                 // Get the per-unit-staked terms
-                uint CollRewardPerUnitStaked = CollNumerator.div(totalStakes[token]);
-                uint YUSDDebtRewardPerUnitStaked = YUSDDebtNumerator.div(totalStakes[token].mul(10 ** (18 - dec)));
+                uint256 thisTotalStakes = totalStakes[token];
+                uint CollRewardPerUnitStaked = CollNumerator.div(thisTotalStakes);
+                uint YUSDDebtRewardPerUnitStaked = YUSDDebtNumerator.div(thisTotalStakes.mul(10 ** (18 - dec)));
 
-                lastCollError_Redistribution[token] = CollNumerator.sub(CollRewardPerUnitStaked.mul(totalStakes[token]));
-                lastYUSDDebtError_Redistribution[token] = YUSDDebtNumerator.sub(YUSDDebtRewardPerUnitStaked.mul(totalStakes[token].mul(10 ** (18 - dec))));
+                lastCollError_Redistribution[token] = CollNumerator.sub(CollRewardPerUnitStaked.mul(thisTotalStakes));
+                lastYUSDDebtError_Redistribution[token] = YUSDDebtNumerator.sub(YUSDDebtRewardPerUnitStaked.mul(thisTotalStakes.mul(10 ** (18 - dec))));
 
                 // Add per-unit-staked terms to the running totals
                 L_Coll[token] = L_Coll[token].add(CollRewardPerUnitStaked);
@@ -588,9 +589,11 @@ contract TroveManager is TroveManagerBase, ITroveManager {
 
         address[] memory allColls = whitelist.getValidCollateral();
         uint allCollsLen = allColls.length;
+        address thisAllColls;
         for (uint256 i; i < allCollsLen; ++i) {
-            rewardSnapshots[_borrower].CollRewards[allColls[i]] = 0;
-            rewardSnapshots[_borrower].YUSDDebts[allColls[i]] = 0;
+            thisAllColls = allColls[i];
+            rewardSnapshots[_borrower].CollRewards[thisAllColls] = 0;
+            rewardSnapshots[_borrower].YUSDDebts[thisAllColls] = 0;
         }
 
         _removeTroveOwner(_borrower, TroveOwnersArrayLength);
