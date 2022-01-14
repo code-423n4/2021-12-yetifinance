@@ -20,7 +20,7 @@ contract LockupContract {
 
     address public immutable beneficiary;
 
-    IYETIToken public yetiToken;
+    IYETIToken public immutable yetiToken;
 
     // Unlock time is the Unix point in time at which the beneficiary can withdraw.
     uint public unlockTime;
@@ -40,13 +40,14 @@ contract LockupContract {
     )
         public 
     {
-        yetiToken = IYETIToken(_yetiTokenAddress);
+        IYETIToken cachedYetiToken = IYETIToken(_yetiTokenAddress);
+        yetiToken = cachedYetiToken;
 
         /*
         * Set the unlock time to a chosen instant in the future, as long as it is at least 1 year after
         * the system was deployed 
         */
-        _requireUnlockTimeIsAtLeastOneYearAfterSystemDeployment(_unlockTime);
+        _requireUnlockTimeIsAtLeastOneYearAfterSystemDeployment(_unlockTime, cachedYetiToken);
         unlockTime = _unlockTime;
         
         beneficiary =  _beneficiary;
@@ -73,8 +74,8 @@ contract LockupContract {
         require(block.timestamp >= unlockTime, "LockupContract: The lockup duration must have passed");
     }
 
-    function _requireUnlockTimeIsAtLeastOneYearAfterSystemDeployment(uint _unlockTime) internal view {
-        uint systemDeploymentTime = yetiToken.getDeploymentStartTime();
+    function _requireUnlockTimeIsAtLeastOneYearAfterSystemDeployment(uint _unlockTime, IYETIToken _yetiToken) internal view {
+        uint systemDeploymentTime = _yetiToken.getDeploymentStartTime();
         require(_unlockTime >= systemDeploymentTime.add(SECONDS_IN_ONE_YEAR), "LockupContract: unlock time must be at least one year after system deployment");
     }
 }

@@ -22,7 +22,7 @@ contract ShortLockupContract {
 
     address public immutable beneficiary;
 
-    IYETIToken public yetiToken;
+    IYETIToken public immutable yetiToken;
 
     // Unlock time is the Unix point in time at which the beneficiary can withdraw.
     uint public unlockTime;
