@@ -186,7 +186,6 @@ contract sYETIToken is IERC20, Domain, BoringOwnable {
     /// math is ok, because amount, totalSupply and shares is always 0 <= amount <= 100.000.000 * 10^18
     /// theoretically you can grow the amount/share ratio, but it's not practical and useless
     function mint(uint256 amount) public returns (bool) {
-        require(msg.sender != address(0), "Zero address");
         User memory user = users[msg.sender];
 
         uint256 shares = totalSupply == 0 ? amount : (amount * totalSupply) / effectiveYetiTokenBalance;
