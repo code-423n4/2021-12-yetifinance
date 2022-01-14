@@ -159,7 +159,7 @@ contract ActivePool is Ownable, CheckContract, IActivePool, YetiCustomBase {
     }
 
     // Returns true if all payments were successfully sent. Must be called by borrower operations, trove manager, or stability pool. 
-    function sendCollaterals(address _to, address[] memory _tokens, uint[] memory _amounts) external override returns (bool) {
+    function sendCollaterals(address _to, address[] calldata _tokens, uint[] calldata _amounts) external override returns (bool) {
         _requireCallerIsBOorTroveMorTMLorSP();
         require(_tokens.length == _amounts.length, "SendCollaterals: Length mismatch");
         for (uint i = 0; i < _tokens.length; i++) {
@@ -178,7 +178,7 @@ contract ActivePool is Ownable, CheckContract, IActivePool, YetiCustomBase {
     // Returns true if all payments were successfully sent. Must be called by borrower operations, trove manager, or stability pool.
     // This function als ounwraps the collaterals and sends them to _to, if they are wrapped assets. If collect rewards is set to true,
     // It also harvests rewards on the user's behalf. 
-    function sendCollateralsUnwrap(address _to, address[] memory _tokens, uint[] memory _amounts, bool _collectRewards) external override returns (bool) {
+    function sendCollateralsUnwrap(address _to, address[] calldata _tokens, uint[] calldata _amounts, bool _collectRewards) external override returns (bool) {
         _requireCallerIsBOorTroveMorTMLorSP();
         require(_tokens.length == _amounts.length, "sendCollateralsUnwrap: Length Mismatch");
         for (uint i = 0; i < _tokens.length; i++) {
@@ -256,7 +256,7 @@ contract ActivePool is Ownable, CheckContract, IActivePool, YetiCustomBase {
 
     // should be called by BorrowerOperations or DefaultPool
     // __after__ collateral is transferred to this contract.
-    function receiveCollateral(address[] memory _tokens, uint[] memory _amounts) external override {
+    function receiveCollateral(address[] calldata _tokens, uint[] calldata _amounts) external override {
         _requireCallerIsBorrowerOperationsOrDefaultPool();
         poolColl.amounts = _leftSumColls(poolColl, _tokens, _amounts);
         emit ActivePoolBalancesUpdated(_tokens, _amounts);

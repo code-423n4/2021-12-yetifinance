@@ -227,7 +227,7 @@ contract TroveManager is TroveManagerBase, ITroveManager {
     // Update position for a set of troves using latest price data. This can be called by anyone.
     // Yeti Finance will also be running a bot to assist with keeping the list from becoming
     // too stale.
-    function updateTroves(address[] memory _borrowers, address[] memory _lowerHints, address[] memory _upperHints) external {
+    function updateTroves(address[] calldata _borrowers, address[] calldata _lowerHints, address[] calldata _upperHints) external {
         require(_borrowers.length == _lowerHints.length, "updateTroves: borrowers length mismatch");
         require(_lowerHints.length == _upperHints.length, "updateTroves: hints length mismatch");
 

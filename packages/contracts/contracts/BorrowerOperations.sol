@@ -225,8 +225,8 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         uint256 _YUSDAmount,
         address _upperHint,
         address _lowerHint,
-        address[] memory _colls,
-        uint256[] memory _amounts
+        address[] calldata _colls,
+        uint256[] calldata _amounts
     ) external override {
         _requireLengthNonzero(_amounts.length);
         _requireValidDepositCollateral(_colls, _amounts);
@@ -266,8 +266,8 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         address _lowerHint,
         address[] memory _colls,
         uint256[] memory _amounts, 
-        uint256[] memory _leverages,
-        uint256[] memory _maxSlippages
+        uint256[] calldata _leverages,
+        uint256[] calldata _maxSlippages
     ) external override {
         _requireLengthNonzero(_colls.length);
         _requireValidDepositCollateral(_colls, _amounts);
@@ -459,8 +459,8 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
 
     // add collateral to trove. Calls _adjustTrove with correct params. 
     function addColl(
-        address[] memory _collsIn,
-        uint256[] memory _amountsIn,
+        address[] calldata _collsIn,
+        uint256[] calldata _amountsIn,
         address _upperHint,
         address _lowerHint, 
         uint256 _maxFeePercentage
@@ -473,12 +473,12 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         params._maxFeePercentage = _maxFeePercentage;
 
         // check that all _collsIn collateral types are in the whitelist
-        _requireValidDepositCollateral(params._collsIn, params._amountsIn);
-        _requireNoDuplicateColls(params._collsIn); // Check that there is no overlap with in or out in itself
+        _requireValidDepositCollateral(_collsIn, params._amountsIn);
+        _requireNoDuplicateColls(_collsIn); // Check that there is no overlap with in or out in itself
 
         // pull in deposit collateral
         require(
-            _transferCollateralsIntoActivePool(msg.sender, params._collsIn, params._amountsIn),
+            _transferCollateralsIntoActivePool(msg.sender, _collsIn, params._amountsIn),
             "BOps: Failed to transfer collateral into active pool"
         );
         _adjustTrove(params);
@@ -487,7 +487,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
 
     // add collateral to trove. Calls _adjustTrove with correct params.
     function addCollLeverUp(
-        address[] memory _collsIn,
+        address[] calldata _collsIn,
         uint256[] memory _amountsIn,
         uint256[] memory _leverages,
         uint256[] memory _maxSlippages,
@@ -502,7 +502,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         params._maxFeePercentage = _maxFeePercentage;
 
         // check that all _collsIn collateral types are in the whitelist
-        _requireValidDepositCollateral(params._collsIn, params._amountsIn);
+        _requireValidDepositCollateral(_collsIn, params._amountsIn);
         // Must check that other passed in arrays are correct length
         _requireLengthsEqual(_collsIn.length, _leverages.length);
         _requireLengthsEqual(_collsIn.length, _maxSlippages.length);
@@ -548,8 +548,8 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
 
     // Withdraw collateral from a trove. Calls _adjustTrove with correct params. 
     function withdrawColl(
-        address[] memory _collsOut,
-        uint256[] memory _amountsOut,
+        address[] calldata _collsOut,
+        uint256[] calldata _amountsOut,
         address _upperHint,
         address _lowerHint
     ) external override {
@@ -600,10 +600,10 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
 
     // Adjusts trove with multiple colls in / out. Calls _adjustTrove with correct params.
     function adjustTrove(
-        address[] memory _collsIn,
+        address[] calldata _collsIn,
         uint256[] memory _amountsIn,
-        address[] memory _collsOut,
-        uint256[] memory _amountsOut,
+        address[] calldata _collsOut,
+        uint256[] calldata _amountsOut,
         uint256 _YUSDChange,
         bool _isDebtIncrease,
         address _upperHint,
@@ -858,9 +858,9 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     // calls _singleUnleverUp() to perform the swaps using the wrappers. 
     // should have no fees. 
     function withdrawCollUnleverUp(
-        address[] memory _collsOut,
-        uint256[] memory _amountsOut,
-        uint256[] memory _maxSlippages,
+        address[] calldata _collsOut,
+        uint256[] calldata _amountsOut,
+        uint256[] calldata _maxSlippages,
         uint256 _YUSDAmount,
         address _upperHint,
         address _lowerHint
@@ -883,9 +883,9 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     }
 
     function closeTroveUnlever(
-        address[] memory _collsOut,
-        uint256[] memory _amountsOut,
-        uint256[] memory _maxSlippages
+        address[] calldata _collsOut,
+        uint256[] calldata _amountsOut,
+        uint256[] calldata _maxSlippages
     ) external override {
         CloseTrove_Params memory params = CloseTrove_Params({
             _collsOut: _collsOut,
@@ -1227,7 +1227,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         require(_YUSDChange != 0, "BorrowerOps: Debt increase requires non-zero debtChange");
     }
 
-    function _requireNoOverlapColls(address[] memory _colls1, address[] memory _colls2)
+    function _requireNoOverlapColls(address[] calldata _colls1, address[] calldata _colls2)
         internal
         pure
     {
