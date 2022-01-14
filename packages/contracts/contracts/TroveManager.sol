@@ -228,8 +228,8 @@ contract TroveManager is TroveManagerBase, ITroveManager {
     // Yeti Finance will also be running a bot to assist with keeping the list from becoming
     // too stale.
     function updateTroves(address[] memory _borrowers, address[] memory _lowerHints, address[] memory _upperHints) external {
-        require(_borrowers.length == _lowerHints.length, "updateTroves: borrowers length mismatch");
-        require(_lowerHints.length == _upperHints.length, "updateTroves: hints length mismatch");
+        require(_borrowers.length == _lowerHints.length, "TM: borrowers length mismatch");
+        require(_lowerHints.length == _upperHints.length, "TM: hints length mismatch");
 
         for (uint i = 0; i < _lowerHints.length; i++) {
             _updateTrove(_borrowers[i], _lowerHints[i], _upperHints[i]);
@@ -499,7 +499,7 @@ contract TroveManager is TroveManagerBase, ITroveManager {
             * - When we close or liquidate a trove, we redistribute the pending rewards, so if all troves were closed/liquidated,
             * rewards would’ve been emptied and totalCollateralSnapshot would be zero too.
             */
-            require(totalStakesSnapshot[token] > 0, "_computeNewStake: stake must be > 0");
+            require(totalStakesSnapshot[token] > 0, "TM: stake must be > 0");
             stake = _coll.mul(totalStakesSnapshot[token]).div(totalCollateralSnapshot[token]);
         }
         return stake;
@@ -637,13 +637,13 @@ contract TroveManager is TroveManagerBase, ITroveManager {
     function _removeTroveOwner(address _borrower, uint TroveOwnersArrayLength) internal {
         Status troveStatus = Troves[_borrower].status;
         // It’s set in caller function `_closeTrove`
-        require(troveStatus != Status.nonExistent && troveStatus != Status.active, "_removeTroveOwner: trove must exists and be active");
+        require(troveStatus != Status.nonExistent && troveStatus != Status.active, "TM: trove !exists or !active");
 
         uint128 index = Troves[_borrower].arrayIndex;
         uint length = TroveOwnersArrayLength;
         uint idxLast = length.sub(1);
 
-        require(index <= idxLast, "_removeTroveOwner: index must be > last index");
+        require(index <= idxLast, "TM: index must be > last index");
 
         address addressToMove = TroveOwners[idxLast];
 
@@ -669,7 +669,7 @@ contract TroveManager is TroveManagerBase, ITroveManager {
 
     function updateBaseRate(uint newBaseRate) external override {
         _requireCallerIsTMR();
-        require(newBaseRate > 0, "updateBaseRate: newBaseRate must be > 0");
+        require(newBaseRate > 0, "TM: newBaseRate must be > 0");
         baseRate = newBaseRate;
         emit BaseRateUpdated(newBaseRate);
         _updateLastFeeOpTime();
@@ -740,7 +740,7 @@ contract TroveManager is TroveManagerBase, ITroveManager {
         _requireCallerIsBorrowerOperations();
 
         uint decayedBaseRate = calcDecayedBaseRate();
-        require(decayedBaseRate <= DECIMAL_PRECISION, "decayBaseRateFromBorrowing: decayed base rate too small");  // The baseRate can decay to 0
+        require(decayedBaseRate <= DECIMAL_PRECISION, "TM: decayed base rate too small");  // The baseRate can decay to 0
 
         baseRate = decayedBaseRate;
         emit BaseRateUpdated(decayedBaseRate);
@@ -775,22 +775,31 @@ contract TroveManager is TroveManagerBase, ITroveManager {
     // --- 'require' wrapper functions ---
 
     function _requireCallerIsBorrowerOperations() internal view {
-        require(msg.sender == borrowerOperationsAddress, "TM: must be called by BO");
+        if (msg.sender != borrowerOperationsAddress) {
+            _revertWrongFuncCaller();
+        }
     }
 
     function _requireCallerIsBOorTMR() internal view {
-        require(msg.sender == borrowerOperationsAddress || msg.sender == troveManagerRedemptionsAddress,
-            "TM: Invalid Caller");
+        if (msg.sender != borrowerOperationsAddress && msg.sender != troveManagerRedemptionsAddress) {
+            _revertWrongFuncCaller();
+        }
     }
 
     function _requireCallerIsTMR() internal view {
-        require(msg.sender == troveManagerRedemptionsAddress,
-            "TM: must be called by TMR");
+        if (msg.sender != troveManagerRedemptionsAddress) {
+            _revertWrongFuncCaller();
+        }
     }
 
     function _requireCallerIsTML() internal view {
-        require(msg.sender == troveManagerLiquidationsAddress,
-            "TM: must be called by TML");
+        if (msg.sender != troveManagerLiquidationsAddress) {
+            _revertWrongFuncCaller();
+        }
+    }
+
+    function _revertWrongFuncCaller() internal view{
+        revert("TM: External caller not allowed");
     }
 
     function _requireTroveIsActive(address _borrower) internal view {
@@ -889,7 +898,7 @@ contract TroveManager is TroveManagerBase, ITroveManager {
 
     function updateTroveColl(address _borrower, address[] memory _tokens, uint[] memory _amounts) external override {
         _requireCallerIsBorrowerOperations();
-        require(_tokens.length == _amounts.length, "updateTroveColl: length mismatch");
+        require(_tokens.length == _amounts.length, "TM: length mismatch");
         Troves[_borrower].colls.tokens = _tokens;
         Troves[_borrower].colls.amounts = _amounts;
     }

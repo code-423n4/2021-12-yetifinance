@@ -179,7 +179,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         address _whitelistAddress
     ) external override onlyOwner {
         // This makes impossible to open a trove with zero withdrawn YUSD
-        require(MIN_NET_DEBT > 0, "setAddresses: MIN_NET_DEBT <= 0");
+        require(MIN_NET_DEBT > 0, "BO:MIN_NET_DEBT==0");
 
         deploymentTime = block.timestamp;
 
@@ -233,10 +233,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         _requireNoDuplicateColls(_colls); // Check that there is no overlap in _colls
 
         // transfer collateral into ActivePool
-        require(
-            _transferCollateralsIntoActivePool(msg.sender, _colls, _amounts),
-            "BOps: Transfer collateral into ActivePool failed"
-        );
+        _transferCollateralsIntoActivePool(msg.sender, _colls, _amounts);
 
         _openTroveInternal(
             msg.sender,
@@ -287,19 +284,13 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
                     _maxSlippages[i]
                 );
                 // Transfer into active pool, non levered amount. 
-                require(
-                    _singleTransferCollateralIntoActivePool(msg.sender, _colls[i], _amounts[i]),
-                    "BOps: Transfer collateral into ActivePool failed"
-                );
+                _singleTransferCollateralIntoActivePool(msg.sender, _colls[i], _amounts[i]);
                 // additional token amount was set to the original amount * leverage. 
                 _amounts[i] = additionalTokenAmount.add(_amounts[i]);
                 totalYUSDDebtFromLever = totalYUSDDebtFromLever.add(additionalYUSDDebt);
             } else {
                 // Otherwise skip and do normal transfer that amount into active pool. 
-                require(
-                    _singleTransferCollateralIntoActivePool(msg.sender, _colls[i], _amounts[i]),
-                    "BOps: Transfer collateral into ActivePool failed"
-                );
+                _singleTransferCollateralIntoActivePool(msg.sender, _colls[i], _amounts[i]);
             }
         }
         _YUSDAmount = _YUSDAmount.add(totalYUSDDebtFromLever);
@@ -324,8 +315,8 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         uint256 _maxSlippage) 
         internal
         returns (uint256 _finalTokenAmount, uint256 _additionalYUSDDebt) {
-        require(_leverage > 1e18, "leverage must be higher than 1");
-        require(_maxSlippage <= 1e18, "max slippage must be less than 1");
+        require(_leverage > 1e18, "WrongLeverage");
+        require(_maxSlippage <= 1e18, "WrongSlippage");
         IYetiRouter router = IYetiRouter(whitelist.getDefaultRouterAddress(_token));
         // leverage is 5e18 for 5x leverage. Minus 1 for what the user already has in collateral value.
         uint _additionalTokenAmount = _amount.mul(_leverage.sub(1e18)).div(1e18); 
@@ -402,7 +393,6 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         // ICR is based on the composite debt, i.e. the requested YUSD amount + YUSD borrowing fee + YUSD gas comp.
         // _getCompositeDebt returns  vars.netDebt + YUSD gas comp.
         vars.compositeDebt = _getCompositeDebt(vars.netDebt);
-        require(vars.compositeDebt > 0, "_openTroveInternal: composite debt <= 0");
 
         vars.ICR = LiquityMath._computeCR(vars.VC, vars.compositeDebt);
         if (vars.isRecoveryMode) {
@@ -477,10 +467,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         _requireNoDuplicateColls(params._collsIn); // Check that there is no overlap with in or out in itself
 
         // pull in deposit collateral
-        require(
-            _transferCollateralsIntoActivePool(msg.sender, params._collsIn, params._amountsIn),
-            "BOps: Failed to transfer collateral into active pool"
-        );
+        _transferCollateralsIntoActivePool(msg.sender, params._collsIn, params._amountsIn);
         _adjustTrove(params);
     }
 
@@ -520,19 +507,13 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
                     _maxSlippages[i]
                 );
                 // Transfer into active pool, non levered amount. 
-                require(
-                    _singleTransferCollateralIntoActivePool(msg.sender, _collsIn[i], _amountsIn[i]),
-                    "BOps: Transfer collateral into ActivePool failed"
-                );
+                _singleTransferCollateralIntoActivePool(msg.sender, _collsIn[i], _amountsIn[i]);
                 // additional token amount was set to the original amount * leverage. 
                 _amountsIn[i] = additionalTokenAmount.add(_amountsIn[i]);
                 totalYUSDDebtFromLever = totalYUSDDebtFromLever.add(additionalYUSDDebt);
             } else {
                 // Otherwise skip and do normal transfer that amount into active pool. 
-                require(
-                    _singleTransferCollateralIntoActivePool(msg.sender, _collsIn[i], _amountsIn[i]),
-                    "BOps: Transfer collateral into ActivePool failed"
-                );
+                _singleTransferCollateralIntoActivePool(msg.sender, _collsIn[i], _amountsIn[i]);
             }
         }
         _YUSDAmount = _YUSDAmount.add(totalYUSDDebtFromLever);
@@ -618,10 +599,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         _requireNoDuplicateColls(_collsOut);
 
         // pull in deposit collateral
-        require(
-            _transferCollateralsIntoActivePool(msg.sender, _collsIn, _amountsIn),
-            "BOps: Failed to transfer collateral into active pool"
-        );
+        _transferCollateralsIntoActivePool(msg.sender, _collsIn, _amountsIn);
         uint256[] memory maxSlippages = new uint256[](0);
 
         AdjustTrove_Params memory params = AdjustTrove_Params(
@@ -797,7 +775,6 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
                 } 
             }
             // 3. update the trove with the new collateral and debt, repaying the total amount of YUSD specified. 
-            // require(finalYUSDAmount >= _YUSDAmount, "Unlever: Must have sold enough coll for YUSD");
             // if not enough coll sold for YUSD, must cover from user balance
             _requireAtLeastMinNetDebt(_getNetDebt(vars.debt).sub(params._YUSDChange));
             _requireValidYUSDRepayment(vars.debt, params._YUSDChange);
@@ -835,7 +812,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         uint256 _maxSlippage) 
         internal
         returns (uint256 _finalYUSDAmount) {
-        require(_maxSlippage <= 1e18, "max slippage must be less than 100%");
+        require(_maxSlippage <= 1e18, "WrongSlippage");
         // if wrapped token, then does i t automatically transfer to active pool?
         // It should actually transfer to the owner, who will have bOps pre approved
         // cause of original approve
@@ -1038,31 +1015,28 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         address _from,
         address[] memory _colls,
         uint256[] memory _amounts
-    ) internal returns (bool) {
+    ) internal {
         uint256 len = _amounts.length;
         for (uint256 i = 0; i < len; i++) {
             address collAddress = _colls[i];
             uint256 amount = _amounts[i];
-            bool transferredToActivePool = _singleTransferCollateralIntoActivePool(
+            _singleTransferCollateralIntoActivePool(
                 _from,
                 collAddress,
                 amount
             );
-            if (!transferredToActivePool) {
-                return false;
-            }
         }
-        return true;
     }
 
+    // does one transfer of collateral into active pool. Checks that it transferred to the active pool correctly.
     function _singleTransferCollateralIntoActivePool(
         address _from,
         address _coll,
         uint256 _amount
-    ) internal returns (bool) {
+    ) internal {
         IERC20 coll = IERC20(_coll);
         bool transferredToActivePool = coll.transferFrom(_from, address(activePool), _amount);
-        return transferredToActivePool;
+        require(transferredToActivePool, "BO:TransferCollsFailed");
     }
 
     /**
@@ -1186,8 +1160,8 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     function _requireValidDepositCollateral(address[] memory _colls, uint256[] memory _amounts) internal view {
         _requireLengthsEqual(_colls.length, _amounts.length);
         for (uint256 i = 0; i < _colls.length; i++) {
-            require(whitelist.getIsActive(_colls[i]), "BOps: Collateral not in whitelist");
-            require(_amounts[i] > 0, "BOps: Collateral amount must be greater than 0");
+            require(whitelist.getIsActive(_colls[i]), "BO:BadColl");
+            require(_amounts[i] > 0, "BO:NoAmounts");
         }
     }
 
@@ -1198,7 +1172,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     ) internal pure {
         require(
             _arrayIsNonzero(_amountsIn) || _arrayIsNonzero(_amountsOut) || _YUSDChange != 0,
-            "BorrowerOps: There must be either a collateral change or a debt change"
+            "BO:0Adjust"
         );
     }
 
@@ -1216,15 +1190,15 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     }
 
     function _requireTroveisActive(ITroveManager _troveManager, address _borrower) internal view {
-        require(_troveManager.isTroveActive(_borrower), "BorrowerOps: Trove does not exist or is closed");
+        require(_troveManager.isTroveActive(_borrower), "BO:TroveInactive");
     }
 
     function _requireTroveisNotActive(ITroveManager _troveManager, address _borrower) internal view {
-        require(!_troveManager.isTroveActive(_borrower), "BorrowerOps: Trove is active");
+        require(!_troveManager.isTroveActive(_borrower), "BO:TroveActive");
     }
 
     function _requireNonZeroDebtChange(uint256 _YUSDChange) internal pure {
-        require(_YUSDChange > 0, "BorrowerOps: Debt increase requires non-zero debtChange");
+        require(_YUSDChange > 0, "BO:NoDebtChange");
     }
 
     function _requireNoOverlapColls(address[] memory _colls1, address[] memory _colls2)
@@ -1233,39 +1207,38 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     {
         for (uint256 i = 0; i < _colls1.length; i++) {
             for (uint256 j = 0; j < _colls2.length; j++) {
-                require(_colls1[i] != _colls2[j], "BorrowerOps: Collateral passed in overlaps");
+                require(_colls1[i] != _colls2[j], "BO:OverlapColls");
             }
         }
     }
 
-
     function _requireNoDuplicateColls(address[] memory _colls) internal pure {
         for (uint256 i = 0; i < _colls.length; i++) {
             for (uint256 j = i.add(1); j < _colls.length; j++) {
-                require(_colls[i] != _colls[j], "BorrowerOps: Collateral passed in overlaps");
+                require(_colls[i] != _colls[j], "BO:OverlapColls");
             }
         }
     }
 
     function _requireNotInRecoveryMode() internal view {
-        require(!_checkRecoveryMode(), "BorrowerOps: Operation not permitted during Recovery Mode");
+        require(!_checkRecoveryMode(), "BO:InRecMode");
     }
 
     function _requireNoCollWithdrawal(uint256[] memory _amountOut) internal pure {
         require(
             !_arrayIsNonzero(_amountOut),
-            "BorrowerOps: Collateral withdrawal not permitted Recovery Mode"
+            "BO:InRecMode"
         );
     }
 
     // Function require length nonzero, used to save contract size on revert strings. 
     function _requireLengthNonzero(uint256 length) internal pure {
-        require(length != 0, "BOps:Passed in length 0");
+        require(length != 0, "BOps:Len0");
     }
 
     // Function require length equal, used to save contract size on revert strings.
     function _requireLengthsEqual(uint256 length1, uint256 length2) internal pure {
-        require(length1 == length2, "BOps:Passed in lengths !=");
+        require(length1 == length2, "BO:LenMismatch");
     }
 
     function _requireValidAdjustmentInCurrentMode(
@@ -1309,39 +1282,39 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     function _requireICRisAboveMCR(uint256 _newICR) internal pure {
         require(
             _newICR >= MCR,
-            "BorrowerOps: An operation that would result in ICR < MCR is not permitted"
+            "BO:ReqICR>MCR"
         );
     }
 
     function _requireICRisAboveCCR(uint256 _newICR) internal pure {
-        require(_newICR >= CCR, "BorrowerOps: Operation must leave trove with ICR >= CCR");
+        require(_newICR >= CCR, "BO:ReqICR>CCR");
     }
 
     function _requireNewICRisAboveOldICR(uint256 _newICR, uint256 _oldICR) internal pure {
         require(
             _newICR >= _oldICR,
-            "BorrowerOps: Cannot decrease your Trove's ICR in Recovery Mode"
+            "BO:RecMode:ICR<oldICR"
         );
     }
 
     function _requireNewTCRisAboveCCR(uint256 _newTCR) internal pure {
         require(
             _newTCR >= CCR,
-            "BorrowerOps: An operation that would result in TCR < CCR is not permitted"
+            "BO:ReqTCR>CCR"
         );
     }
 
     function _requireAtLeastMinNetDebt(uint256 _netDebt) internal pure {
         require(
             _netDebt >= MIN_NET_DEBT,
-            "BorrowerOps: Trove's net debt must be greater than minimum"
+            "BO:netDebt<2000"
         );
     }
 
     function _requireValidYUSDRepayment(uint256 _currentDebt, uint256 _debtRepayment) internal pure {
         require(
             _debtRepayment <= _currentDebt.sub(YUSD_GAS_COMPENSATION),
-            "BorrowerOps: Amount repaid must not be larger than the Trove's debt"
+            "BO:InvalidYUSDRepay"
         );
     }
 
@@ -1352,7 +1325,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     ) internal view {
         require(
             _yusdToken.balanceOf(_borrower) >= _debtRepayment,
-            "BorrowerOps: Caller doesnt have enough YUSD to make repayment"
+            "BO:InsuffYUSDBal"
         );
     }
 
@@ -1360,16 +1333,9 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         internal
         pure
     {
-        if (_isRecoveryMode) {
-            require(
-                _maxFeePercentage <= DECIMAL_PRECISION,
-                "Max fee percentage must less than or equal to 100%"
-            );
-        } else {
-            require(
-                _maxFeePercentage >= BORROWING_FEE_FLOOR && _maxFeePercentage <= DECIMAL_PRECISION,
-                "Max fee percentage must be between 0.5% and 100%"
-            );
+        // Alwawys require max fee to be less than 100%, and if not in recovery mode then max fee must be greater than 0.5%
+        if (_maxFeePercentage <= DECIMAL_PRECISION || (!_isRecoveryMode && _maxFeePercentage >= BORROWING_FEE_FLOOR)) {
+            revert("BO:InvalidMaxFee");
         }
     }
 

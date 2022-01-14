@@ -57,7 +57,7 @@ contract LiquityBase is ILiquityBase, YetiCustomBase {
 
     // Return the amount of collateral to be drawn from a trove's collateral and sent as gas compensation.
     function _getCollGasCompensation(newColls memory _coll) internal pure returns (newColls memory) {
-        require(_coll.tokens.length == _coll.amounts.length, "_getCollGasCompensation(): Collateral length mismatch");
+        require(_coll.tokens.length == _coll.amounts.length, "Not same length");
 
         uint[] memory amounts = new uint[](_coll.tokens.length);
         for (uint i = 0; i < _coll.tokens.length; i++) {
@@ -138,13 +138,13 @@ contract LiquityBase is ILiquityBase, YetiCustomBase {
     // fee and amount are denominated in dollar
     function _requireUserAcceptsFee(uint _fee, uint _amount, uint _maxFeePercentage) internal pure {
         uint feePercentage = _fee.mul(DECIMAL_PRECISION).div(_amount);
-        require(feePercentage <= _maxFeePercentage, "Fee exceeded provided maximum");
+        require(feePercentage <= _maxFeePercentage, "Fee > max");
     }
 
 
     // get Colls struct for the given tokens and amounts
     function _getColls(address[] memory tokens, uint[] memory amounts) internal view returns (newColls memory coll) {
-        require(tokens.length == amounts.length, "_getColls: length mismatch");
+        require(tokens.length == amounts.length, "Not same length");
         coll.tokens = tokens;
         for (uint i = 0; i < tokens.length; i++) {
             coll.amounts[whitelist.getIndex(tokens[i])] = amounts[i];

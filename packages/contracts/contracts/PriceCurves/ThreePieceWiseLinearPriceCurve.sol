@@ -95,7 +95,7 @@ contract ThreePieceWiseLinearPriceCurve is IPriceCurve, Ownable {
     // Function for setting the old price curve's last fee cap / value to the new fee cap / value. 
     // Called only by whitelist. 
     function setFeeCapAndTime(uint256 _lastFeePercent, uint256 _lastFeeTime) external override {
-        require(msg.sender == whitelistAddress, "setFeeCapAndTime: not a whitelisted address");
+        require(msg.sender == whitelistAddress, "caller must be whitelist");
         lastFeePercent = _lastFeePercent;
         lastFeeTime = _lastFeeTime;
     }

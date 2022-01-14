@@ -147,7 +147,7 @@ contract TroveManagerLiquidations is TroveManagerBase, ITroveManagerLiquidations
      */
     function batchLiquidateTroves(address[] memory _troveArray, address _liquidator) external override {
         _requireCallerisTroveManager();
-        require(_troveArray.length != 0, "TroveManager: Calldata address array must not be empty");
+        require(_troveArray.length != 0, "TML: One trove must exist");
 
         IActivePool activePoolCached = activePool;
         IDefaultPool defaultPoolCached = defaultPool;
@@ -177,7 +177,7 @@ contract TroveManagerLiquidations is TroveManagerBase, ITroveManagerLiquidations
             );
         }
 
-        require(totals.totalDebtInSequence > 0, "TroveManager: nothing to liquidate");
+        require(totals.totalDebtInSequence > 0, "TML: nothing to liquidate");
         // Move liquidated Collateral and YUSD to the appropriate pools
         stabilityPoolCached.offset(
             totals.totalDebtToOffset,
@@ -577,7 +577,7 @@ contract TroveManagerLiquidations is TroveManagerBase, ITroveManagerLiquidations
                 _borrower
             );
 
-            require(_YUSDInStabPool != 0, "_liquidateRecoveryMode: zero YUSD in Pool");
+            require(_YUSDInStabPool != 0, "TML: zero YUSD in Stab Pool");
 
             troveManager.removeStakeTLR(_borrower);
 
@@ -789,7 +789,6 @@ contract TroveManagerLiquidations is TroveManagerBase, ITroveManagerLiquidations
         uint SPRatio = USD_Value_To_Send_To_SP.mul(_100pct).div(USD_Value_of_Trove_Colls);
         SPRatio = LiquityMath._min(SPRatio, _100pct);
 
-
         singleLiquidation.entireTroveDebt = _entireTroveDebt;
         singleLiquidation.entireTroveColl = _entireTroveColl;
 
@@ -849,6 +848,6 @@ contract TroveManagerLiquidations is TroveManagerBase, ITroveManagerLiquidations
     }
 
     function _requireCallerisTroveManager() internal view {
-        require(msg.sender == troveManagerAddress, "_requireCallerisTroveManager: caller not trove manager");
+        require(msg.sender == troveManagerAddress, "Caller not TM");
     }
 }
