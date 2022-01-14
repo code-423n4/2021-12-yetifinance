@@ -30,9 +30,9 @@ contract Whitelist is Ownable, IWhitelist, IBaseOracle, CheckContract {
         uint256 ratio; // 10**18 * the ratio. i.e. ratio = .95 * 10**18 for 95%. More risky collateral has a lower ratio
         address oracle;
         uint256 decimals;
-        bool active;
         address priceCurve;
         uint256 index;
+        bool active;
         bool isWrapped;
         address defaultRouter;
     }
@@ -120,9 +120,9 @@ contract Whitelist is Ownable, IWhitelist, IBaseOracle, CheckContract {
             _minRatio,
             _oracle,
             _decimals,
-            true,
             _priceCurve,
             validCollateral.length - 1, 
+            true,
             _isWrapped,
             _routerAddress
         );
