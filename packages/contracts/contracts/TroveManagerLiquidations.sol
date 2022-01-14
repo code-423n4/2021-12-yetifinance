@@ -840,9 +840,8 @@ contract TroveManagerLiquidations is TroveManagerBase, ITroveManagerLiquidations
     function _updateWAssetsRewardOwner(newColls memory _colls, address _borrower, address _newOwner) internal {
         for (uint i = 0; i < _colls.tokens.length; i++) {
             address token = _colls.tokens[i];
-            uint amount = _colls.amounts[i];
             if (whitelist.isWrapped(token)) {
-                IWAsset(token).updateReward(_borrower, _newOwner, amount);
+                IWAsset(token).updateReward(_borrower, _newOwner, _colls.amounts[i]);
             }
         }
     }
