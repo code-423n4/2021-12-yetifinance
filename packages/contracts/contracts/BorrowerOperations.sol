@@ -1212,7 +1212,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     }
 
     function _isBeforeFeeBootstrapPeriod() internal view returns (bool) {
-        return block.timestamp < deploymentTime.add(BOOTSTRAP_PERIOD);
+        return block.timestamp < deploymentTime + BOOTSTRAP_PERIOD; // won't overflow
     }
 
     function _requireTroveisActive(ITroveManager _troveManager, address _borrower) internal view {

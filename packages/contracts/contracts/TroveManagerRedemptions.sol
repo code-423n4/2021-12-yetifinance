@@ -688,7 +688,7 @@ contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
     function _requireAfterBootstrapPeriod() internal view {
         uint256 systemDeploymentTime = yetiTokenContract.getDeploymentStartTime();
         require(
-            block.timestamp >= systemDeploymentTime.add(BOOTSTRAP_PERIOD),
+            block.timestamp >= systemDeploymentTime + BOOTSTRAP_PERIOD, // won't overflow
             "TroveManager: Redemptions are not allowed during bootstrap phase"
         );
     }
