@@ -162,8 +162,12 @@ contract ActivePool is Ownable, CheckContract, IActivePool, YetiCustomBase {
     function sendCollaterals(address _to, address[] calldata _tokens, uint[] calldata _amounts) external override returns (bool) {
         _requireCallerIsBOorTroveMorTMLorSP();
         require(_tokens.length == _amounts.length, "SendCollaterals: Length mismatch");
+        uint256 thisAmount;
         for (uint i = 0; i < _tokens.length; i++) {
-            _sendCollateral(_to, _tokens[i], _amounts[i]); // reverts if send fails
+            thisAmount = _amounts[i];
+            if (thisAmount != 0) {
+                _sendCollateral(_to, _tokens[i], _amounts[i]); // reverts if send fails
+            }
         }
 
         if (_needsUpdateCollateral(_to)) {

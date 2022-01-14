@@ -121,10 +121,10 @@ contract DefaultPool is Ownable, CheckContract, IDefaultPool, YetiCustomBase {
         uint256 index = whitelist.getIndex(_collateral);
         poolColl.amounts[index] = poolColl.amounts[index].sub(_amount);
 
+        IERC20(_collateral).safeTransfer(activePool, _amount);
+
         emit DefaultPoolBalanceUpdated(_collateral, _amount);
         emit CollateralSent(_collateral, activePool, _amount);
-
-        IERC20(_collateral).safeTransfer(activePool, _amount);
     }
 
     // Returns true if all payments were successfully sent. Must be called by borrower operations, trove manager, or stability pool. 
@@ -133,15 +133,20 @@ contract DefaultPool is Ownable, CheckContract, IDefaultPool, YetiCustomBase {
         override
     {
         _requireCallerIsTroveManager();
-        address activePool = activePoolAddress;
         require(_tokens.length == _amounts.length, "sendCollsToActivePool: length mismatch");
+        uint256 thisAmounts;
+        address thisToken;
         for (uint256 i = 0; i < _tokens.length; i++) {
-            _sendCollateral(_tokens[i], _amounts[i]);
-            if (whitelist.isWrapped(_tokens[i])) {
-                IWAsset(_tokens[i]).updateReward(yetiFinanceTreasury, _borrower, _amounts[i]);
+            thisAmounts = _amounts[i];
+            if(thisAmounts != 0) {
+                thisToken = _tokens[i];
+                _sendCollateral(thisToken, thisAmounts);
+                if (whitelist.isWrapped(thisToken)) {
+                    IWAsset(thisToken).updateReward(yetiFinanceTreasury, _borrower, thisAmounts);
+                }
             }
         }
-        IActivePool(activePool).receiveCollateral(_tokens, _amounts);
+        IActivePool(activePoolAddress).receiveCollateral(_tokens, _amounts);
     }
 
     // Increases the YUSD Debt of this pool. 
