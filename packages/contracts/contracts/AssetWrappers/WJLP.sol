@@ -88,7 +88,7 @@ contract WJLP is ERC20_8, IWAsset {
         _symbol = ERC20_symbol;
         _name = ERC20_name;
         _decimals = ERC20_decimals;
-        _totalSupply = 0;
+        // _totalSupply = 0; default value
 
         JLP = _JLP;
         JOE = _JOE;
