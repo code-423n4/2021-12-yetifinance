@@ -28,13 +28,13 @@ contract ActivePool is Ownable, CheckContract, IActivePool, YetiCustomBase {
 
     string constant public NAME = "ActivePool";
 
-    address public borrowerOperationsAddress;
-    address public troveManagerAddress;
-    address public stabilityPoolAddress;
-    address public defaultPoolAddress;
-    address public troveManagerLiquidationsAddress;
-    address public troveManagerRedemptionsAddress;
-    address public collSurplusPoolAddress;
+    address internal borrowerOperationsAddress;
+    address internal troveManagerAddress;
+    address internal stabilityPoolAddress;
+    address internal defaultPoolAddress;
+    address internal troveManagerLiquidationsAddress;
+    address internal troveManagerRedemptionsAddress;
+    address internal collSurplusPoolAddress;
 
     
     // deposited collateral tracker. Colls is always the whitelist list of all collateral tokens. Amounts 

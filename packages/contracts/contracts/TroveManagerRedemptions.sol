@@ -36,6 +36,27 @@ import "./Dependencies/SafeERC20.sol";
 contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
     using SafeERC20 for IYUSDToken;
 
+
+    address internal borrowerOperationsAddress;
+
+    IStabilityPool internal stabilityPoolContract;
+
+    ITroveManager internal troveManager;
+
+    IYUSDToken internal yusdTokenContract;
+
+    IYETIToken internal yetiTokenContract;
+
+    ISYETI internal sYETIContract;
+
+    ITroveManagerRedemptions internal troveManagerRedemptions;
+
+    address internal gasPoolAddress;
+
+    ISortedTroves internal sortedTroves;
+
+    ICollSurplusPool internal collSurplusPool;
+
     struct RedemptionTotals {
         uint256 remainingYUSD;
         uint256 totalYUSDToRedeem;

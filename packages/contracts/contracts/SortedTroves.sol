@@ -58,9 +58,9 @@ contract SortedTroves is Ownable, CheckContract, ISortedTroves {
     event NodeAdded(address _id, uint _ICR);
     event NodeRemoved(address _id);
 
-    address public borrowerOperationsAddress;
-    address public troveManagerRedemptionsAddress;
-    address public troveManagerAddress;
+    address internal borrowerOperationsAddress;
+    address internal troveManagerRedemptionsAddress;
+    address internal troveManagerAddress;
 
     // Information for a node in the list
     struct Node {

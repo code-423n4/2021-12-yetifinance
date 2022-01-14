@@ -12,6 +12,29 @@ import "./Dependencies/TroveManagerBase.sol";
 
 contract TroveManagerLiquidations is TroveManagerBase, ITroveManagerLiquidations {
 
+
+    address internal borrowerOperationsAddress;
+
+    IStabilityPool internal stabilityPoolContract;
+
+    ITroveManager internal troveManager;
+
+    IYUSDToken internal yusdTokenContract;
+
+    IYETIToken internal yetiTokenContract;
+
+    ISYETI internal sYETIContract;
+
+    ITroveManagerLiquidations internal troveManagerLiquidations;
+
+    address internal gasPoolAddress;
+
+    address internal troveManagerAddress;
+
+    ISortedTroves internal sortedTroves;
+
+    ICollSurplusPool internal collSurplusPool;
+
     address yetiFinanceTreasury;
 
     struct LiquidationValues {

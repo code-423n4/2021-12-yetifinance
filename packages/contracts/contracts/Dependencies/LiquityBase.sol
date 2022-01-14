@@ -38,9 +38,9 @@ contract LiquityBase is ILiquityBase, YetiCustomBase {
     uint constant public BORROWING_FEE_FLOOR = DECIMAL_PRECISION / 1000 * 5; // 0.5%
     uint constant public REDEMPTION_FEE_FLOOR = DECIMAL_PRECISION / 1000 * 5; // 0.5%
 
-    IActivePool public activePool;
+    IActivePool internal activePool;
 
-    IDefaultPool public defaultPool;
+    IDefaultPool internal defaultPool;
 
     // --- Gas compensation functions ---
 
