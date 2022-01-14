@@ -34,6 +34,8 @@ import "./Dependencies/SafeERC20.sol";
  */
 
 contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
+    bytes32 constant public NAME = "TroveManagerRedemptions";
+
     using SafeERC20 for IYUSDToken;
 
     struct RedemptionTotals {

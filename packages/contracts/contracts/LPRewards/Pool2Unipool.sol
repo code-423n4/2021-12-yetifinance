@@ -72,7 +72,7 @@ contract LPTokenWrapper is ILPTokenWrapper {
  * or first liquidity provider stakes UNIv2 LP tokens into it.
  */
 contract Pool2Unipool is LPTokenWrapper, Ownable, CheckContract, IUnipool {
-    string constant public NAME = "Pool2Unipool";
+    bytes32 constant public NAME = "Pool2Unipool";
 
     uint256 public duration;
     IYETIToken public yetiToken;

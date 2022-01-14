@@ -26,7 +26,7 @@ contract ActivePool is Ownable, CheckContract, IActivePool, YetiCustomBase {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    string constant public NAME = "ActivePool";
+    bytes32 constant public NAME = "ActivePool";
 
     address public borrowerOperationsAddress;
     address public troveManagerAddress;

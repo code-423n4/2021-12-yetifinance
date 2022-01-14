@@ -11,6 +11,7 @@ import "./Dependencies/TroveManagerBase.sol";
  */
 
 contract TroveManagerLiquidations is TroveManagerBase, ITroveManagerLiquidations {
+    bytes32 constant public NAME = "TroveManagerRedemptions";
 
     address yetiFinanceTreasury;
 

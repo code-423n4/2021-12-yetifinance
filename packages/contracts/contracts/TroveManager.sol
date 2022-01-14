@@ -22,7 +22,7 @@ import "./Interfaces/IERC20.sol";
  */
 
 contract TroveManager is TroveManagerBase, ITroveManager {
-    string constant public NAME = "TroveManager";
+    bytes32 constant public NAME = "TroveManager";
 
     // --- Data structures ---
 
