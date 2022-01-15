@@ -456,7 +456,6 @@ contract TroveManagerLiquidations is TroveManagerBase, ITroveManagerLiquidations
             borrowerColls.amounts,
             TroveManagerOperation.liquidateInNormalMode
         );
-        return singleLiquidation;
     }
 
 
@@ -648,8 +647,6 @@ contract TroveManagerLiquidations is TroveManagerBase, ITroveManagerLiquidations
                 singleLiquidation.collSurplus.amounts
             );
         }
-
-        return singleLiquidation;
     }
 
     function _updateSingleLiquidation(
@@ -786,8 +783,6 @@ contract TroveManagerLiquidations is TroveManagerBase, ITroveManagerLiquidations
             oldTotals.totalCollSurplus,
             singleLiquidation.collSurplus
         );
-
-        return newTotals;
     }
 
     /*

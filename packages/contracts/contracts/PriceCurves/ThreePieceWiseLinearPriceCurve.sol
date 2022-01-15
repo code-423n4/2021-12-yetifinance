@@ -88,7 +88,7 @@ contract ThreePieceWiseLinearPriceCurve is IPriceCurve, Ownable {
     }
 
     // Gets the fee cap and time currently. Used for setting new values for next price curve. 
-    function getFeeCapAndTime() external override view returns (uint256 _lastFeePercent, uint256 _lastFeeTime) {
+    function getFeeCapAndTime() external override view returns (uint256, uint256) {
         return (lastFeePercent, lastFeeTime);
     }
 
@@ -124,7 +124,7 @@ contract ThreePieceWiseLinearPriceCurve is IPriceCurve, Ownable {
     }
 
     // Called only by whitelist. Updates the last fee time and last fee percent
-    function getFeeAndUpdate(uint256 _collateralVCInput, uint256 _totalCollateralVCBalance, uint256 _totalVCBalancePre, uint256 _totalVCBalancePost) override external returns (uint256 fee) {
+    function getFeeAndUpdate(uint256 _collateralVCInput, uint256 _totalCollateralVCBalance, uint256 _totalVCBalancePre, uint256 _totalVCBalancePost) override external returns (uint256) {
         require(msg.sender == whitelistAddress, "Only whitelist can update fee");
         // If dollarCap == 0, then it is not capped. Otherwise, then the total + the total input must be less than the cap.
         uint256 cachedDollarCap = dollarCap;
@@ -183,7 +183,6 @@ contract ThreePieceWiseLinearPriceCurve is IPriceCurve, Ownable {
             // If it has been longer than decay time, then reset fee to 0.
             fee = 0;
         }
-        // returns fee;
     }
 
     function _min(uint256 a, uint256 b) internal pure returns (uint256) {

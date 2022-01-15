@@ -144,7 +144,6 @@ contract HintHelpers is LiquityBase, Ownable, CheckContract {
         }
 
         newCollVC = _getVC(colls.tokens, finalAmounts);
-        return newCollVC;
     }
 
 

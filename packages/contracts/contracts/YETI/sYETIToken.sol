@@ -61,7 +61,7 @@ contract sYETIToken is IERC20, Domain, BoringOwnable {
     event BuyBackExecuted(uint YUSDToSell, uint amounts0, uint amounts1);
     event Rebase(uint additionalYetiTokenBalance);
 
-    function balanceOf(address user) public view override returns (uint256 balance) {
+    function balanceOf(address user) public view override returns (uint256) {
         return users[user].balance;
     }
 
@@ -306,5 +306,5 @@ interface IRouter {
         address[] calldata path,
         address to,
         uint256 deadline
-    ) external returns (uint256[] memory amounts);
+    ) external returns (uint256[] memory);
 }

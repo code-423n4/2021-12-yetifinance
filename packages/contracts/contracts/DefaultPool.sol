@@ -108,7 +108,6 @@ contract DefaultPool is Ownable, CheckContract, IDefaultPool, YetiCustomBase {
             uint256 collateralVC = whitelist.getValueVC(collateral, amount);
             totalVC = totalVC.add(collateralVC);
         }
-        return totalVC;
     }
 
     // Debt that this pool holds. 

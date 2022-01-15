@@ -45,7 +45,7 @@ contract WJLPRouter is IYetiRouter {
         address _endingTokenAddress,
         uint256 _amount,
         uint256 _minSwapAmount
-    ) external override returns (uint256 _amountOut) {
+    ) public override returns (uint256) {
         require(_endingTokenAddress == WJLPAddress, "Ending token address must be WJLP");
         // JLP -> WJLP then send to active pool
         if (_startingTokenAddress == JLPAddress) {

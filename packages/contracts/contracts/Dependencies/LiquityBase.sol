@@ -68,7 +68,7 @@ contract LiquityBase is ILiquityBase, YetiCustomBase {
     // Return the system's Total Virtual Coin Balance
     // Virtual Coins are a way to keep track of the system collateralization given
     // the collateral ratios of each collateral type
-    function getEntireSystemColl() public view returns (uint entireSystemColl) {
+    function getEntireSystemColl() public view returns (uint) {
         uint activeColl = activePool.getVC();
         uint liquidatedColl = defaultPool.getVC();
 
@@ -76,7 +76,7 @@ contract LiquityBase is ILiquityBase, YetiCustomBase {
     }
 
 
-    function getEntireSystemDebt() public override view returns (uint entireSystemDebt) {
+    function getEntireSystemDebt() public override view returns (uint) {
         uint activeDebt = activePool.getYUSDDebt();
         uint closedDebt = defaultPool.getYUSDDebt();
 
@@ -87,7 +87,6 @@ contract LiquityBase is ILiquityBase, YetiCustomBase {
     function _getICRColls(newColls memory _colls, uint _debt) internal view returns (uint ICR) {
         uint totalVC = _getVCColls(_colls);
         ICR = LiquityMath._computeCR(totalVC, _debt);
-        return ICR;
     }
 
 
@@ -98,7 +97,6 @@ contract LiquityBase is ILiquityBase, YetiCustomBase {
             uint tokenVC = whitelist.getValueVC(_tokens[i], _amounts[i]);
             totalVC = totalVC.add(tokenVC);
         }
-        return totalVC;
     }
 
 
@@ -108,7 +106,6 @@ contract LiquityBase is ILiquityBase, YetiCustomBase {
             uint valueVC = whitelist.getValueVC(_colls.tokens[i], _colls.amounts[i]);
             VC = VC.add(valueVC);
         }
-        return VC;
     }
 
 
@@ -118,7 +115,6 @@ contract LiquityBase is ILiquityBase, YetiCustomBase {
             uint valueUSD = whitelist.getValueUSD(_colls.tokens[i], _colls.amounts[i]);
             USDValue = USDValue.add(valueUSD);
         }
-        return USDValue;
     }
 
 
@@ -127,13 +123,11 @@ contract LiquityBase is ILiquityBase, YetiCustomBase {
         uint entireSystemDebt = getEntireSystemDebt();
         
         TCR = LiquityMath._computeCR(entireSystemColl, entireSystemDebt);
-        return TCR;
     }
 
 
     function _checkRecoveryMode() internal view returns (bool) {
         uint TCR = _getTCR();
-
         return TCR < CCR;
     }
 
