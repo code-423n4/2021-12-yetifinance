@@ -55,11 +55,11 @@ contract YUSDToken is CheckContract, IYUSDToken {
     mapping (address => mapping (address => uint256)) private _allowances;  
     
     // --- Addresses ---
-    address public immutable troveManagerAddress;
-    address public immutable troveManagerLiquidationsAddress;
-    address public immutable troveManagerRedemptionsAddress;
-    address public immutable stabilityPoolAddress;
-    address public immutable borrowerOperationsAddress;
+    address internal immutable troveManagerAddress;
+    address internal immutable troveManagerLiquidationsAddress;
+    address internal immutable troveManagerRedemptionsAddress;
+    address internal immutable stabilityPoolAddress;
+    address internal immutable borrowerOperationsAddress;
     
     // --- Events ---
     event TroveManagerAddressChanged(address _troveManagerAddress);
@@ -227,9 +227,9 @@ contract YUSDToken is CheckContract, IYUSDToken {
 
     function _transfer(address sender, address recipient, uint256 amount) internal {
         require(sender != address(0), "_transfer: sender is address(0)");
-        require(recipient != address(0), "_transfer: recipient is address(0)");
+        require(recipient != address(0), "_transfer: recipient is 0address");
 
-        _balances[sender] = _balances[sender].sub(amount, "ERC20: transfer amount exceeds balance");
+        _balances[sender] = _balances[sender].sub(amount, "ERC20: transfer amount > balance");
         _balances[recipient] = _balances[recipient].add(amount);
         emit Transfer(sender, recipient, amount);
     }
@@ -245,7 +245,7 @@ contract YUSDToken is CheckContract, IYUSDToken {
     function _burn(address account, uint256 amount) internal {
         require(account != address(0), "_burn: account is address(0)");
         
-        _balances[account] = _balances[account].sub(amount, "ERC20: burn amount exceeds balance");
+        _balances[account] = _balances[account].sub(amount, "ERC20: burn amount > balance");
         _totalSupply = _totalSupply.sub(amount);
         emit Transfer(account, address(0), amount);
     }

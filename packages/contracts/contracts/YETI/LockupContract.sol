@@ -14,7 +14,7 @@ contract LockupContract {
     using SafeMath for uint;
 
     // --- Data ---
-    string constant public NAME = "LockupContract";
+    bytes32 constant public NAME = "LockupContract";
 
     uint constant public SECONDS_IN_ONE_YEAR = 31536000;
 

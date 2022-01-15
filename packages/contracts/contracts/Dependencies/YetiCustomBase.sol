@@ -141,8 +141,7 @@ contract YetiCustomBase is BaseMath {
     {
         uint256 coll1Len = _coll1.tokens.length;
         uint256 tokensLen = _tokens.length;
-        require(tokensLen == _amounts.length, "Sub Colls invalid input");
-
+        require(tokensLen == _amounts.length, "SubColls invalid input");
 
         newColls memory coll3;
         coll3.tokens = whitelist.getValidCollateral();

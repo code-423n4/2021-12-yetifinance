@@ -6,7 +6,6 @@ import "./LiquityMath.sol";
 import "../Interfaces/IActivePool.sol";
 import "../Interfaces/IDefaultPool.sol";
 import "../Interfaces/ILiquityBase.sol";
-import "../Interfaces/IWhitelist.sol";
 import "./YetiCustomBase.sol";
 
 
@@ -38,9 +37,9 @@ contract LiquityBase is ILiquityBase, YetiCustomBase {
     uint constant public BORROWING_FEE_FLOOR = DECIMAL_PRECISION / 1000 * 5; // 0.5%
     uint constant public REDEMPTION_FEE_FLOOR = DECIMAL_PRECISION / 1000 * 5; // 0.5%
 
-    IActivePool public activePool;
+    IActivePool internal activePool;
 
-    IDefaultPool public defaultPool;
+    IDefaultPool internal defaultPool;
 
     // --- Gas compensation functions ---
 
@@ -57,7 +56,7 @@ contract LiquityBase is ILiquityBase, YetiCustomBase {
 
     // Return the amount of collateral to be drawn from a trove's collateral and sent as gas compensation.
     function _getCollGasCompensation(newColls memory _coll) internal pure returns (newColls memory) {
-        require(_coll.tokens.length == _coll.amounts.length, "_getCollGasCompensation(): Collateral length mismatch");
+        require(_coll.tokens.length == _coll.amounts.length, "Not same length");
 
         uint[] memory amounts = new uint[](_coll.tokens.length);
         for (uint256 i; i < _coll.tokens.length; ++i) {
@@ -141,7 +140,7 @@ contract LiquityBase is ILiquityBase, YetiCustomBase {
     // fee and amount are denominated in dollar
     function _requireUserAcceptsFee(uint _fee, uint _amount, uint _maxFeePercentage) internal pure {
         uint feePercentage = _fee.mul(DECIMAL_PRECISION).div(_amount);
-        require(feePercentage <= _maxFeePercentage, "Fee exceeded provided maximum");
+        require(feePercentage <= _maxFeePercentage, "Fee > max");
     }
 
     // checks coll has a nonzero balance of at least one token in coll.tokens

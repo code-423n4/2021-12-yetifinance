@@ -15,10 +15,10 @@ import "./Dependencies/CheckContract.sol";
  */
 
 contract HintHelpers is LiquityBase, Ownable, CheckContract {
-    string constant public NAME = "HintHelpers";
+    bytes32 constant public NAME = "HintHelpers";
 
-    ISortedTroves public sortedTroves;
-    ITroveManager public troveManager;
+    ISortedTroves internal sortedTroves;
+    ITroveManager internal troveManager;
 
     // --- Events ---
 
