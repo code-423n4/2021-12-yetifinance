@@ -6,7 +6,6 @@ import "./LiquityMath.sol";
 import "../Interfaces/IActivePool.sol";
 import "../Interfaces/IDefaultPool.sol";
 import "../Interfaces/ILiquityBase.sol";
-import "../Interfaces/IWhitelist.sol";
 import "./YetiCustomBase.sol";
 
 

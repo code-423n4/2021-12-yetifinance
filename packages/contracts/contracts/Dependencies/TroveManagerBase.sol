@@ -10,7 +10,6 @@ import "../Interfaces/ISortedTroves.sol";
 import "../Interfaces/IYETIToken.sol";
 import "../Interfaces/ISYETI.sol";
 import "../Interfaces/IActivePool.sol";
-import "../Interfaces/IWhitelist.sol";
 import "../Interfaces/ITroveManagerLiquidations.sol";
 import "../Interfaces/ITroveManagerRedemptions.sol";
 import "./LiquityBase.sol";
