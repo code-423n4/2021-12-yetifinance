@@ -23,7 +23,7 @@ import "./Dependencies/ReentrancyGuard.sol";
  * BorrowerOperations function calls. 
  */
 
-contract TroveManager is TroveManagerBase, ITroveManager {
+contract TroveManager is TroveManagerBase, ITroveManager, ReentrancyGuard {
     
     address internal borrowerOperationsAddress;
 
@@ -198,7 +198,7 @@ contract TroveManager is TroveManagerBase, ITroveManager {
     // --- Trove Liquidation functions ---
 
     // Single liquidation function. Closes the trove if its ICR is lower than the minimum collateral ratio.
-    function liquidate(address _borrower) external override {
+    function liquidate(address _borrower) external override nonReentrant {
         _requireTroveIsActive(_borrower);
 
         address[] memory borrowers = new address[](1);
@@ -209,7 +209,7 @@ contract TroveManager is TroveManagerBase, ITroveManager {
     /*
     * Attempt to liquidate a custom list of troves provided by the caller.
     */
-    function batchLiquidateTroves(address[] memory _troveArray, address _liquidator) public override {
+    function batchLiquidateTroves(address[] memory _troveArray, address _liquidator) public override nonReentrant {
         troveManagerLiquidations.batchLiquidateTroves(_troveArray, _liquidator);
     }
 
@@ -332,7 +332,7 @@ contract TroveManager is TroveManagerBase, ITroveManager {
     }
 
     // Add the borrowers's coll and debt rewards earned from redistributions, to their Trove
-    function applyPendingRewards(address _borrower) external override nonReentrant {
+    function applyPendingRewards(address _borrower) external override {
         _requireCallerIsBOorTMR();
         return _applyPendingRewards(activePool, defaultPool, _borrower);
     }

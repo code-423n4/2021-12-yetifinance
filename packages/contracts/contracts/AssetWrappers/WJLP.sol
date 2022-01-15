@@ -244,7 +244,7 @@ contract WJLP is ERC20_8, IWAsset {
      * They have the right to less or more future rewards depending
      * on whether it is or isn't a deposit
     */
-    function _userUpdate(address _user, uint256 _amount, bool _isDeposit) private{
+    function _userUpdate(address _user, uint256 _amount, bool _isDeposit) private {
         // latest accumulated Joe Per Share:
         uint256 accJoePerShare = _MasterChefJoe.poolInfo(_poolPid).accJoePerShare;
         UserInfo storage user = userInfo[_user];

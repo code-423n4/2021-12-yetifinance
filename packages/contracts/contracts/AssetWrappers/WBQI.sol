@@ -107,7 +107,7 @@ contract WBQI is ERC20_8, IWAsset {
     // to mint WAssets which it sends to _to. It also updates
     // _rewardOwner's reward tracking such that it now has the right to
     // future yields from the newly minted WAssets
-    function wrap(uint _amount, address _to) external override{
+    function wrap(uint _amount, address _to) external override {
         
         //Update rewards
 
