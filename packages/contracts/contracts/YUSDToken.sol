@@ -238,7 +238,7 @@ contract YUSDToken is CheckContract, IYUSDToken {
         require(account != address(0), "_mint: account is address(0)");
 
         _totalSupply = _totalSupply.add(amount);
-        _balances[account] = _balances[account].add(amount);
+        _balances[account] = _balances[account] + amount; 
         emit Transfer(address(0), account, amount);
     }
 
@@ -246,7 +246,7 @@ contract YUSDToken is CheckContract, IYUSDToken {
         require(account != address(0), "_burn: account is address(0)");
         
         _balances[account] = _balances[account].sub(amount, "ERC20: burn amount > balance");
-        _totalSupply = _totalSupply.sub(amount);
+        _totalSupply = _totalSupply - amount; // can't underflow since indiv balance didn't
         emit Transfer(account, address(0), amount);
     }
 

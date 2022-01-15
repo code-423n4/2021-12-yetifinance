@@ -354,8 +354,7 @@ contract Whitelist is Ownable, IWhitelist, IBaseOracle, CheckContract {
         returns (uint256)
     {
         IPriceFeed collateral_priceFeed = IPriceFeed(collateralParams[_collateral].oracle);
-        uint256 price = collateral_priceFeed.fetchPrice_v();
-        return price;
+        return collateral_priceFeed.fetchPrice_v();
     }
 
     // Gets the value of that collateral type, of that amount, in USD terms.
@@ -379,13 +378,15 @@ contract Whitelist is Ownable, IWhitelist, IBaseOracle, CheckContract {
         exists(_collateral)
         returns (uint256)
     {
-        uint256 price = getPrice(_collateral);
-        uint256 decimals = collateralParams[_collateral].decimals;
-        uint256 ratio = collateralParams[_collateral].ratio;
+        // uint256 price = getPrice(_collateral);
+        // uint256 decimals = collateralParams[_collateral].decimals;
+        // uint256 ratio = collateralParams[_collateral].ratio;
+        // return (price.mul(_amount).mul(ratio).div(10**(18 + decimals)));
 
         // div by 10**18 for price adjustment
         // and divide by 10 ** decimals for decimal adjustment
-        return (price.mul(_amount).mul(ratio).div(10**(18 + decimals)));
+        // do inline since this function is called often
+        return ((getPrice(_collateral)).mul(_amount).mul(collateralParams[_collateral].ratio).div(10**(18 + collateralParams[_collateral].decimals)));
     }
 
 

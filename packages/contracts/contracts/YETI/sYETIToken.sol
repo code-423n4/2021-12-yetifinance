@@ -1,6 +1,5 @@
 //SPDX-License-Identifier: MIT
 pragma solidity 0.6.12;
-pragma experimental ABIEncoderV2;
 
 import "./BoringCrypto/BoringMath.sol";
 import "./BoringCrypto/BoringERC20.sol";
@@ -85,8 +84,9 @@ contract sYETIToken is IERC20, Domain, BoringOwnable {
             if (from != to) {
                 require(to != address(0), "Zero address"); // Moved down so other failed calls safe some gas
                 User memory toUser = users[to];
-                users[from].balance = fromUser.balance - shares.to128(); // Underflow is checked
-                users[to].balance = toUser.balance + shares.to128(); // Can't overflow because totalSupply would be greater than 2^128-1;
+                uint128 shares128 = shares.to128();
+                users[from].balance = fromUser.balance - shares128; // Underflow is checked
+                users[to].balance = toUser.balance + shares128; // Can't overflow because totalSupply would be greater than 2^128-1;
             }
         }
         emit Transfer(from, to, shares);
@@ -186,7 +186,6 @@ contract sYETIToken is IERC20, Domain, BoringOwnable {
     /// math is ok, because amount, totalSupply and shares is always 0 <= amount <= 100.000.000 * 10^18
     /// theoretically you can grow the amount/share ratio, but it's not practical and useless
     function mint(uint256 amount) public returns (bool) {
-        require(msg.sender != address(0), "Zero address");
         User memory user = users[msg.sender];
 
         uint256 shares = totalSupply == 0 ? amount : (amount * totalSupply) / effectiveYetiTokenBalance;
@@ -239,7 +238,7 @@ contract sYETIToken is IERC20, Domain, BoringOwnable {
      * Buyback function called by owner of function. Keeps track of the 
      */
     function buyBack(address routerAddress, uint256 YUSDToSell, uint256 YETIOutMin, address[] memory path) external onlyOwner {
-        require(YUSDToSell > 0, "Zero amount");
+        require(YUSDToSell != 0, "Zero amount");
         require(lastBuybackTime + 69 hours < block.timestamp, "Can only buyBack every 69 hours");
         require(yusdToken.approve(routerAddress, 0));
         require(yusdToken.increaseAllowance(routerAddress, YUSDToSell));
@@ -286,14 +285,14 @@ contract sYETIToken is IERC20, Domain, BoringOwnable {
 
     // Sets new transfer ratio for rebasing
     function setTransferRatio(uint256 newTransferRatio) external onlyOwner {
-        require(newTransferRatio > 0, "Zero transfer ratio");
+        require(newTransferRatio != 0, "Zero transfer ratio");
         require(newTransferRatio <= 1e18, "Transfer ratio too high");
         transferRatio = newTransferRatio;
     }
 
     // Safe divide
     function div(uint256 a, uint256 b) internal pure returns (uint256 c) {
-        require(b > 0, "BoringMath: Div By 0");
+        require(b != 0, "BoringMath: Div By 0");
         return a / b;
     }
 

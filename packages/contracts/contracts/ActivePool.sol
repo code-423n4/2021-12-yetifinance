@@ -157,12 +157,16 @@ contract ActivePool is Ownable, CheckContract, IActivePool, YetiCustomBase {
     }
 
     // Returns true if all payments were successfully sent. Must be called by borrower operations, trove manager, or stability pool. 
-    function sendCollaterals(address _to, address[] memory _tokens, uint[] memory _amounts) external override returns (bool) {
+    function sendCollaterals(address _to, address[] calldata _tokens, uint[] calldata _amounts) external override returns (bool) {
         _requireCallerIsBOorTroveMorTMLorSP();
         uint256 len = _tokens.length;
         require(len == _amounts.length, "AP:Lengths");
+        uint256 thisAmount;
         for (uint256 i; i < len; ++i) {
-            _sendCollateral(_to, _tokens[i], _amounts[i]); // reverts if send fails
+            thisAmount = _amounts[i];
+            if (thisAmount != 0) {
+                _sendCollateral(_to, _tokens[i], thisAmount); // reverts if send fails
+            }
         }
 
         if (_needsUpdateCollateral(_to)) {
@@ -177,7 +181,7 @@ contract ActivePool is Ownable, CheckContract, IActivePool, YetiCustomBase {
     // Returns true if all payments were successfully sent. Must be called by borrower operations, trove manager, or stability pool.
     // This function als ounwraps the collaterals and sends them to _to, if they are wrapped assets. If collect rewards is set to true,
     // It also harvests rewards on the user's behalf. 
-    function sendCollateralsUnwrap(address _to, address[] memory _tokens, uint[] memory _amounts, bool _collectRewards) external override returns (bool) {
+    function sendCollateralsUnwrap(address _to, address[] calldata _tokens, uint[] calldata _amounts, bool _collectRewards) external override returns (bool) {
         _requireCallerIsBOorTroveMorTMLorSP();
         uint256 len = _tokens.length;
         require(len == _amounts.length, "AP:Lengths");
@@ -261,7 +265,7 @@ contract ActivePool is Ownable, CheckContract, IActivePool, YetiCustomBase {
 
     // should be called by BorrowerOperations or DefaultPool
     // __after__ collateral is transferred to this contract.
-    function receiveCollateral(address[] memory _tokens, uint[] memory _amounts) external override {
+    function receiveCollateral(address[] calldata _tokens, uint[] calldata _amounts) external override {
         _requireCallerIsBorrowerOperationsOrDefaultPool();
         poolColl.amounts = _leftSumColls(poolColl, _tokens, _amounts);
         emit ActivePoolBalancesUpdated(_tokens, _amounts);

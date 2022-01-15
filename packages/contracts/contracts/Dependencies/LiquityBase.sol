@@ -147,7 +147,7 @@ contract LiquityBase is ILiquityBase, YetiCustomBase {
     function _CollsIsNonZero(newColls memory _colls) internal pure returns (bool) {
         uint256 tokensLen = _colls.tokens.length;
         for (uint256 i; i < tokensLen; ++i) {
-            if (_colls.amounts[i] > 0) {
+            if (_colls.amounts[i] != 0) {
                 return true;
             }
         }

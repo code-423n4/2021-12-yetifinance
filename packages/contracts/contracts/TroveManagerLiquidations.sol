@@ -200,7 +200,7 @@ contract TroveManagerLiquidations is TroveManagerBase, ITroveManagerLiquidations
             );
         }
 
-        require(totals.totalDebtInSequence > 0, "TML: nothing to liquidate");
+        require(totals.totalDebtInSequence != 0, "TML: nothing to liquidate");
         // Move liquidated Collateral and YUSD to the appropriate pools
         stabilityPoolCached.offset(
             totals.totalDebtToOffset,
@@ -681,7 +681,7 @@ contract TroveManagerLiquidations is TroveManagerBase, ITroveManagerLiquidations
         uint256 collsToLiquidateLen = _collsToLiquidate.tokens.length;
         or_vals.collToRedistribute.amounts = new uint256[](collsToLiquidateLen);
 
-        if (_YUSDInStabPool > 0) {
+        if (_YUSDInStabPool != 0) {
             /*
              * Offset as much debt & collateral as possible against the Stability Pool, and redistribute the remainder
              * between all active troves.
@@ -852,7 +852,7 @@ contract TroveManagerLiquidations is TroveManagerBase, ITroveManagerLiquidations
         address[] memory _tokens,
         uint256[] memory _amounts
     ) internal {
-        if (_YUSD > 0) {
+        if (_YUSD != 0) {
             yusdTokenContract.returnFromPool(gasPoolAddress, _liquidator, _YUSD);
         }
 
@@ -868,9 +868,8 @@ contract TroveManagerLiquidations is TroveManagerBase, ITroveManagerLiquidations
         uint256 collsLen = _colls.tokens.length;
         for (uint256 i; i < collsLen; ++i) {
             address token = _colls.tokens[i];
-            uint256 amount = _colls.amounts[i];
             if (whitelist.isWrapped(token)) {
-                IWAsset(token).updateReward(_borrower, _newOwner, amount);
+                IWAsset(token).updateReward(_borrower, _newOwner, _colls.amounts[i]);
             }
         }
     }

@@ -88,7 +88,6 @@ contract WJLP is ERC20_8, IWAsset {
         _symbol = ERC20_symbol;
         _name = ERC20_name;
         _decimals = ERC20_decimals;
-        _totalSupply = 0;
 
         JLP = _JLP;
         JOE = _JOE;
@@ -248,15 +247,16 @@ contract WJLP is ERC20_8, IWAsset {
         // latest accumulated Joe Per Share:
         uint256 accJoePerShare = _MasterChefJoe.poolInfo(_poolPid).accJoePerShare;
         UserInfo storage user = userInfo[_user];
+        uint256 cachedUserAmount = user.amount;
 
-        if (user.amount > 0) {
-            user.unclaimedJOEReward = (user.amount * accJoePerShare / 1e12) - user.rewardDebt;
+        if (cachedUserAmount != 0) {
+            user.unclaimedJOEReward = (cachedUserAmount * accJoePerShare / 1e12) - user.rewardDebt;
         }
 
         if (_isDeposit) {
-            user.amount = user.amount + _amount;
+            user.amount = cachedUserAmount + _amount;
         } else {
-            user.amount = user.amount - _amount;
+            user.amount = cachedUserAmount - _amount;
         }
 
         // update for JOE rewards that are already accounted for in user.unclaimedJOEReward
@@ -267,11 +267,12 @@ contract WJLP is ERC20_8, IWAsset {
     * Safe joe transfer function, just in case if rounding error causes pool to not have enough JOEs.
     */
     function _safeJoeTransfer(address _to, uint256 _amount) internal {
-        uint256 joeBal = JOE.balanceOf(address(this));
+        IERC20 cachedJOE = JOE;
+        uint256 joeBal = cachedJOE.balanceOf(address(this));
         if (_amount > joeBal) {
-            JOE.safeTransfer(_to, joeBal);
+            cachedJOE.safeTransfer(_to, joeBal);
         } else {
-            JOE.safeTransfer(_to, _amount);
+            cachedJOE.safeTransfer(_to, _amount);
         }
     }
 
