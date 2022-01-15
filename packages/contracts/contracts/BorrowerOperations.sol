@@ -265,7 +265,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         address _lowerHint,
         address[] memory _colls,
         uint256[] memory _amounts, 
-        uint256[] calldata _leverages,
+        uint256[] memory _leverages,
         uint256[] calldata _maxSlippages
     ) external override nonReentrant{
         uint256 collsLen = _colls.length;
@@ -477,7 +477,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
 
     // add collateral to trove. Calls _adjustTrove with correct params.
     function addCollLeverUp(
-        address[] calldata _collsIn,
+        address[] memory _collsIn,
         uint256[] memory _amountsIn,
         uint256[] memory _leverages,
         uint256[] memory _maxSlippages,
