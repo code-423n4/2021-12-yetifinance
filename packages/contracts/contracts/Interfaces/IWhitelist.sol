@@ -20,8 +20,8 @@ interface IWhitelist {
     function getIsActive(address _collateral) view external returns (bool);
     function getPriceCurve(address _collateral) external view returns (address);
     function getDecimals(address _collateral) external view returns (uint256);
-    function getFee(address _collateral, uint _collateralVCInput, uint256 _collateralVCBalancePost, uint256 _totalVCBalancePre, uint256 _totalVCBalancePost) external view returns (uint256);
-    function getFeeAndUpdate(address _collateral, uint _collateralVCInput, uint256 _collateralVCBalancePost, uint256 _totalVCBalancePre, uint256 _totalVCBalancePost) external returns (uint256);
+    function getFee(address _collateral, uint _collateralVCInput, uint256 _collateralVCBalancePost, uint256 _totalVCBalancePre, uint256 _totalVCBalancePost) external view returns (uint256 fee);
+    function getFeeAndUpdate(address _collateral, uint _collateralVCInput, uint256 _collateralVCBalancePost, uint256 _totalVCBalancePre, uint256 _totalVCBalancePost) external returns (uint256 fee);
     function getIndex(address _collateral) external view returns (uint256);
     function isWrapped(address _collateral) external view returns (bool);
     function setDefaultRouter(address _collateral, address _router) external;

@@ -143,7 +143,6 @@ contract HintHelpers is LiquityBase, Ownable, CheckContract {
         }
 
         newCollVC = _getVC(colls.tokens, finalAmounts);
-        // returns newCollVC;
     }
 
 
@@ -189,6 +188,5 @@ contract HintHelpers is LiquityBase, Ownable, CheckContract {
             }
             i++;
         }
-        // returns (hintAddress, diff, latestRandomSeed);
     }
 }

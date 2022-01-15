@@ -23,7 +23,7 @@ interface IPriceCurve {
 
     // Gets the fee cap and time currently. Used for setting new values for next price curve. 
     // returns lastFeePercent, lastFeeTime
-    function getFeeCapAndTime() external view returns (uint256, uint256);
+    function getFeeCapAndTime() external view returns (uint256 _lastFeePercent, uint256 _lastFeeTime);
 
     /** 
      * Returns fee based on decay since last fee calculation, which we take to be 

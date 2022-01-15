@@ -152,7 +152,6 @@ contract ThreePieceWiseLinearPriceCurve is IPriceCurve, Ownable {
             // If it has been longer than decay time, then reset fee to 0.
             fee = 0;
         }
-        // returns fee;
     }
 
     function _min(uint256 a, uint256 b) internal pure returns (uint256) {

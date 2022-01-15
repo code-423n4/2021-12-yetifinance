@@ -598,7 +598,6 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
             );
         }
 
-        // returns (AssetGainPerUnitStaked, YUSDLossPerUnitStaked);
     }
 
     // Update the Stability Pool reward sum S and product P
@@ -723,7 +722,6 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         for (uint256 i = 0; i < assets.length; i++) {
             amounts[i] = _getGainFromSnapshots(initialDeposit, snapshots, assets[i]);
         }
-        // returns (assets, amounts);
     }
 
     // gets the gain in S for a given asset

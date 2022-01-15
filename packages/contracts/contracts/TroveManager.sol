@@ -299,8 +299,6 @@ contract TroveManager is TroveManagerBase, ITroveManager {
         
         uint currentYUSDDebt = Troves[_borrower].debt.add(pendingYUSDDebtReward);
         newColls memory currentColls = _sumColls(Troves[_borrower].colls, pendingCollReward);
-        
-        // returns (currentColls, currentYUSDDebt);
     }
 
     // Add the borrowers's coll and debt rewards earned from redistributions, to their Trove
@@ -384,7 +382,6 @@ contract TroveManager is TroveManagerBase, ITroveManager {
             uint assetCollReward = stake.mul(rewardPerUnitStaked).div(10 ** dec);
             pendingCollRewards.amounts[i] = assetCollReward; // i is correct index here
         }
-        // returns pendingCollRewards;
     }
 
     // Get the borrower's pending accumulated YUSD reward, earned by their stake
@@ -405,8 +402,6 @@ contract TroveManager is TroveManagerBase, ITroveManager {
             uint assetYUSDDebtReward = stake.mul(rewardPerUnitStaked).div(DECIMAL_PRECISION);
             pendingYUSDDebtReward = pendingYUSDDebtReward.add(assetYUSDDebtReward);
         }
-
-        // returns pendingYUSDDebtReward;
     }
 
     function hasPendingRewards(address _borrower) public view override returns (bool) {
@@ -627,7 +622,6 @@ contract TroveManager is TroveManagerBase, ITroveManager {
         // Record the index of the new Troveowner on their Trove struct
         index = uint128(TroveOwners.length.sub(1));
         Troves[_borrower].arrayIndex = index;
-        // returns index;
     }
 
     /*

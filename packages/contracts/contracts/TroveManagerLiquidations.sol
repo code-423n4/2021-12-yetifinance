@@ -318,7 +318,6 @@ contract TroveManagerLiquidations is TroveManagerBase, ITroveManagerLiquidations
                 totals = _addLiquidationValuesToTotals(totals, singleLiquidation);
             } else continue; // In Normal Mode skip troves with ICR >= MCR
         }
-        // returns totals
     }
 
     function _getTotalsFromBatchLiquidate_NormalMode(
@@ -349,7 +348,6 @@ contract TroveManagerLiquidations is TroveManagerBase, ITroveManagerLiquidations
                 totals = _addLiquidationValuesToTotals(totals, singleLiquidation);
             }
         }
-        // returns totals
     }
 
     // Liquidate one trove, in Normal Mode.
@@ -433,7 +431,6 @@ contract TroveManagerLiquidations is TroveManagerBase, ITroveManagerLiquidations
             borrowerColls.amounts,
             TroveManagerOperation.liquidateInNormalMode
         );
-        // returns singleLiquidation;
     }
 
 
@@ -625,8 +622,6 @@ contract TroveManagerLiquidations is TroveManagerBase, ITroveManagerLiquidations
                 singleLiquidation.collSurplus.amounts
             );
         }
-
-        // returns singleLiquidation;
     }
 
     function _updateSingleLiquidation(
@@ -726,7 +721,6 @@ contract TroveManagerLiquidations is TroveManagerBase, ITroveManagerLiquidations
             }
             or_vals.debtToRedistribute = _entireTroveDebt;
         }
-        // returns or_vals
     }
 
     function _addLiquidationValuesToTotals(
@@ -763,8 +757,6 @@ contract TroveManagerLiquidations is TroveManagerBase, ITroveManagerLiquidations
             oldTotals.totalCollSurplus,
             singleLiquidation.collSurplus
         );
-
-        // returns newTotals;
     }
 
     /*
@@ -819,7 +811,6 @@ contract TroveManagerLiquidations is TroveManagerBase, ITroveManagerLiquidations
             singleLiquidation.collToSendToSP.amounts[i] = _toSP;
             singleLiquidation.collSurplus.amounts[i] = _collSurplus;
         }
-        // returns singleLiquidation
     }
 
     function _sendGasCompensation(

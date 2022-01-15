@@ -137,7 +137,6 @@ contract ActivePool is Ownable, CheckContract, IActivePool, YetiCustomBase {
 
             totalVC = totalVC.add(collateralVC);
         }
-        // returns totalVC;
     }
 
 

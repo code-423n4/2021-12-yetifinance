@@ -88,7 +88,6 @@ contract LiquityBase is ILiquityBase, YetiCustomBase {
     function _getICRColls(newColls memory _colls, uint _debt) internal view returns (uint ICR) {
         uint totalVC = _getVCColls(_colls);
         ICR = LiquityMath._computeCR(totalVC, _debt);
-        // returns ICR;
     }
 
 
@@ -98,7 +97,6 @@ contract LiquityBase is ILiquityBase, YetiCustomBase {
             uint tokenVC = whitelist.getValueVC(_tokens[i], _amounts[i]);
             totalVC = totalVC.add(tokenVC);
         }
-        // returns totalVC;
     }
 
 
@@ -107,7 +105,6 @@ contract LiquityBase is ILiquityBase, YetiCustomBase {
             uint valueVC = whitelist.getValueVC(_colls.tokens[i], _colls.amounts[i]);
             VC = VC.add(valueVC);
         }
-        // returns VC;
     }
 
 
@@ -116,7 +113,6 @@ contract LiquityBase is ILiquityBase, YetiCustomBase {
             uint valueUSD = whitelist.getValueUSD(_colls.tokens[i], _colls.amounts[i]);
             USDValue = USDValue.add(valueUSD);
         }
-        // returns USDValue;
     }
 
 
@@ -125,13 +121,11 @@ contract LiquityBase is ILiquityBase, YetiCustomBase {
         uint entireSystemDebt = getEntireSystemDebt();
         
         TCR = LiquityMath._computeCR(entireSystemColl, entireSystemDebt);
-        // returns TCR;
     }
 
 
     function _checkRecoveryMode() internal view returns (bool) {
         uint TCR = _getTCR();
-
         return TCR < CCR;
     }
 
@@ -149,7 +143,6 @@ contract LiquityBase is ILiquityBase, YetiCustomBase {
         for (uint i = 0; i < tokens.length; i++) {
             coll.amounts[whitelist.getIndex(tokens[i])] = amounts[i];
         }
-        // returns coll;
     }
 
 

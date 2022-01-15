@@ -65,7 +65,6 @@ contract YetiCustomBase is BaseMath {
         }
         finalColls.tokens = sumTokens;
         finalColls.amounts = sumAmounts;
-        // returns finalColls
     }
 
 
@@ -172,7 +171,6 @@ contract YetiCustomBase is BaseMath {
         }
         finalColls.tokens = diffTokens;
         finalColls.amounts = diffAmounts;
-        // returns finalColls
     }
 
     function _getArrayCopy(uint[] memory _arr) internal pure returns (uint[] memory){
