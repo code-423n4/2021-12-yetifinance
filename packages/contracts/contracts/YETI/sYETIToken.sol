@@ -8,6 +8,7 @@ import "./BoringCrypto/Domain.sol";
 import "./BoringCrypto/ERC20.sol";
 import "./BoringCrypto/IERC20.sol";
 import "./BoringCrypto/BoringOwnable.sol";
+import "./IsYETIRouter.sol";
 
 
 interface IYETIToken is IERC20 {
@@ -44,6 +45,11 @@ contract sYETIToken is IERC20, Domain, BoringOwnable {
     IYETIToken public yetiToken;
     IERC20 public yusdToken;
     bool private addressesSet;
+
+
+    // Internal mapping to keep track of valid routers. Find the one with least slippage off chain
+    // and do that one. 
+    mapping(address => bool) public validRouters;
 
     struct User {
         uint128 balance;
@@ -238,36 +244,40 @@ contract sYETIToken is IERC20, Domain, BoringOwnable {
     /** 
      * Buyback function called by owner of function. Keeps track of the 
      */
-    function buyBack(address routerAddress, uint256 YUSDToSell, uint256 YETIOutMin, address[] memory path) external onlyOwner {
-        require(YUSDToSell > 0, "Zero amount");
-        require(lastBuybackTime + 69 hours < block.timestamp, "Can only buyBack every 69 hours");
-        require(yusdToken.approve(routerAddress, 0));
-        require(yusdToken.increaseAllowance(routerAddress, YUSDToSell));
-        uint256[] memory amounts = IRouter(routerAddress).swapExactTokensForTokens(YUSDToSell, YETIOutMin, path, address(this), block.timestamp);
-        lastBuybackTime = block.timestamp;
-        // amounts[0] is the amount of YUSD that was sold, and amounts[1] is the amount of YETI that was gained in return. So the price is amounts[0] / amounts[1]
-        lastBuybackPrice = div(amounts[0].mul(1e18), amounts[1]);
-        emit BuyBackExecuted(YUSDToSell, amounts[0], amounts[1]);
+    function buyBack(address _routerAddress, uint256 _YUSDToSell, uint256 _YETIOutMin) external onlyOwner {
+        require(_YUSDToSell != 0, "Zero amount");
+        require(yusdToken.balanceOf(address(this)) >= _YUSDToSell, "Not enough YUSD in contract");
+        _buyBack(_routerAddress, _YUSDToSell, _YETIOutMin);
     }
 
     /** 
-     * Public function for doing buybacks, eligible every 69 hours. This is so that there are some guaranteed rewards to be distributed if the team multisig is lost.
-     * Has a max amount of YUSD to sellat 5% of the YUSD in the contract, which should be enough to cover the amount. Uses the default router which has a time lock 
+     * Public function for doing buybacks, eligible every 169 hours. This is so that there are some guaranteed rewards to be distributed if the team multisig is lost.
+     * Has a max amount of YUSD to sell at 5% of the YUSD in the contract, which should be enough to cover the amount. Uses the default router which has a time lock 
      * in order to activate. 
+     * No YUSDToSell param since this just does 5% of the YUSD in the contract.
      */
-    function publicBuyBack(address routerAddress, uint256 YUSDToSell, uint256 YETIOutMin, address[] memory path) external onlyOwner {
-        require(YUSDToSell > 0, "Zero amount");
-        require(lastBuybackTime + 69 hours < block.timestamp, "Can only buyBack every 69 hours");
-        require(yusdToken.approve(routerAddress, 0));
-        require(yusdToken.increaseAllowance(routerAddress, YUSDToSell));
-        uint256[] memory amounts = IRouter(routerAddress).swapExactTokensForTokens(YUSDToSell, YETIOutMin, path, address(this), block.timestamp);
+    function publicBuyBack(address _routerAddress) external {
+        uint256 YUSDBalance = yusdToken.balanceOf(address(this));
+        require(YUSDBalance != 0, "No YUSD in contract");
+        require(lastBuybackTime + 169 hours < block.timestamp, "Can only publicly buy back every 169 hours");
+        // Get 5% of the YUSD in the contract
+        // Always enough YUSD in the contract to cover the 5% of the YUSD in the contract
+        uint256 YUSDToSell = div(YUSDBalance.mul(5), 100);
+        _buyBack(_routerAddress, YUSDToSell, 0);
+    }
+
+    // Internal function calls the router function for buyback and emits event with amount of YETI bought and YUSD spent. 
+    function _buyBack(address _routerAddress, uint256 _YUSDToSell, uint256 _YETIOutMin) internal {
+        // Checks internal mapping to see if router is valid
+        require(validRouters[_routerAddress] == true, "Invalid router passed in");
+        require(yusdToken.approve(_routerAddress, 0));
+        require(yusdToken.increaseAllowance(_routerAddress, _YUSDToSell));
+        uint256[] memory amounts = IsYETIRouter(_routerAddress).swap(_YUSDToSell, _YETIOutMin, address(this));
         lastBuybackTime = block.timestamp;
         // amounts[0] is the amount of YUSD that was sold, and amounts[1] is the amount of YETI that was gained in return. So the price is amounts[0] / amounts[1]
         lastBuybackPrice = div(amounts[0].mul(1e18), amounts[1]);
-        emit BuyBackExecuted(YUSDToSell, amounts[0], amounts[1]);
+        emit BuyBackExecuted(_YUSDToSell, amounts[0], amounts[1]);
     }
-
-
 
     // Rebase function for adding new value to the sYETI - YETI ratio. 
     function rebase() external {
@@ -309,22 +319,21 @@ contract sYETIToken is IERC20, Domain, BoringOwnable {
         require(newTransferRatio <= 1e18, "Transfer ratio too high");
         transferRatio = newTransferRatio;
     }
+    
+    // TODO - add time delay for setting new valid router. 
+    function addValidRouter(address _routerAddress) external onlyOwner {
+        require(_routerAddress != address(0), "Invalid router address");
+        validRouters[_routerAddress] = true;
+    }
+
+    // TODO - add time delay for invalidating router. 
+    function removeValidRouter(address _routerAddress) external onlyOwner {
+        validRouters[_routerAddress] = false;
+    }
 
     // Safe divide
     function div(uint256 a, uint256 b) internal pure returns (uint256 c) {
         require(b > 0, "BoringMath: Div By 0");
         return a / b;
     }
-
-}
-
-// Router for Uniswap V2, performs YUSD -> YETI swaps
-interface IRouter {
-    function swapExactTokensForTokens(
-        uint256 amountIn,
-        uint256 amountOutMin,
-        address[] calldata path,
-        address to,
-        uint256 deadline
-    ) external returns (uint256[] memory amounts);
 }
