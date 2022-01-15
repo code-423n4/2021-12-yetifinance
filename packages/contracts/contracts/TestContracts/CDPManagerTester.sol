@@ -62,8 +62,8 @@ contract TroveManagerTester is TroveManager {
     }
 
     function callInternalRemoveTroveOwner(address _troveOwner) external {
-        uint troveOwnersArrayLength = getTroveOwnersCount();
-        _removeTroveOwner(_troveOwner, troveOwnersArrayLength);
+        // uint troveOwnersArrayLength = getTroveOwnersCount();
+        // _removeTroveOwner(_troveOwner, troveOwnersArrayLength);
     }
 
     function getTotalStakes(address _collADdress) external view returns (uint) {

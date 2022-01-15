@@ -23,14 +23,14 @@ contract WBQI is ERC20_8, IWAsset {
     IComptroller public _Comptroller;
     // uint public _poolPid;
     bool lock;
-    address public activePool;
-    address public TML;
-    address public TMR;
-    address public defaultPool;
-    address public stabilityPool;
-    address public YetiFinanceTreasury;
+    address internal activePool;
+    address internal TML;
+    address internal TMR;
+    address internal defaultPool;
+    address internal stabilityPool;
+    address internal YetiFinanceTreasury;
     uint public SHAREOFFSET=1e12;
-    bool addressesSet;
+    bool internal addressesSet;
 
     struct UserInfo {
         uint256 amount; // How many LP tokens the user has provided.

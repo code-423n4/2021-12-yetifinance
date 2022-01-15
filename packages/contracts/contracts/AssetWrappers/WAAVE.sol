@@ -14,14 +14,14 @@ contract WAAVE is ERC20_8, IWAsset {
     IERC20 public aToken;
     // uint public _poolPid;
 
-    address public activePool;
-    address public TML;
-    address public TMR;
-    address public defaultPool;
-    address public stabilityPool;
-    address public YetiFinanceTreasury;
+    address internal activePool;
+    address internal TML;
+    address internal TMR;
+    address internal defaultPool;
+    address internal stabilityPool;
+    address internal YetiFinanceTreasury;
     uint public SHAREOFFSET=1e12;
-    bool addressesSet;
+    bool internal addressesSet;
 
     struct UserInfo {
         uint256 amount; // How many LP tokens the user has provided.

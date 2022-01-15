@@ -26,10 +26,10 @@ contract DefaultPool is Ownable, CheckContract, IDefaultPool, YetiCustomBase {
 
     string public constant NAME = "DefaultPool";
 
-    address public troveManagerAddress;
-    address public activePoolAddress;
-    address public whitelistAddress;
-    address public yetiFinanceTreasury;
+    address internal troveManagerAddress;
+    address internal activePoolAddress;
+    address internal whitelistAddress;
+    address internal yetiFinanceTreasury;
 
     // deposited collateral tracker. Colls is always the whitelist list of all collateral tokens. Amounts
     newColls internal poolColl;
@@ -82,7 +82,7 @@ contract DefaultPool is Ownable, CheckContract, IDefaultPool, YetiCustomBase {
     /*
      * Returns all collateral balances in state. Not necessarily the contract's actual balances.
      */
-    function getAllCollateral() public view override returns (address[] memory, uint256[] memory) {
+    function getAllCollateral() external view override returns (address[] memory, uint256[] memory) {
         return (poolColl.tokens, poolColl.amounts);
     }
 

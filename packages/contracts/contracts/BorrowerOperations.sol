@@ -39,24 +39,24 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
 
     // --- Connected contract declarations ---
 
-    ITroveManager public troveManager;
+    ITroveManager internal troveManager;
 
-    address stabilityPoolAddress;
+    address internal stabilityPoolAddress;
 
-    address gasPoolAddress;
+    address internal gasPoolAddress;
 
-    ICollSurplusPool collSurplusPool;
+    ICollSurplusPool internal collSurplusPool;
 
-    ISYETI public sYETI;
-    address public sYETIAddress;
+    ISYETI internal sYETI;
+    address internal sYETIAddress;
 
-    IYUSDToken public yusdToken;
+    IYUSDToken internal yusdToken;
 
-    uint public constant BOOTSTRAP_PERIOD = 14 days;
+    uint internal constant BOOTSTRAP_PERIOD = 14 days;
     uint deploymentTime;
 
     // A doubly linked list of Troves, sorted by their collateral ratios
-    ISortedTroves public sortedTroves;
+    ISortedTroves internal sortedTroves;
 
     struct CollateralData {
         address collateral;

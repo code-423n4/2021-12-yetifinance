@@ -29,8 +29,8 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
     ITellorCaller public tellorCaller;  // Wrapper contract that calls the Tellor system
 
     // Core Liquity contracts
-    address borrowerOperationsAddress;
-    address troveManagerAddress;
+    address internal borrowerOperationsAddress;
+    address internal troveManagerAddress;
 
     uint constant public ETHUSD_TELLOR_REQ_ID = 1;
 

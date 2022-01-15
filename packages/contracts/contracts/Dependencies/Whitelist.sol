@@ -252,7 +252,7 @@ contract Whitelist is Ownable, IWhitelist, IBaseOracle, CheckContract {
     }
 
     function getRatio(address _collateral)
-        public
+        external
         view
         override
         exists(_collateral)
@@ -302,7 +302,7 @@ contract Whitelist is Ownable, IWhitelist, IBaseOracle, CheckContract {
     }
 
     function getIndex(address _collateral)
-        public
+        external
         view
         override
         exists(_collateral)
@@ -373,7 +373,7 @@ contract Whitelist is Ownable, IWhitelist, IBaseOracle, CheckContract {
 
     // Gets the value of that collateral type, of that amount, in VC terms.
     function getValueVC(address _collateral, uint256 _amount)
-        public
+        external
         view
         override
         exists(_collateral)

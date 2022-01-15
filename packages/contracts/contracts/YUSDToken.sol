@@ -55,11 +55,11 @@ contract YUSDToken is CheckContract, IYUSDToken {
     mapping (address => mapping (address => uint256)) private _allowances;  
     
     // --- Addresses ---
-    address public immutable troveManagerAddress;
-    address public immutable troveManagerLiquidationsAddress;
-    address public immutable troveManagerRedemptionsAddress;
-    address public immutable stabilityPoolAddress;
-    address public immutable borrowerOperationsAddress;
+    address internal immutable troveManagerAddress;
+    address internal immutable troveManagerLiquidationsAddress;
+    address internal immutable troveManagerRedemptionsAddress;
+    address internal immutable stabilityPoolAddress;
+    address internal immutable borrowerOperationsAddress;
     
     // --- Events ---
     event TroveManagerAddressChanged(address _troveManagerAddress);

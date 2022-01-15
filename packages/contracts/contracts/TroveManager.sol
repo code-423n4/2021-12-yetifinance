@@ -24,11 +24,36 @@ import "./Dependencies/ReentrancyGuard.sol";
  */
 
 contract TroveManager is TroveManagerBase, ITroveManager {
+    
+    address internal borrowerOperationsAddress;
+
+    IStabilityPool internal stabilityPoolContract;
+
+    ITroveManager internal troveManager;
+
+    IYUSDToken internal yusdTokenContract;
+
+    IYETIToken internal yetiTokenContract;
+
+    ISYETI internal sYETIContract;
+
+    ITroveManagerRedemptions internal troveManagerRedemptions;
+
+    ITroveManagerLiquidations internal troveManagerLiquidations;
+
+    address internal gasPoolAddress;
+    address internal troveManagerRedemptionsAddress;
+    address internal troveManagerLiquidationsAddress;
+
+    ISortedTroves internal sortedTroves;
+
+    ICollSurplusPool internal collSurplusPool;
+
     bytes32 constant public NAME = "TroveManager";
 
     // --- Data structures ---
 
-    uint constant public SECONDS_IN_ONE_MINUTE = 60;
+    uint constant internal SECONDS_IN_ONE_MINUTE = 60;
 
     /*
      * Half-life of 12h. 12h = 720 min
@@ -44,7 +69,6 @@ contract TroveManager is TroveManagerBase, ITroveManager {
 
     // The timestamp of the latest fee operation (redemption or new YUSD issuance)
     uint public lastFeeOperationTime;
-
 
     mapping (address => Trove) Troves;
 
@@ -163,7 +187,7 @@ contract TroveManager is TroveManagerBase, ITroveManager {
 
     // --- Getters ---
 
-    function getTroveOwnersCount() public view override returns (uint) {
+    function getTroveOwnersCount() external view override returns (uint) {
         return TroveOwners.length;
     }
 

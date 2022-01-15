@@ -19,10 +19,10 @@ contract CollSurplusPool is Ownable, CheckContract, ICollSurplusPool, LiquityBas
 
     string public constant NAME = "CollSurplusPool";
 
-    address public borrowerOperationsAddress;
-    address public troveManagerAddress;
-    address public troveManagerRedemptionsAddress;
-    address public activePoolAddress;
+    address internal borrowerOperationsAddress;
+    address internal troveManagerAddress;
+    address internal troveManagerRedemptionsAddress;
+    address internal activePoolAddress;
 
     // deposited collateral tracker. Colls is always the whitelist list of all collateral tokens. Amounts
     newColls internal poolColl;
@@ -100,7 +100,7 @@ contract CollSurplusPool is Ownable, CheckContract, ICollSurplusPool, LiquityBas
      *
      * Returns the amount of a given collateral in state. Not necessarily the contract's actual balance.
      */
-    function getCollateral(address _collateral) public view override returns (uint256) {
+    function getCollateral(address _collateral) external view override returns (uint256) {
         uint256 collateralIndex = whitelist.getIndex(_collateral);
         return poolColl.amounts[collateralIndex];
     }
@@ -109,7 +109,7 @@ contract CollSurplusPool is Ownable, CheckContract, ICollSurplusPool, LiquityBas
      *
      * Returns all collateral balances in state. Not necessarily the contract's actual balances.
      */
-    function getAllCollateral() public view override returns (address[] memory, uint256[] memory) {
+    function getAllCollateral() external view override returns (address[] memory, uint256[] memory) {
         return (poolColl.tokens, poolColl.amounts);
     }
 

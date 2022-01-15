@@ -155,15 +155,15 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
 
     string public constant NAME = "StabilityPool";
 
-    address public troveManagerLiquidationsAddress;
-    address public whitelistAddress;
+    address internal troveManagerLiquidationsAddress;
+    address internal whitelistAddress;
 
-    IBorrowerOperations public borrowerOperations;
-    ITroveManager public troveManager;
-    IYUSDToken public yusdToken;
-    ICommunityIssuance public communityIssuance;
+    IBorrowerOperations internal borrowerOperations;
+    ITroveManager internal troveManager;
+    IYUSDToken internal yusdToken;
+    ICommunityIssuance internal communityIssuance;
     // Needed to check if there are pending liquidations
-    ISortedTroves public sortedTroves;
+    ISortedTroves internal sortedTroves;
 
     // Tracker for YUSD held in the pool. Changes when users deposit/withdraw, and when Trove debt is offset.
     uint256 internal totalYUSDDeposits;
@@ -349,7 +349,7 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
     /*
      * Returns all collateral balances in state. Not necessarily the contract's actual balances.
      */
-    function getAllCollateral() public view override returns (address[] memory, uint256[] memory) {
+    function getAllCollateral() external view override returns (address[] memory, uint256[] memory) {
         return (totalColl.tokens, totalColl.amounts);
     }
 

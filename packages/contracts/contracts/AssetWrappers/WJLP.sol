@@ -42,12 +42,12 @@ contract WJLP is ERC20_8, IWAsset {
     IMasterChefJoeV2 public _MasterChefJoe;
     uint public _poolPid;
 
-    address public activePool;
-    address public TML;
-    address public TMR;
-    address public defaultPool;
-    address public stabilityPool;
-    address public YetiFinanceTreasury;
+    address internal activePool;
+    address internal TML;
+    address internal TMR;
+    address internal defaultPool;
+    address internal stabilityPool;
+    address internal YetiFinanceTreasury;
 
     bool addressesSet;
 
