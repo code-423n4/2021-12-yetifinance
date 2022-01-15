@@ -181,7 +181,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         address _whitelistAddress
     ) external override onlyOwner {
         // This makes impossible to open a trove with zero withdrawn YUSD
-        require(MIN_NET_DEBT > 0, "BO:MIN_NET_DEBT==0");
+        require(MIN_NET_DEBT != 0, "BO:MIN_NET_DEBT==0");
 
         deploymentTime = block.timestamp;
 
@@ -227,8 +227,8 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         uint256 _YUSDAmount,
         address _upperHint,
         address _lowerHint,
-        address[] memory _colls,
-        uint256[] memory _amounts
+        address[] calldata _colls,
+        uint256[] calldata _amounts
     ) external override nonReentrant {
         _requireLengthNonzero(_amounts.length);
         _requireValidDepositCollateral(_colls, _amounts);
@@ -266,8 +266,8 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         address[] memory _colls,
         uint256[] memory _amounts, 
         uint256[] memory _leverages,
-        uint256[] memory _maxSlippages
-    ) external override nonReentrant {
+        uint256[] calldata _maxSlippages
+    ) external override nonReentrant{
         uint256 collsLen = _colls.length;
         _requireLengthNonzero(collsLen);
         _requireValidDepositCollateral(_colls, _amounts);
@@ -452,8 +452,8 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
 
     // add collateral to trove. Calls _adjustTrove with correct params. 
     function addColl(
-        address[] memory _collsIn,
-        uint256[] memory _amountsIn,
+        address[] calldata _collsIn,
+        uint256[] calldata _amountsIn,
         address _upperHint,
         address _lowerHint, 
         uint256 _maxFeePercentage
@@ -466,8 +466,8 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         params._maxFeePercentage = _maxFeePercentage;
 
         // check that all _collsIn collateral types are in the whitelist
-        _requireValidDepositCollateral(params._collsIn, params._amountsIn);
-        _requireNoDuplicateColls(params._collsIn); // Check that there is no overlap with in or out in itself
+        _requireValidDepositCollateral(_collsIn, params._amountsIn);
+        _requireNoDuplicateColls(_collsIn); // Check that there is no overlap with in or out in itself
 
         // pull in deposit collateral
         _transferCollateralsIntoActivePool(msg.sender, params._collsIn, params._amountsIn);
@@ -493,7 +493,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         uint256 collsLen = _collsIn.length;
 
         // check that all _collsIn collateral types are in the whitelist
-        _requireValidDepositCollateral(params._collsIn, params._amountsIn);
+        _requireValidDepositCollateral(_collsIn, params._amountsIn);
         // Must check that other passed in arrays are correct length
         _requireLengthsEqual(collsLen, _leverages.length);
         _requireLengthsEqual(collsLen, _maxSlippages.length);
@@ -533,8 +533,8 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
 
     // Withdraw collateral from a trove. Calls _adjustTrove with correct params. 
     function withdrawColl(
-        address[] memory _collsOut,
-        uint256[] memory _amountsOut,
+        address[] calldata _collsOut,
+        uint256[] calldata _amountsOut,
         address _upperHint,
         address _lowerHint
     ) external override nonReentrant {
@@ -585,10 +585,10 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
 
     // Adjusts trove with multiple colls in / out. Calls _adjustTrove with correct params.
     function adjustTrove(
-        address[] memory _collsIn,
+        address[] calldata _collsIn,
         uint256[] memory _amountsIn,
-        address[] memory _collsOut,
-        uint256[] memory _amountsOut,
+        address[] calldata _collsOut,
+        uint256[] calldata _amountsOut,
         uint256 _YUSDChange,
         bool _isDebtIncrease,
         address _upperHint,
@@ -652,7 +652,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         vars.VCout = _getVC(params._collsOut, params._amountsOut);
 
         if (params._isDebtIncrease) {
-            vars.maxFeePercentageFactor = _max(vars.VCin, params._YUSDChange);
+            vars.maxFeePercentageFactor = LiquityMath._max(vars.VCin, params._YUSDChange);
         } else {
             vars.maxFeePercentageFactor = vars.VCin;
         }
@@ -698,7 +698,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
 
         vars.debt = contractsCache.troveManager.getTroveDebt(msg.sender);
 
-        if (params._collsIn.length > 0) {
+        if (params._collsIn.length != 0) {
             vars.variableYUSDFee = _getTotalVariableDepositFee(
                     params._collsIn,
                     params._amountsIn,
@@ -730,13 +730,13 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         );
 
         // When the adjustment is a debt repayment, check it's a valid amount and that the caller has enough YUSD
-        if (!params._isUnlever && !params._isDebtIncrease && params._YUSDChange > 0) {
+        if (!params._isUnlever && !params._isDebtIncrease && params._YUSDChange != 0) {
             _requireAtLeastMinNetDebt(_getNetDebt(vars.debt).sub(vars.netDebtChange));
             _requireValidYUSDRepayment(vars.debt, vars.netDebtChange);
             _requireSufficientYUSDBalance(contractsCache.yusdToken, msg.sender, vars.netDebtChange);
         }
 
-        if (params._collsIn.length > 0) {
+        if (params._collsIn.length != 0) {
             contractsCache.activePool.receiveCollateral(params._collsIn, params._amountsIn);
         }
 
@@ -840,9 +840,9 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     // calls _singleUnleverUp() to perform the swaps using the wrappers. 
     // should have no fees. 
     function withdrawCollUnleverUp(
-        address[] memory _collsOut,
-        uint256[] memory _amountsOut,
-        uint256[] memory _maxSlippages,
+        address[] calldata _collsOut,
+        uint256[] calldata _amountsOut,
+        uint256[] calldata _maxSlippages,
         uint256 _YUSDAmount,
         address _upperHint,
         address _lowerHint
@@ -865,9 +865,9 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     }
 
     function closeTroveUnlever(
-        address[] memory _collsOut,
-        uint256[] memory _amountsOut,
-        uint256[] memory _maxSlippages
+        address[] calldata _collsOut,
+        uint256[] calldata _amountsOut,
+        uint256[] calldata _maxSlippages
     ) external override nonReentrant {
         CloseTrove_Params memory params = CloseTrove_Params({
             _collsOut: _collsOut,
@@ -1003,7 +1003,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
                         activePoolVCPost
                     );
             if (_isBeforeFeeBootstrapPeriod()) {
-                whitelistFee = _min(whitelistFee, 1e16); // cap at 1%
+                whitelistFee = LiquityMath._min(whitelistFee, 1e16); // cap at 1%
             } 
             vars.collateralYUSDFee = vars.collateralInputVC
                 .mul(whitelistFee).div(1e18);
@@ -1087,9 +1087,9 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
            newDebt = _troveManager.increaseTroveDebt(_borrower, _debtChange.add(_variableYUSDFee));
         } else {
             if (_debtChange > _variableYUSDFee) { // if debt decrease, and greater than variable fee, decrease 
-                newDebt = _troveManager.decreaseTroveDebt(_borrower, _debtChange.sub(_variableYUSDFee));
+                newDebt = _troveManager.decreaseTroveDebt(_borrower, _debtChange - _variableYUSDFee); // already checked no safemath needed
             } else { // otherwise increase by opposite subtraction
-                newDebt = _troveManager.increaseTroveDebt(_borrower, _variableYUSDFee.sub(_debtChange));
+                newDebt = _troveManager.increaseTroveDebt(_borrower, _variableYUSDFee - _debtChange); // already checked no safemath needed
             }
         }
 
@@ -1168,7 +1168,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         _requireLengthsEqual(collsLen, _amounts.length);
         for (uint256 i; i < collsLen; ++i) {
             require(whitelist.getIsActive(_colls[i]), "BO:BadColl");
-            require(_amounts[i] > 0, "BO:NoAmounts");
+            require(_amounts[i] != 0, "BO:NoAmounts");
         }
     }
 
@@ -1194,7 +1194,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     }
 
     function _isBeforeFeeBootstrapPeriod() internal view returns (bool) {
-        return block.timestamp < deploymentTime.add(BOOTSTRAP_PERIOD);
+        return block.timestamp < deploymentTime + BOOTSTRAP_PERIOD; // won't overflow
     }
 
     function _requireTroveisActive(ITroveManager _troveManager, address _borrower) internal view {
@@ -1206,10 +1206,10 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     }
 
     function _requireNonZeroDebtChange(uint256 _YUSDChange) internal pure {
-        require(_YUSDChange > 0, "BO:NoDebtChange");
+        require(_YUSDChange != 0, "BO:NoDebtChange");
     }
 
-    function _requireNoOverlapColls(address[] memory _colls1, address[] memory _colls2)
+    function _requireNoOverlapColls(address[] calldata _colls1, address[] calldata _colls2)
         internal
         pure
     {
@@ -1405,13 +1405,5 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
 
     function getCompositeDebt(uint256 _debt) external pure override returns (uint256) {
         return _getCompositeDebt(_debt);
-    }
-
-    function _max(uint256 _a, uint256 _b) internal pure returns (uint256) {
-        return _a > _b ? _a : _b;
-    }
-
-    function _min(uint256 _a, uint256 _b) internal pure returns (uint256) {
-        return _a < _b ? _a : _b;
     }
 }

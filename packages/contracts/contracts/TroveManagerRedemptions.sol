@@ -200,7 +200,7 @@ contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
         if (_maxIterations == 0) {
             _maxIterations = uint256(-1);
         }
-        while (currentBorrower != address(0) && totals.remainingYUSD > 0 && _maxIterations > 0) {
+        while (currentBorrower != address(0) && totals.remainingYUSD != 0 && _maxIterations != 0) {
             _maxIterations--;
             // Save the address of the Trove preceding the current one, before potentially modifying the list
             address nextUserToCheck = contractsCache.sortedTroves.getPrev(currentBorrower);
@@ -714,7 +714,7 @@ contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
     function _requireAfterBootstrapPeriod() internal view {
         uint256 systemDeploymentTime = yetiTokenContract.getDeploymentStartTime();
         require(
-            block.timestamp >= systemDeploymentTime.add(BOOTSTRAP_PERIOD),
+            block.timestamp >= systemDeploymentTime + BOOTSTRAP_PERIOD,
             "TMR:NoRedemptionsDuringBootstrap"
         );
     }
@@ -724,7 +724,7 @@ contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
     }
 
     function _requireAmountGreaterThanZero(uint256 _amount) internal pure {
-        require(_amount > 0, "TMR:ReqNonzeroAmount");
+        require(_amount != 0, "TMR:ReqNonzeroAmount");
     }
 
     function _requireYUSDBalanceCoversRedemption(
@@ -741,7 +741,7 @@ contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
     function isNonzero(newColls memory coll) internal pure returns (bool) {
         uint256 collsLen = coll.amounts.length;
         for (uint256 i; i < collsLen; ++i) {
-            if (coll.amounts[i] > 0) {
+            if (coll.amounts[i] != 0) {
                 return true;
             }
         }

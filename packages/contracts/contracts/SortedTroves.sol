@@ -89,7 +89,7 @@ contract SortedTroves is Ownable, CheckContract, ISortedTroves {
         address _borrowerOperationsAddress,
         address _troveManagerRedemptionsAddress) 
         external override onlyOwner {
-        require(_size > 0, "SortedTroves: Size can’t be zero");
+        require(_size != 0, "SortedTroves: Size can’t be zero");
         checkContract(_troveManagerAddress);
         checkContract(_borrowerOperationsAddress);
         checkContract(_troveManagerRedemptionsAddress);
@@ -128,7 +128,7 @@ contract SortedTroves is Ownable, CheckContract, ISortedTroves {
         // Node id must not be null
         require(_id != address(0), "SortedTroves: Id cannot be zero");
         // ICR must be non-zero
-        require(_ICR > 0, "SortedTroves: ICR must be (+)");
+        require(_ICR != 0, "SortedTroves: ICR must be (+)");
         address prevId = _prevId;
         address nextId = _nextId;
         if (!_validInsertPosition(_ICR, prevId, nextId)) {
@@ -227,7 +227,7 @@ contract SortedTroves is Ownable, CheckContract, ISortedTroves {
         // List must contain the node
         require(contains(_id), "SortedTroves: Id not found");
         // ICR must be non-zero
-        require(_newICR > 0, "SortedTroves: ICR must be (+)");
+        require(_newICR != 0, "SortedTroves: ICR must be (+)");
 
         // Remove node from the list
         _remove(_id);

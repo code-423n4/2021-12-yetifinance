@@ -38,7 +38,7 @@ contract YetiCustomBase is BaseMath {
         uint256 n = 0;
         for (uint256 i; i < coll1Len; ++i) {
             uint256 tokenIndex = whitelist.getIndex(_coll1.tokens[i]);
-            if (_coll1.amounts[i] > 0) {
+            if (_coll1.amounts[i] != 0) {
                 n++;
                 coll3.amounts[tokenIndex] = _coll1.amounts[i];
             }
@@ -46,7 +46,7 @@ contract YetiCustomBase is BaseMath {
 
         for (uint256 i; i < coll2Len; ++i) {
             uint256 tokenIndex = whitelist.getIndex(_coll2.tokens[i]);
-            if (_coll2.amounts[i] > 0) {
+            if (_coll2.amounts[i] != 0) {
                 if (coll3.amounts[tokenIndex] == 0) {
                     n++;
                 }
@@ -60,7 +60,7 @@ contract YetiCustomBase is BaseMath {
 
         // should only find n amounts over 0
         for (uint256 i; i < coll3Len; ++i) {
-            if (coll3.amounts[i] > 0) {
+            if (coll3.amounts[i] != 0) {
                 sumTokens[j] = coll3.tokens[i];
                 sumAmounts[j] = coll3.amounts[i];
                 j++;
@@ -151,7 +151,7 @@ contract YetiCustomBase is BaseMath {
         uint256 tokenIndex;
         uint256 i;
         for (; i < coll1Len; ++i) {
-            if (_coll1.amounts[i] > 0) {
+            if (_coll1.amounts[i] != 0) {
                 tokenIndex = whitelist.getIndex(_coll1.tokens[i]);
                 coll3.amounts[tokenIndex] = _coll1.amounts[i];
                 n++;
@@ -172,17 +172,21 @@ contract YetiCustomBase is BaseMath {
 
         address[] memory diffTokens = new address[](n);
         uint256[] memory diffAmounts = new uint256[](n);
-        uint j;
-        i = 0;
-        for (; i < coll3Len; ++i) {
-            if (coll3.amounts[i] > 0) {
-                diffTokens[j] = coll3.tokens[i];
-                diffAmounts[j] = coll3.amounts[i];
-                j++;
+        
+        if (n != 0) {
+            uint j;
+            i = 0;
+            for (; i < coll3Len; ++i) {
+                if (coll3.amounts[i] != 0) {
+                    diffTokens[j] = coll3.tokens[i];
+                    diffAmounts[j] = coll3.amounts[i];
+                    ++j;
+                }
             }
         }
         finalColls.tokens = diffTokens;
         finalColls.amounts = diffAmounts;
+        // returns finalColls;
     }
 
     function _getArrayCopy(uint[] memory _arr) internal pure returns (uint[] memory){

@@ -253,7 +253,7 @@ contract TroveManager is TroveManagerBase, ITroveManager, ReentrancyGuard {
     // Update position for a set of troves using latest price data. This can be called by anyone.
     // Yeti Finance will also be running a bot to assist with keeping the list from becoming
     // too stale.
-    function updateTroves(address[] memory _borrowers, address[] memory _lowerHints, address[] memory _upperHints) external {
+    function updateTroves(address[] calldata _borrowers, address[] calldata _lowerHints, address[] calldata _upperHints) external {
         uint lowerHintsLen = _lowerHints.length;
         require(_borrowers.length == lowerHintsLen, "TM: borrowers length mismatch");
         require(lowerHintsLen == _upperHints.length, "TM: hints length mismatch");
@@ -533,7 +533,7 @@ contract TroveManager is TroveManagerBase, ITroveManager, ReentrancyGuard {
             * - When we close or liquidate a trove, we redistribute the pending rewards, so if all troves were closed/liquidated,
             * rewards would’ve been emptied and totalCollateralSnapshot would be zero too.
             */
-            require(totalStakesSnapshot[token] > 0, "TM: stake must be > 0");
+            require(totalStakesSnapshot[token] != 0, "TM: stake must be > 0");
             stake = _coll.mul(totalStakesSnapshot[token]).div(totalCollateralSnapshot[token]);
         }
         return stake;
@@ -566,7 +566,7 @@ contract TroveManager is TroveManagerBase, ITroveManager, ReentrancyGuard {
             uint dec = IERC20(token).decimals();
             uint CollNumerator = amount.mul(10 ** dec).add(lastCollError_Redistribution[token]);
             uint YUSDDebtNumerator = proratedDebtForCollateral.mul(DECIMAL_PRECISION).add(lastYUSDDebtError_Redistribution[token]);
-            if (totalStakes[token] > 0) {
+            if (totalStakes[token] != 0) {
                 // Get the per-unit-staked terms
                 uint256 thisTotalStakes = totalStakes[token];
                 uint CollRewardPerUnitStaked = CollNumerator.div(thisTotalStakes);
@@ -709,7 +709,7 @@ contract TroveManager is TroveManagerBase, ITroveManager, ReentrancyGuard {
 
     function updateBaseRate(uint newBaseRate) external override {
         _requireCallerIsTMR();
-        require(newBaseRate > 0, "TM: newBaseRate must be > 0");
+        require(newBaseRate != 0, "TM: newBaseRate must be > 0");
         baseRate = newBaseRate;
         emit BaseRateUpdated(newBaseRate);
         _updateLastFeeOpTime();

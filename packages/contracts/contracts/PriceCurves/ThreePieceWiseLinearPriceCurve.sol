@@ -152,7 +152,7 @@ contract ThreePieceWiseLinearPriceCurve is IPriceCurve, Ownable {
         }
         // percent of all VC backed by this collateral * 1e18
         uint256 percentBacked = _collateralVCBalance.mul(1e18).div(_totalVCBalance);
-        require(percentBacked <= 1e18 && percentBacked >= 0, "percent backed out of bounds");
+        require(percentBacked <= 1e18, "percent backed out of bounds");
 
         if (percentBacked <= cutoff1) { // use function 1
             return _min(m1.mul(percentBacked).div(1e18).add(b1), 1e18);

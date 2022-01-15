@@ -38,7 +38,7 @@ library Address {
         // for contracts in construction, since the code is only stored at the end
         // of the constructor execution.
 
-        return account.code.length > 0;
+        return account.code.length != 0;
     }
 
     /**
@@ -207,7 +207,7 @@ library Address {
             return returndata;
         } else {
             // Look for revert reason and bubble it up if present
-            if (returndata.length > 0) {
+            if (returndata.length != 0) {
                 // The easiest way to bubble the revert reason is using memory via assembly
 
                 assembly {

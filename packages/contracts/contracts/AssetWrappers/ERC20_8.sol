@@ -65,7 +65,7 @@ contract ERC20_8 is IERC20 {
     function transfer(address _to, uint _num_tokens) public override returns (bool success) {
         require(_num_tokens <= balances[msg.sender], "You are trying to transfer more tokens than you have");
 
-        balances[msg.sender] = balances[msg.sender] - _num_tokens;
+        unchecked { balances[msg.sender] = balances[msg.sender] - _num_tokens; } // pre checked that you have enough tokens
         balances[_to] = balances[_to] + _num_tokens;
         emit Transfer(msg.sender, _to, _num_tokens);
         return true;
