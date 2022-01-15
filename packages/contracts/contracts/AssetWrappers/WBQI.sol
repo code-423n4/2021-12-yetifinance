@@ -23,14 +23,14 @@ contract WBQI is ERC20_8, IWAsset {
     IComptroller public _Comptroller;
     // uint public _poolPid;
     bool lock;
-    address public activePool;
-    address public TML;
-    address public TMR;
-    address public defaultPool;
-    address public stabilityPool;
-    address public YetiFinanceTreasury;
+    address internal activePool;
+    address internal TML;
+    address internal TMR;
+    address internal defaultPool;
+    address internal stabilityPool;
+    address internal YetiFinanceTreasury;
     uint public SHAREOFFSET=1e12;
-    bool addressesSet;
+    bool internal addressesSet;
 
     struct UserInfo {
         uint256 amount; // How many LP tokens the user has provided.
@@ -107,7 +107,7 @@ contract WBQI is ERC20_8, IWAsset {
     // to mint WAssets which it sends to _to. It also updates
     // _rewardOwner's reward tracking such that it now has the right to
     // future yields from the newly minted WAssets
-    function wrap(uint _amount, address _to) external override{
+    function wrap(uint _amount, address _to) external override {
         
         //Update rewards
 

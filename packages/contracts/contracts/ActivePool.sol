@@ -4,14 +4,11 @@ pragma solidity 0.6.11;
 
 import './Interfaces/IActivePool.sol';
 import "./Interfaces/IWhitelist.sol";
-import "./Interfaces/IStabilityPool.sol";
-import "./Interfaces/IDefaultPool.sol";
 import './Interfaces/IERC20.sol';
 import "./Interfaces/IWAsset.sol";
 import "./Dependencies/SafeMath.sol";
 import "./Dependencies/Ownable.sol";
 import "./Dependencies/CheckContract.sol";
-import "./Dependencies/LiquityBase.sol";
 import "./Dependencies/YetiCustomBase.sol";
 import "./Dependencies/SafeERC20.sol";
 
@@ -26,15 +23,15 @@ contract ActivePool is Ownable, CheckContract, IActivePool, YetiCustomBase {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    string constant public NAME = "ActivePool";
+    bytes32 constant public NAME = "ActivePool";
 
-    address public borrowerOperationsAddress;
-    address public troveManagerAddress;
-    address public stabilityPoolAddress;
-    address public defaultPoolAddress;
-    address public troveManagerLiquidationsAddress;
-    address public troveManagerRedemptionsAddress;
-    address public collSurplusPoolAddress;
+    address internal borrowerOperationsAddress;
+    address internal troveManagerAddress;
+    address internal stabilityPoolAddress;
+    address internal defaultPoolAddress;
+    address internal troveManagerLiquidationsAddress;
+    address internal troveManagerRedemptionsAddress;
+    address internal collSurplusPoolAddress;
 
     
     // deposited collateral tracker. Colls is always the whitelist list of all collateral tokens. Amounts 
@@ -129,7 +126,8 @@ contract ActivePool is Ownable, CheckContract, IActivePool, YetiCustomBase {
     * multiplying them by the corresponding price and ratio and then summing that
     */
     function getVC() external view override returns (uint totalVC) {
-        for (uint i = 0; i < poolColl.tokens.length; i++) {
+        uint len = poolColl.tokens.length;
+        for (uint256 i; i < len; ++i) {
             address collateral = poolColl.tokens[i];
             uint amount = poolColl.amounts[i];
 
@@ -158,11 +156,16 @@ contract ActivePool is Ownable, CheckContract, IActivePool, YetiCustomBase {
     }
 
     // Returns true if all payments were successfully sent. Must be called by borrower operations, trove manager, or stability pool. 
-    function sendCollaterals(address _to, address[] memory _tokens, uint[] memory _amounts) external override returns (bool) {
+    function sendCollaterals(address _to, address[] calldata _tokens, uint[] calldata _amounts) external override returns (bool) {
         _requireCallerIsBOorTroveMorTMLorSP();
-        require(_tokens.length == _amounts.length, "SendCollaterals: Length mismatch");
-        for (uint i = 0; i < _tokens.length; i++) {
-            _sendCollateral(_to, _tokens[i], _amounts[i]); // reverts if send fails
+        uint256 len = _tokens.length;
+        require(len == _amounts.length, "AP:Lengths");
+        uint256 thisAmount;
+        for (uint256 i; i < len; ++i) {
+            thisAmount = _amounts[i];
+            if (thisAmount != 0) {
+                _sendCollateral(_to, _tokens[i], thisAmount); // reverts if send fails
+            }
         }
 
         if (_needsUpdateCollateral(_to)) {
@@ -177,10 +180,11 @@ contract ActivePool is Ownable, CheckContract, IActivePool, YetiCustomBase {
     // Returns true if all payments were successfully sent. Must be called by borrower operations, trove manager, or stability pool.
     // This function als ounwraps the collaterals and sends them to _to, if they are wrapped assets. If collect rewards is set to true,
     // It also harvests rewards on the user's behalf. 
-    function sendCollateralsUnwrap(address _to, address[] memory _tokens, uint[] memory _amounts, bool _collectRewards) external override returns (bool) {
+    function sendCollateralsUnwrap(address _to, address[] calldata _tokens, uint[] calldata _amounts, bool _collectRewards) external override returns (bool) {
         _requireCallerIsBOorTroveMorTMLorSP();
-        require(_tokens.length == _amounts.length, "sendCollateralsUnwrap: Length Mismatch");
-        for (uint i = 0; i < _tokens.length; i++) {
+        uint256 len = _tokens.length;
+        require(len == _amounts.length, "AP:Lengths");
+        for (uint256 i; i < len; ++i) {
             if (whitelist.isWrapped(_tokens[i])) {
                 IWAsset(_tokens[i]).unwrapFor(_to, _amounts[i]);
                 if (_collectRewards) {
@@ -215,47 +219,52 @@ contract ActivePool is Ownable, CheckContract, IActivePool, YetiCustomBase {
     // --- 'require' functions ---
 
     function _requireCallerIsBOorTroveMorTMLorSP() internal view {
-        require(
-            msg.sender == borrowerOperationsAddress ||
-            msg.sender == troveManagerAddress ||
-            msg.sender == stabilityPoolAddress ||
-            msg.sender == troveManagerLiquidationsAddress ||
-            msg.sender == troveManagerRedemptionsAddress,
-            "ActivePool: Caller is neither BorrowerOperations nor TroveManager nor StabilityPool");
+        if (
+            msg.sender != borrowerOperationsAddress &&
+            msg.sender != troveManagerAddress &&
+            msg.sender != stabilityPoolAddress &&
+            msg.sender != troveManagerLiquidationsAddress &&
+            msg.sender != troveManagerRedemptionsAddress) {
+                _revertWrongFuncCaller();
+            }
     }
 
     function _requireCallerIsBorrowerOperationsOrDefaultPool() internal view {
-        require(
-            msg.sender == borrowerOperationsAddress ||
-            msg.sender == defaultPoolAddress,
-            "ActivePool: Caller is neither BO nor Default Pool");
+        if (msg.sender != borrowerOperationsAddress &&
+            msg.sender != defaultPoolAddress) {
+                _revertWrongFuncCaller();
+            }
     }
 
     function _requireCallerIsBOorTroveMorSP() internal view {
-        require(
-            msg.sender == borrowerOperationsAddress ||
-            msg.sender == troveManagerAddress ||
-            msg.sender == stabilityPoolAddress ||
-            msg.sender == troveManagerRedemptionsAddress,
-            "ActivePool: Caller is neither BorrowerOperations nor TroveManager nor StabilityPool");
+        if (msg.sender != borrowerOperationsAddress &&
+            msg.sender != troveManagerAddress &&
+            msg.sender != stabilityPoolAddress &&
+            msg.sender != troveManagerRedemptionsAddress) {
+                _revertWrongFuncCaller();
+            }
     }
 
     function _requireCallerIsBOorTroveM() internal view {
-        require(
-            msg.sender == borrowerOperationsAddress ||
-            msg.sender == troveManagerAddress,
-            "ActivePool: Caller is neither BorrowerOperations nor TroveManager");
+        if (msg.sender != borrowerOperationsAddress &&
+            msg.sender != troveManagerAddress) {
+                _revertWrongFuncCaller();
+            }
     }
 
     function _requireCallerIsWhitelist() internal view {
-        require(
-        msg.sender == address(whitelist),
-        "ActivePool: Caller is not whitelist");
+        if (msg.sender != address(whitelist)) {
+            _revertWrongFuncCaller();
+        }
+    }
+
+    function _revertWrongFuncCaller() internal view {
+        revert("AP: External caller not allowed");
     }
 
     // should be called by BorrowerOperations or DefaultPool
     // __after__ collateral is transferred to this contract.
-    function receiveCollateral(address[] memory _tokens, uint[] memory _amounts) external override {
+    function receiveCollateral(address[] calldata _tokens, uint[] calldata _amounts) external override {
         _requireCallerIsBorrowerOperationsOrDefaultPool();
         poolColl.amounts = _leftSumColls(poolColl, _tokens, _amounts);
         emit ActivePoolBalancesUpdated(_tokens, _amounts);

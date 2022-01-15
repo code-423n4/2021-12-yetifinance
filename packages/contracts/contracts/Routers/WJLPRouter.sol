@@ -11,12 +11,12 @@ import "../Dependencies/SafeMath.sol";
 contract WJLPRouter is IYetiRouter {
     using SafeMath for uint256;
 
-    address public activePoolAddress;
+    address internal activePoolAddress;
     address public JLPAddress;
     address public WJLPAddress;
     IJoeZapper public joeZapper;
     IWAsset public WJLP;
-    address public yusdTokenAddress;
+    address internal yusdTokenAddress;
 
     constructor(
         address _activePoolAddress,

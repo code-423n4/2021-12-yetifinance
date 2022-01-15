@@ -10,7 +10,6 @@ import "../Interfaces/ISortedTroves.sol";
 import "../Interfaces/IYETIToken.sol";
 import "../Interfaces/ISYETI.sol";
 import "../Interfaces/IActivePool.sol";
-import "../Interfaces/IWhitelist.sol";
 import "../Interfaces/ITroveManagerLiquidations.sol";
 import "../Interfaces/ITroveManagerRedemptions.sol";
 import "./LiquityBase.sol";
@@ -26,32 +25,7 @@ contract TroveManagerBase is LiquityBase, Ownable, CheckContract {
 
     // --- Connected contract declarations ---
 
-    address public borrowerOperationsAddress;
-
-    IStabilityPool stabilityPoolContract;
-
-    ITroveManager public troveManager;
-
-    IYUSDToken yusdTokenContract;
-
-    IYETIToken yetiTokenContract;
-
-    ISYETI sYETIContract;
-
-    ITroveManagerRedemptions troveManagerRedemptions;
-
-    ITroveManagerLiquidations troveManagerLiquidations;
-
-    address gasPoolAddress;
-
-    address public troveManagerAddress;
-    address public troveManagerRedemptionsAddress;
-    address public troveManagerLiquidationsAddress;
-
     // A doubly linked list of Troves, sorted by their sorted by their individual collateral ratios
-    ISortedTroves public sortedTroves;
-
-    ICollSurplusPool collSurplusPool;
 
     struct ContractsCache {
         IActivePool activePool;

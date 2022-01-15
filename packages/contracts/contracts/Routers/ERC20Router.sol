@@ -12,9 +12,9 @@ import "../YUSDToken.sol";
 contract ERC20Router is IYetiRouter {
     using SafeMath for uint256;
 
-    address public activePoolAddress;
-    address public traderJoeRouter;
-    address public yusdTokenAddress;
+    address internal activePoolAddress;
+    address internal traderJoeRouter;
+    address internal yusdTokenAddress;
     string public name;
 
     constructor(

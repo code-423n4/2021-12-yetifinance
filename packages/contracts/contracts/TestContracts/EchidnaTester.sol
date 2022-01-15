@@ -109,8 +109,8 @@ contract EchidnaTester {
         MCR = borrowerOperations.MCR();
         CCR = borrowerOperations.CCR();
         YUSD_GAS_COMPENSATION = borrowerOperations.YUSD_GAS_COMPENSATION();
-        require(MCR > 0, "MCR <= 0");
-        require(CCR > 0, "CCR <= 0");
+        require(MCR != 0, "MCR <= 0");
+        require(CCR != 0, "CCR <= 0");
 
         priceFeedTestnet.setPrice(1e22);
     }
@@ -161,7 +161,7 @@ contract EchidnaTester {
 //
 //    function getAdjustedETH(uint actorBalance, uint _ETH, uint ratio) internal view returns (uint) {
 //        uint price = priceFeedTestnet.getPrice();
-//        require(price > 0);
+//        require(price != 0);
 //        uint minETH = ratio.mul(YUSD_GAS_COMPENSATION).div(price);
 //        require(actorBalance > minETH);
 //        uint ETH = minETH + _ETH % (actorBalance - minETH);
@@ -197,7 +197,7 @@ contract EchidnaTester {
 //        echidnaProxy.openTrovePrx(_tokens, _amounts, YUSDAmount, address(0), address(0), 0);
 //
 //        numberOfTroves = troveManager.getTroveOwnersCount();
-//        assert(numberOfTroves > 0);
+//        assert(numberOfTroves != 0);
 //        // canary
 //        //assert(numberOfTroves == 0);
 //    }
@@ -319,7 +319,7 @@ contract EchidnaTester {
 //    }
 //
 //    function echidna_canary_active_pool_balance() public view returns(bool) {
-//        if (address(activePool).balance > 0) {
+//        if (address(activePool).balance != 0) {
 //            return false;
 //        }
 //        return true;
@@ -346,7 +346,7 @@ contract EchidnaTester {
 //    /**
 //     * Status
 //     * Minimum debt (gas compensation)
-//     * Stake > 0
+//     * Stake != 0
 //     */
 //    function echidna_trove_properties() public view returns(bool) {
 //        address currentTrove = sortedTroves.getFirst();
@@ -365,7 +365,7 @@ contract EchidnaTester {
 //            // Uncomment to check that the condition is meaningful
 //            //else return false;
 //
-//            // Stake > 0
+//            // Stake != 0
 //            if (troveManager.getTroveStake(currentTrove) == 0) {
 //                return false;
 //            }
@@ -378,11 +378,11 @@ contract EchidnaTester {
 //    }
 //
 //    function echidna_ETH_balances() public view returns(bool) {
-//        if (address(troveManager).balance > 0) {
+//        if (address(troveManager).balance != 0) {
 //            return false;
 //        }
 //
-//        if (address(borrowerOperations).balance > 0) {
+//        if (address(borrowerOperations).balance != 0) {
 //            return false;
 //        }
 //
@@ -398,15 +398,15 @@ contract EchidnaTester {
 //            return false;
 //        }
 //
-//        if (address(yusdToken).balance > 0) {
+//        if (address(yusdToken).balance != 0) {
 //            return false;
 //        }
 //
-//        if (address(priceFeedTestnet).balance > 0) {
+//        if (address(priceFeedTestnet).balance != 0) {
 //            return false;
 //        }
 //
-//        if (address(sortedTroves).balance > 0) {
+//        if (address(sortedTroves).balance != 0) {
 //            return false;
 //        }
 //
