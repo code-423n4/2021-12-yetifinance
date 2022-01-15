@@ -250,6 +250,25 @@ contract sYETIToken is IERC20, Domain, BoringOwnable {
         emit BuyBackExecuted(YUSDToSell, amounts[0], amounts[1]);
     }
 
+    /** 
+     * Public function for doing buybacks, eligible every 69 hours. This is so that there are some guaranteed rewards to be distributed if the team multisig is lost.
+     * Has a max amount of YUSD to sellat 5% of the YUSD in the contract, which should be enough to cover the amount. Uses the default router which has a time lock 
+     * in order to activate. 
+     */
+    function publicBuyBack(address routerAddress, uint256 YUSDToSell, uint256 YETIOutMin, address[] memory path) external onlyOwner {
+        require(YUSDToSell > 0, "Zero amount");
+        require(lastBuybackTime + 69 hours < block.timestamp, "Can only buyBack every 69 hours");
+        require(yusdToken.approve(routerAddress, 0));
+        require(yusdToken.increaseAllowance(routerAddress, YUSDToSell));
+        uint256[] memory amounts = IRouter(routerAddress).swapExactTokensForTokens(YUSDToSell, YETIOutMin, path, address(this), block.timestamp);
+        lastBuybackTime = block.timestamp;
+        // amounts[0] is the amount of YUSD that was sold, and amounts[1] is the amount of YETI that was gained in return. So the price is amounts[0] / amounts[1]
+        lastBuybackPrice = div(amounts[0].mul(1e18), amounts[1]);
+        emit BuyBackExecuted(YUSDToSell, amounts[0], amounts[1]);
+    }
+
+
+
     // Rebase function for adding new value to the sYETI - YETI ratio. 
     function rebase() external {
         require(block.timestamp >= lastRebaseTime + 8 hours, "Can only rebase every 8 hours");
