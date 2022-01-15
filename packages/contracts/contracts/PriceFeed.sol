@@ -54,17 +54,17 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
     uint public lastGoodPrice;
 
     struct ChainlinkResponse {
-        uint80 roundId;
         int256 answer;
         uint256 timestamp;
+        uint80 roundId;
         bool success;
         uint8 decimals;
     }
 
     struct TellorResponse {
-        bool ifRetrieve;
         uint256 value;
         uint256 timestamp;
+        bool ifRetrieve;
         bool success;
     }
 
