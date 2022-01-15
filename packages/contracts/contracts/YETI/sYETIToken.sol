@@ -6,7 +6,6 @@ import "./BoringCrypto/BoringERC20.sol";
 import "./BoringCrypto/Domain.sol";
 import "./BoringCrypto/ERC20.sol";
 import "./BoringCrypto/IERC20.sol";
-import "./BoringCrypto/BoringBatchable.sol";
 import "./BoringCrypto/BoringOwnable.sol";
 
 
@@ -240,7 +239,7 @@ contract sYETIToken is IERC20, Domain, BoringOwnable {
      */
     function buyBack(address routerAddress, uint256 YUSDToSell, uint256 YETIOutMin, address[] memory path) external onlyOwner {
         require(YUSDToSell != 0, "Zero amount");
-        require(lastBuybackTime + 69 hours < block.timestamp, "Must have 69 hours pass before another buyBack");
+        require(lastBuybackTime + 69 hours < block.timestamp, "Can only buyBack every 69 hours");
         require(yusdToken.approve(routerAddress, 0));
         require(yusdToken.increaseAllowance(routerAddress, YUSDToSell));
         uint256[] memory amounts = IRouter(routerAddress).swapExactTokensForTokens(YUSDToSell, YETIOutMin, path, address(this), block.timestamp);
@@ -252,7 +251,7 @@ contract sYETIToken is IERC20, Domain, BoringOwnable {
 
     // Rebase function for adding new value to the sYETI - YETI ratio. 
     function rebase() external {
-        require(block.timestamp >= lastRebaseTime + 8 hours, "Must have 8 hours pass before another rebase");
+        require(block.timestamp >= lastRebaseTime + 8 hours, "Can only rebase every 8 hours");
         // Use last buyback price to transfer some of the actual YETI Tokens that this contract owns 
         // to the effective yeti token balance. Transfer a portion of the value over to the effective balance
 

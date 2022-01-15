@@ -18,7 +18,7 @@ import "./SYETIScript.sol";
 contract BorrowerWrappersScript is BorrowerOperationsScript, ETHTransferScript, SYETIScript {
     using SafeMath for uint;
 
-    string constant public NAME = "BorrowerWrappersScript";
+    bytes32 constant public NAME = "BorrowerWrappersScript";
 
     ITroveManager immutable troveManager;
     IStabilityPool immutable stabilityPool;

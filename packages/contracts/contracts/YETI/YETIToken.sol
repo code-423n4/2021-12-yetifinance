@@ -47,7 +47,7 @@ contract YETIToken is IYETIToken {
 
     // --- EIP 2612 Data ---
 
-    bytes32 private constant _PERMIT_TYPEHASH = keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
+    bytes32 private immutable _PERMIT_TYPEHASH;
     bytes32 private constant _TYPE_HASH = keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)");
 
     // Cache the domain separator as an immutable value, but also store the chain id that it corresponds to, in order to
@@ -80,6 +80,7 @@ contract YETIToken is IYETIToken {
     )
     public
     {
+        _PERMIT_TYPEHASH = keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
         deploymentStartTime  = block.timestamp;
 
         sYETIAddress = _sYETIAddress;

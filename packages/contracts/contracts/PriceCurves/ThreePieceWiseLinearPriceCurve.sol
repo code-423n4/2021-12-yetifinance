@@ -44,7 +44,7 @@ contract ThreePieceWiseLinearPriceCurve is IPriceCurve, Ownable {
     /** 
      * Function for setting slopes and intercepts of linear functions used for fee calculations. 
      */
-    function adjustParams(string memory _name, uint256 _m1, uint256 _b1, uint256 _m2, uint256 _cutoff1, uint256 _m3, uint256 _cutoff2, uint _dollarCap) public onlyOwner {
+    function adjustParams(string memory _name, uint256 _m1, uint256 _b1, uint256 _m2, uint256 _cutoff1, uint256 _m3, uint256 _cutoff2, uint _dollarCap) external onlyOwner {
         require(_cutoff1 <= _cutoff2, "Cutoffs must be increasing");
         name = _name;
         m1 = _m1;
@@ -76,14 +76,14 @@ contract ThreePieceWiseLinearPriceCurve is IPriceCurve, Ownable {
     }
 
     // Set the whitelist address so that the fee can only be updated by whitelistAddress
-    function setAddresses(address _whitelistAddress) public override onlyOwner {
+    function setAddresses(address _whitelistAddress) external override onlyOwner {
         require(!addressesSet, "addresses already set");
         whitelistAddress = _whitelistAddress;
         addressesSet = true;
     }
 
     // Set the decay time in seconds
-    function setDecayTime(uint _decayTime) public override onlyOwner {
+    function setDecayTime(uint _decayTime) external override onlyOwner {
         decayTime = _decayTime;
     }
 
@@ -95,7 +95,7 @@ contract ThreePieceWiseLinearPriceCurve is IPriceCurve, Ownable {
     // Function for setting the old price curve's last fee cap / value to the new fee cap / value. 
     // Called only by whitelist. 
     function setFeeCapAndTime(uint256 _lastFeePercent, uint256 _lastFeeTime) external override {
-        require(msg.sender == whitelistAddress, "setFeeCapAndTime: not a whitelisted address");
+        require(msg.sender == whitelistAddress, "caller must be whitelist");
         lastFeePercent = _lastFeePercent;
         lastFeeTime = _lastFeeTime;
     }

@@ -12,8 +12,10 @@ import "./Interfaces/ISYETI.sol";
 import "./Interfaces/IWhitelist.sol";
 import "./Interfaces/ITroveManagerLiquidations.sol";
 import "./Interfaces/ITroveManagerRedemptions.sol";
-import "./Dependencies/TroveManagerBase.sol";
 import "./Interfaces/IERC20.sol";
+import "./Dependencies/TroveManagerBase.sol";
+import "./Dependencies/ReentrancyGuard.sol";
+
 
 /** 
  * Trove Manager is the contract which deals with the state of a user's trove. It has all the 
@@ -21,12 +23,37 @@ import "./Interfaces/IERC20.sol";
  * BorrowerOperations function calls. 
  */
 
-contract TroveManager is TroveManagerBase, ITroveManager {
-    string constant public NAME = "TroveManager";
+contract TroveManager is TroveManagerBase, ITroveManager, ReentrancyGuard {
+    
+    address internal borrowerOperationsAddress;
+
+    IStabilityPool internal stabilityPoolContract;
+
+    ITroveManager internal troveManager;
+
+    IYUSDToken internal yusdTokenContract;
+
+    IYETIToken internal yetiTokenContract;
+
+    ISYETI internal sYETIContract;
+
+    ITroveManagerRedemptions internal troveManagerRedemptions;
+
+    ITroveManagerLiquidations internal troveManagerLiquidations;
+
+    address internal gasPoolAddress;
+    address internal troveManagerRedemptionsAddress;
+    address internal troveManagerLiquidationsAddress;
+
+    ISortedTroves internal sortedTroves;
+
+    ICollSurplusPool internal collSurplusPool;
+
+    bytes32 constant public NAME = "TroveManager";
 
     // --- Data structures ---
 
-    uint constant public SECONDS_IN_ONE_MINUTE = 60;
+    uint constant internal SECONDS_IN_ONE_MINUTE = 60;
 
     /*
      * Half-life of 12h. 12h = 720 min
@@ -42,7 +69,6 @@ contract TroveManager is TroveManagerBase, ITroveManager {
 
     // The timestamp of the latest fee operation (redemption or new YUSD issuance)
     uint public lastFeeOperationTime;
-
 
     mapping (address => Trove) Troves;
 
@@ -161,7 +187,7 @@ contract TroveManager is TroveManagerBase, ITroveManager {
 
     // --- Getters ---
 
-    function getTroveOwnersCount() public view override returns (uint) {
+    function getTroveOwnersCount() external view override returns (uint) {
         return TroveOwners.length;
     }
 
@@ -172,7 +198,7 @@ contract TroveManager is TroveManagerBase, ITroveManager {
     // --- Trove Liquidation functions ---
 
     // Single liquidation function. Closes the trove if its ICR is lower than the minimum collateral ratio.
-    function liquidate(address _borrower) external override {
+    function liquidate(address _borrower) external override nonReentrant {
         _requireTroveIsActive(_borrower);
 
         address[] memory borrowers = new address[](1);
@@ -183,7 +209,7 @@ contract TroveManager is TroveManagerBase, ITroveManager {
     /*
     * Attempt to liquidate a custom list of troves provided by the caller.
     */
-    function batchLiquidateTroves(address[] memory _troveArray, address _liquidator) public override {
+    function batchLiquidateTroves(address[] memory _troveArray, address _liquidator) public override nonReentrant {
         troveManagerLiquidations.batchLiquidateTroves(_troveArray, _liquidator);
     }
 
@@ -228,10 +254,11 @@ contract TroveManager is TroveManagerBase, ITroveManager {
     // Yeti Finance will also be running a bot to assist with keeping the list from becoming
     // too stale.
     function updateTroves(address[] calldata _borrowers, address[] calldata _lowerHints, address[] calldata _upperHints) external {
-        require(_borrowers.length == _lowerHints.length, "updateTroves: borrowers length mismatch");
-        require(_lowerHints.length == _upperHints.length, "updateTroves: hints length mismatch");
+        uint lowerHintsLen = _lowerHints.length;
+        require(_borrowers.length == lowerHintsLen, "TM: borrowers length mismatch");
+        require(lowerHintsLen == _upperHints.length, "TM: hints length mismatch");
 
-        for (uint i = 0; i < _lowerHints.length; i++) {
+        for (uint256 i; i < lowerHintsLen; ++i) {
             _updateTrove(_borrowers[i], _lowerHints[i], _upperHints[i]);
         }
     }
@@ -268,6 +295,7 @@ contract TroveManager is TroveManagerBase, ITroveManager {
     )
     external
     override
+    nonReentrant
     {
         troveManagerRedemptions.redeemCollateral(
             _YUSDamount,
@@ -345,7 +373,8 @@ contract TroveManager is TroveManagerBase, ITroveManager {
 
     function _updateTroveRewardSnapshots(address _borrower) internal {
         address[] memory allColls = whitelist.getValidCollateral();
-        for (uint i = 0; i < allColls.length; i++) {
+        uint256 allCollsLen = allColls.length;
+        for (uint256 i; i < allCollsLen; ++i) {
             address asset = allColls[i];
             rewardSnapshots[_borrower].CollRewards[asset] = L_Coll[asset];
             rewardSnapshots[_borrower].YUSDDebts[asset] = L_YUSDDebt[asset];
@@ -371,7 +400,8 @@ contract TroveManager is TroveManagerBase, ITroveManager {
         address[] memory allColls = whitelist.getValidCollateral();
         pendingCollRewards.amounts = new uint[](allColls.length);
         pendingCollRewards.tokens = allColls;
-        for (uint i = 0; i < allColls.length; i++ ) {
+        uint256 allCollsLen = allColls.length;
+        for (uint256 i; i < allCollsLen; ++i) {
             address coll = allColls[i];
             uint snapshotCollReward = rewardSnapshots[_borrower].CollRewards[coll];
             uint rewardPerUnitStaked = L_Coll[coll].sub(snapshotCollReward);
@@ -394,7 +424,8 @@ contract TroveManager is TroveManagerBase, ITroveManager {
         }
         address[] memory allColls = whitelist.getValidCollateral();
 
-        for (uint i = 0; i < allColls.length; i++ ) {
+        uint256 allCollsLen = allColls.length;
+        for (uint256 i; i < allCollsLen; ++i) {
             address coll = allColls[i];
             uint snapshotYUSDDebt = rewardSnapshots[_borrower].YUSDDebts[coll];
             uint rewardPerUnitStaked = L_YUSDDebt[allColls[i]].sub(snapshotYUSDDebt);
@@ -417,7 +448,8 @@ contract TroveManager is TroveManagerBase, ITroveManager {
         */
         if (Troves[_borrower].status != Status.active) {return false;}
         address[] memory assets =  Troves[_borrower].colls.tokens;
-        for (uint i = 0; i < assets.length; i++) {
+        uint256 assetsLen = assets.length;
+        for (uint256 i; i < assetsLen; ++i) {
             address token = assets[i];
             if (rewardSnapshots[_borrower].CollRewards[token] < L_Coll[token]) {
                 return true;
@@ -457,7 +489,8 @@ contract TroveManager is TroveManagerBase, ITroveManager {
     // Remove borrower's stake from the totalStakes sum, and set their stake to 0
     function _removeStake(address _borrower) internal {
         address[] memory borrowerColls = Troves[_borrower].colls.tokens;
-        for (uint i = 0; i < borrowerColls.length; i++) {
+        uint256 borrowerCollsLen = borrowerColls.length;
+        for (uint256 i; i < borrowerCollsLen; ++i) {
             address coll = borrowerColls[i];
             uint stake = Troves[_borrower].stakes[coll];
             totalStakes[coll] = totalStakes[coll].sub(stake);
@@ -473,7 +506,8 @@ contract TroveManager is TroveManagerBase, ITroveManager {
     }
 
     function _updateStakeAndTotalStakes(address _borrower) internal {
-        for (uint i = 0; i < Troves[_borrower].colls.tokens.length; i++) {
+        uint256 troveOwnerLen = Troves[_borrower].colls.tokens.length;
+        for (uint256 i; i < troveOwnerLen; ++i) {
             address token = Troves[_borrower].colls.tokens[i];
             uint amount = Troves[_borrower].colls.amounts[i];
 
@@ -499,7 +533,7 @@ contract TroveManager is TroveManagerBase, ITroveManager {
             * - When we close or liquidate a trove, we redistribute the pending rewards, so if all troves were closed/liquidated,
             * rewards would’ve been emptied and totalCollateralSnapshot would be zero too.
             */
-            require(totalStakesSnapshot[token] != 0, "_computeNewStake: stake must be != 0");
+            require(totalStakesSnapshot[token] != 0, "TM: stake must be > 0");
             stake = _coll.mul(totalStakesSnapshot[token]).div(totalCollateralSnapshot[token]);
         }
         return stake;
@@ -507,7 +541,8 @@ contract TroveManager is TroveManagerBase, ITroveManager {
 
     function redistributeDebtAndColl(IActivePool _activePool, IDefaultPool _defaultPool, uint _debt, address[] memory _tokens, uint[] memory _amounts) external override {
         _requireCallerIsTML();
-        require(_tokens.length == _amounts.length, "TM: len tokens amounts");
+        uint256 tokensLen = _tokens.length;
+        require(tokensLen == _amounts.length, "TM: len tokens amounts");
         if (_debt == 0) { return; }
         /*
         * Add distributed coll and debt rewards-per-unit-staked to the running totals. Division uses a "feedback"
@@ -522,7 +557,7 @@ contract TroveManager is TroveManagerBase, ITroveManager {
         */
         uint totalCollateralVC = _getVC(_tokens, _amounts); // total collateral value in VC terms
 
-        for (uint i = 0; i < _tokens.length; i++) {
+        for (uint256 i; i < tokensLen; ++i) {
             address token = _tokens[i];
             uint amount = _amounts[i];
             // Prorate debt per collateral by dividing each collateral value by cumulative collateral value and multiply by outstanding debt
@@ -533,11 +568,12 @@ contract TroveManager is TroveManagerBase, ITroveManager {
             uint YUSDDebtNumerator = proratedDebtForCollateral.mul(DECIMAL_PRECISION).add(lastYUSDDebtError_Redistribution[token]);
             if (totalStakes[token] != 0) {
                 // Get the per-unit-staked terms
-                uint CollRewardPerUnitStaked = CollNumerator.div(totalStakes[token]);
-                uint YUSDDebtRewardPerUnitStaked = YUSDDebtNumerator.div(totalStakes[token].mul(10 ** (18 - dec)));
+                uint256 thisTotalStakes = totalStakes[token];
+                uint CollRewardPerUnitStaked = CollNumerator.div(thisTotalStakes);
+                uint YUSDDebtRewardPerUnitStaked = YUSDDebtNumerator.div(thisTotalStakes.mul(10 ** (18 - dec)));
 
-                lastCollError_Redistribution[token] = CollNumerator.sub(CollRewardPerUnitStaked.mul(totalStakes[token]));
-                lastYUSDDebtError_Redistribution[token] = YUSDDebtNumerator.sub(YUSDDebtRewardPerUnitStaked.mul(totalStakes[token].mul(10 ** (18 - dec))));
+                lastCollError_Redistribution[token] = CollNumerator.sub(CollRewardPerUnitStaked.mul(thisTotalStakes));
+                lastYUSDDebtError_Redistribution[token] = YUSDDebtNumerator.sub(YUSDDebtRewardPerUnitStaked.mul(thisTotalStakes.mul(10 ** (18 - dec))));
 
                 // Add per-unit-staked terms to the running totals
                 L_Coll[token] = L_Coll[token].add(CollRewardPerUnitStaked);
@@ -579,9 +615,12 @@ contract TroveManager is TroveManagerBase, ITroveManager {
         Troves[_borrower].debt = 0;
 
         address[] memory allColls = whitelist.getValidCollateral();
-        for (uint i = 0; i < allColls.length; i++) {
-            rewardSnapshots[_borrower].CollRewards[allColls[i]] = 0;
-            rewardSnapshots[_borrower].YUSDDebts[allColls[i]] = 0;
+        uint allCollsLen = allColls.length;
+        address thisAllColls;
+        for (uint256 i; i < allCollsLen; ++i) {
+            thisAllColls = allColls[i];
+            rewardSnapshots[_borrower].CollRewards[thisAllColls] = 0;
+            rewardSnapshots[_borrower].YUSDDebts[thisAllColls] = 0;
         }
 
         _removeTroveOwner(_borrower, TroveOwnersArrayLength);
@@ -600,7 +639,8 @@ contract TroveManager is TroveManagerBase, ITroveManager {
     */
     function updateSystemSnapshots_excludeCollRemainder(IActivePool _activePool, address[] memory _tokens, uint[] memory _amounts) external override {
         _requireCallerIsTML();
-        for (uint i = 0; i < _tokens.length; i++) {
+        uint256 tokensLen = _tokens.length;
+        for (uint256 i; i < tokensLen; ++i) {
             address token = _tokens[i];
             totalStakesSnapshot[token] = totalStakes[token];
 
@@ -637,13 +677,13 @@ contract TroveManager is TroveManagerBase, ITroveManager {
     function _removeTroveOwner(address _borrower, uint TroveOwnersArrayLength) internal {
         Status troveStatus = Troves[_borrower].status;
         // It’s set in caller function `_closeTrove`
-        require(troveStatus != Status.nonExistent && troveStatus != Status.active, "_removeTroveOwner: trove must exists and be active");
+        require(troveStatus != Status.nonExistent && troveStatus != Status.active, "TM: trove !exists or !active");
 
         uint128 index = Troves[_borrower].arrayIndex;
         uint length = TroveOwnersArrayLength;
         uint idxLast = length.sub(1);
 
-        require(index <= idxLast, "_removeTroveOwner: index must be > last index");
+        require(index <= idxLast, "TM: index must be > last index");
 
         address addressToMove = TroveOwners[idxLast];
 
@@ -669,7 +709,7 @@ contract TroveManager is TroveManagerBase, ITroveManager {
 
     function updateBaseRate(uint newBaseRate) external override {
         _requireCallerIsTMR();
-        require(newBaseRate != 0, "updateBaseRate: newBaseRate must be !=0");
+        require(newBaseRate != 0, "TM: newBaseRate must be > 0");
         baseRate = newBaseRate;
         emit BaseRateUpdated(newBaseRate);
         _updateLastFeeOpTime();
@@ -740,7 +780,7 @@ contract TroveManager is TroveManagerBase, ITroveManager {
         _requireCallerIsBorrowerOperations();
 
         uint decayedBaseRate = calcDecayedBaseRate();
-        require(decayedBaseRate <= DECIMAL_PRECISION, "decayBaseRateFromBorrowing: decayed base rate too small");  // The baseRate can decay to 0
+        require(decayedBaseRate <= DECIMAL_PRECISION, "TM: decayed base rate too small");  // The baseRate can decay to 0
 
         baseRate = decayedBaseRate;
         emit BaseRateUpdated(decayedBaseRate);
@@ -775,22 +815,31 @@ contract TroveManager is TroveManagerBase, ITroveManager {
     // --- 'require' wrapper functions ---
 
     function _requireCallerIsBorrowerOperations() internal view {
-        require(msg.sender == borrowerOperationsAddress, "TM: must be called by BO");
+        if (msg.sender != borrowerOperationsAddress) {
+            _revertWrongFuncCaller();
+        }
     }
 
     function _requireCallerIsBOorTMR() internal view {
-        require(msg.sender == borrowerOperationsAddress || msg.sender == troveManagerRedemptionsAddress,
-            "TM: Invalid Caller");
+        if (msg.sender != borrowerOperationsAddress && msg.sender != troveManagerRedemptionsAddress) {
+            _revertWrongFuncCaller();
+        }
     }
 
     function _requireCallerIsTMR() internal view {
-        require(msg.sender == troveManagerRedemptionsAddress,
-            "TM: must be called by TMR");
+        if (msg.sender != troveManagerRedemptionsAddress) {
+            _revertWrongFuncCaller();
+        }
     }
 
     function _requireCallerIsTML() internal view {
-        require(msg.sender == troveManagerLiquidationsAddress,
-            "TM: must be called by TML");
+        if (msg.sender != troveManagerLiquidationsAddress) {
+            _revertWrongFuncCaller();
+        }
+    }
+
+    function _revertWrongFuncCaller() internal view{
+        revert("TM: External caller not allowed");
     }
 
     function _requireTroveIsActive(address _borrower) internal view {
@@ -889,7 +938,7 @@ contract TroveManager is TroveManagerBase, ITroveManager {
 
     function updateTroveColl(address _borrower, address[] memory _tokens, uint[] memory _amounts) external override {
         _requireCallerIsBorrowerOperations();
-        require(_tokens.length == _amounts.length, "updateTroveColl: length mismatch");
+        require(_tokens.length == _amounts.length, "TM: length mismatch");
         Troves[_borrower].colls.tokens = _tokens;
         Troves[_borrower].colls.amounts = _amounts;
     }

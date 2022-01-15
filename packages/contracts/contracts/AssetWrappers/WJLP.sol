@@ -36,18 +36,18 @@ interface IMasterChefJoeV2 {
 contract WJLP is ERC20_8, IWAsset {
     using SafeERC20 for IERC20;
 
-    IERC20 public JLP;
-    IERC20 public JOE;
+    IERC20 public immutable JLP;
+    IERC20 public immutable JOE;
 
-    IMasterChefJoeV2 public _MasterChefJoe;
+    IMasterChefJoeV2 public immutable _MasterChefJoe;
     uint public _poolPid;
 
-    address public activePool;
-    address public TML;
-    address public TMR;
-    address public defaultPool;
-    address public stabilityPool;
-    address public YetiFinanceTreasury;
+    address internal activePool;
+    address internal TML;
+    address internal TMR;
+    address internal defaultPool;
+    address internal stabilityPool;
+    address internal YetiFinanceTreasury;
 
     bool addressesSet;
 
@@ -244,7 +244,7 @@ contract WJLP is ERC20_8, IWAsset {
      * They have the right to less or more future rewards depending
      * on whether it is or isn't a deposit
     */
-    function _userUpdate(address _user, uint256 _amount, bool _isDeposit) private{
+    function _userUpdate(address _user, uint256 _amount, bool _isDeposit) private {
         // latest accumulated Joe Per Share:
         uint256 accJoePerShare = _MasterChefJoe.poolInfo(_poolPid).accJoePerShare;
         UserInfo storage user = userInfo[_user];

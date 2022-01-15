@@ -16,7 +16,7 @@ contract SYETI is ISYETI, Ownable, CheckContract, BaseMath {
     using SafeMath for uint;
 
     // --- Data ---
-    string constant public NAME = "YETIStaking";
+    bytes32 constant public NAME = "YETIStaking";
 
     mapping( address => uint) public stakes;
     uint public totalYETIStaked;

@@ -73,7 +73,7 @@ contract LPTokenWrapper is ILPTokenWrapper {
  */
 contract Unipool is LPTokenWrapper, Ownable, CheckContract, IUnipool {
     using SafeERC20 for IYETIToken;
-    string constant public NAME = "Unipool";
+    bytes32 constant public NAME = "Unipool";
 
     uint256 public duration;
     IYETIToken public yetiToken;

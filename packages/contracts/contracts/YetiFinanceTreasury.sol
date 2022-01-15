@@ -22,7 +22,7 @@ contract YetiFinanceTreasury {
     }
 
     modifier onlyTeam() {
-        require(msg.sender == teamWallet);
+        require(msg.sender == teamWallet, "Treasury : Not Team Sender");
         _;
     }
 
