@@ -23,7 +23,7 @@ import "./Dependencies/LiquityMath.sol";
 contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
     using SafeMath for uint256;
 
-    string constant public NAME = "PriceFeed";
+    bytes32 constant public NAME = "PriceFeed";
 
     AggregatorV3Interface public priceAggregator;  // Mainnet Chainlink aggregator
     ITellorCaller public tellorCaller;  // Wrapper contract that calls the Tellor system
@@ -54,17 +54,17 @@ contract PriceFeed is Ownable, CheckContract, BaseMath, IPriceFeed {
     uint public lastGoodPrice;
 
     struct ChainlinkResponse {
-        uint80 roundId;
         int256 answer;
         uint256 timestamp;
+        uint80 roundId;
         bool success;
         uint8 decimals;
     }
 
     struct TellorResponse {
-        bool ifRetrieve;
         uint256 value;
         uint256 timestamp;
+        bool ifRetrieve;
         bool success;
     }
 
