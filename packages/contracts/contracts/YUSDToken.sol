@@ -238,7 +238,7 @@ contract YUSDToken is CheckContract, IYUSDToken {
         require(account != address(0), "_mint: account is address(0)");
 
         _totalSupply = _totalSupply.add(amount);
-        _balances[account] = _balances[account] + amount; // can't overflow since total supply didn't
+        _balances[account] = _balances[account] + amount; 
         emit Transfer(address(0), account, amount);
     }
 

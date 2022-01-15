@@ -8,6 +8,7 @@ library LiquityMath {
     using SafeMath for uint;
 
     uint internal constant DECIMAL_PRECISION = 1e18;
+    uint internal constant HALF_DECIMAL_PRECISION = 5e17;
 
     function _min(uint _a, uint _b) internal pure returns (uint) {
         return (_a < _b) ? _a : _b;
@@ -27,7 +28,7 @@ library LiquityMath {
     function decMul(uint x, uint y) internal pure returns (uint decProd) {
         uint prod_xy = x.mul(y);
 
-        decProd = prod_xy.add(5e17).div(DECIMAL_PRECISION);
+        decProd = prod_xy.add(HALF_DECIMAL_PRECISION).div(DECIMAL_PRECISION);
     }
 
     /* 
