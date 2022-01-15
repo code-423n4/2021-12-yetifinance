@@ -34,6 +34,8 @@ import "./Dependencies/SafeERC20.sol";
  */
 
 contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
+    bytes32 constant public NAME = "TroveManagerRedemptions";
+
     using SafeERC20 for IYUSDToken;
 
     struct RedemptionTotals {
@@ -158,7 +160,7 @@ contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
         totals.totalYUSDSupplyAtStart = getEntireSystemDebt();
 
         // Confirm redeemer's balance is less than total YUSD supply
-        require(contractsCache.yusdToken.balanceOf(_redeemer) <= totals.totalYUSDSupplyAtStart, "redeemCollateral: redeemer balance > total YUSD Supply" );
+        require(contractsCache.yusdToken.balanceOf(_redeemer) <= totals.totalYUSDSupplyAtStart, "TMR: redeemer balance too high");
 
         totals.remainingYUSD = _YUSDamount;
         address currentBorrower;
@@ -206,7 +208,7 @@ contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
             currentBorrower = nextUserToCheck;
         }
 
-        require(isNonzero(totals.CollsDrawn), "redeemCollateral: not nonzero collsDrawn");
+        require(isNonzero(totals.CollsDrawn), "TMR: not nonzero collsDrawn");
         // Decay the baseRate due to time passed, and then increase it according to the size of this redemption.
         // Use the saved total YUSD supply value, from before it was reduced by the redemption.
         _updateBaseRateFromRedemption(totals.totalYUSDToRedeem, totals.totalYUSDSupplyAtStart);
@@ -290,11 +292,11 @@ contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
         totals.totalYUSDSupplyAtStart = getEntireSystemDebt();
 
         // Confirm redeemer's balance is less than total YUSD supply
-        require(contractsCache.yusdToken.balanceOf(msg.sender) <= totals.totalYUSDSupplyAtStart, "redeemCollateralSingle: redeemer balance > YUSD supply");
+        require(contractsCache.yusdToken.balanceOf(msg.sender) <= totals.totalYUSDSupplyAtStart, "TMR:Redeemer YUSD Bal too high");
 
         totals.remainingYUSD = _YUSDamount;
-        require(_isValidFirstRedemptionHint(contractsCache.sortedTroves, hints.target), "Invalid first redemption hint");
-        require(troveManager.getCurrentICR(hints.target) >= MCR, "Trove is underwater");
+        require(_isValidFirstRedemptionHint(contractsCache.sortedTroves, hints.target), "TMR:Invalid first redemption hint");
+        require(troveManager.getCurrentICR(hints.target) >= MCR, "TMR:Trove is underwater");
         troveManager.applyPendingRewards(hints.target);
 
         // SingleRedemptionValues memory singleRedemption = _redeemCollateralFromTrove(
@@ -334,7 +336,7 @@ contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
                     break;
                 }
             }
-            require(foundCollateral, "Collateral to redeem not found in trove");
+            require(foundCollateral, "TMR:Coll not in trove");
         }
 
         {// Limit scope
@@ -440,7 +442,7 @@ contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
         totals.CollsDrawn = singleRedemption.CollLot;
         // totals.remainingYUSD = totals.remainingYUSD.sub(singleRedemption.YUSDLot);
 
-        require(isNonzero(totals.CollsDrawn), "redeemCollateralSingle: non zero collsDrawn");
+        require(isNonzero(totals.CollsDrawn), "TMR: non zero collsDrawn");
         // Decay the baseRate due to time passed, and then increase it according to the size of this redemption.
         // Use the saved total YUSD supply value, from before it was reduced by the redemption.
         _updateBaseRateFromRedemption(totals.totalYUSDToRedeem, totals.totalYUSDSupplyAtStart);
@@ -676,29 +678,29 @@ contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
     }
 
     function _requireUserAcceptsFeeRedemption(uint256 _actualFee, uint256 _maxFee) internal pure {
-        require(_actualFee <= _maxFee, "User must accept fee");
+        require(_actualFee <= _maxFee, "TMR:User must accept fee");
     }
 
     function _requireValidMaxFee(uint256 _YUSDAmount, uint256 _maxYUSDFee) internal pure {
         uint256 _maxFeePercentage = _maxYUSDFee.mul(DECIMAL_PRECISION).div(_YUSDAmount);
-        require(_maxFeePercentage >= REDEMPTION_FEE_FLOOR, "Max fee must be at least 0.5%");
-        require(_maxFeePercentage <= DECIMAL_PRECISION, "Max fee must be at most 100%");
+        require(_maxFeePercentage >= REDEMPTION_FEE_FLOOR, "TMR:Passed in max fee <0.5%");
+        require(_maxFeePercentage <= DECIMAL_PRECISION, "TMR:Passed in max fee >100%");
     }
 
     function _requireAfterBootstrapPeriod() internal view {
         uint256 systemDeploymentTime = yetiTokenContract.getDeploymentStartTime();
         require(
             block.timestamp >= systemDeploymentTime.add(BOOTSTRAP_PERIOD),
-            "TroveManager: Redemptions are not allowed during bootstrap phase"
+            "TMR:NoRedemptionsDuringBootstrap"
         );
     }
 
     function _requireTCRoverMCR() internal view {
-        require(_getTCR() >= MCR, "TroveManager: Cannot redeem when TCR < MCR");
+        require(_getTCR() >= MCR, "TMR: Cannot redeem when TCR<MCR");
     }
 
     function _requireAmountGreaterThanZero(uint256 _amount) internal pure {
-        require(_amount > 0, "TroveManager: Amount must be greater than zero");
+        require(_amount > 0, "TMR:ReqNonzeroAmount");
     }
 
     function _requireYUSDBalanceCoversRedemption(
@@ -708,7 +710,7 @@ contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
     ) internal view {
         require(
             _yusdToken.balanceOf(_redeemer) >= _amount,
-            "TroveManager: Requested redemption amount must be <= user's YUSD token balance"
+            "TMR:InsufficientYUSDBalance"
         );
     }
 
@@ -722,7 +724,7 @@ contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
     }
 
     function _requireCallerisTroveManager() internal view {
-        require(msg.sender == address(troveManager), "Caller not trove manager");
+        require(msg.sender == address(troveManager), "TMR:Caller not TM");
     }
 
     function _getRedemptionFee(uint256 _YUSDRedeemed) internal view returns (uint256) {
@@ -737,7 +739,7 @@ contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
         uint256 redemptionFee = _redemptionRate.mul(_YUSDRedeemed).div(DECIMAL_PRECISION);
         require(
             redemptionFee < _YUSDRedeemed,
-            "TroveManager: Fee would eat up all returned collateral"
+            "TM: Fee > YUSD Redeemed"
         );
         return redemptionFee;
     }

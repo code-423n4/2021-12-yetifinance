@@ -134,7 +134,7 @@ contract DefaultPool is Ownable, CheckContract, IDefaultPool, YetiCustomBase {
     {
         _requireCallerIsTroveManager();
         address activePool = activePoolAddress;
-        require(_tokens.length == _amounts.length, "sendCollsToActivePool: length mismatch");
+        require(_tokens.length == _amounts.length, "DP:Lengths of arrays mismatch");
         for (uint256 i = 0; i < _tokens.length; i++) {
             _sendCollateral(_tokens[i], _amounts[i]);
             if (whitelist.isWrapped(_tokens[i])) {
@@ -161,15 +161,25 @@ contract DefaultPool is Ownable, CheckContract, IDefaultPool, YetiCustomBase {
     // --- 'require' functions ---
 
     function _requireCallerIsActivePool() internal view {
-        require(msg.sender == activePoolAddress, "DefaultPool: Caller is not the ActivePool");
+        if (msg.sender != activePoolAddress) {
+            _revertWrongFuncCaller();
+        }
     }
 
     function _requireCallerIsTroveManager() internal view {
-        require(msg.sender == troveManagerAddress, "DefaultPool: Caller is not the TroveManager");
+        if (msg.sender != troveManagerAddress) {
+            _revertWrongFuncCaller();
+        }
     }
 
     function _requireCallerIsWhitelist() internal view {
-        require(msg.sender == whitelistAddress, "DefaultPool: Caller is not whitelist");
+        if (msg.sender != whitelistAddress) {
+            _revertWrongFuncCaller();
+        }
+    }
+
+    function _revertWrongFuncCaller() internal view{
+        revert("DP: External caller not allowed");
     }
 
     // Should be called by ActivePool

@@ -23,7 +23,7 @@ contract ActivePool is Ownable, CheckContract, IActivePool, YetiCustomBase {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    string constant public NAME = "ActivePool";
+    bytes32 constant public NAME = "ActivePool";
 
     address public borrowerOperationsAddress;
     address public troveManagerAddress;
@@ -158,7 +158,7 @@ contract ActivePool is Ownable, CheckContract, IActivePool, YetiCustomBase {
     // Returns true if all payments were successfully sent. Must be called by borrower operations, trove manager, or stability pool. 
     function sendCollaterals(address _to, address[] memory _tokens, uint[] memory _amounts) external override returns (bool) {
         _requireCallerIsBOorTroveMorTMLorSP();
-        require(_tokens.length == _amounts.length, "SendCollaterals: Length mismatch");
+        require(_tokens.length == _amounts.length, "AP:Lengths");
         for (uint i = 0; i < _tokens.length; i++) {
             _sendCollateral(_to, _tokens[i], _amounts[i]); // reverts if send fails
         }
@@ -177,7 +177,7 @@ contract ActivePool is Ownable, CheckContract, IActivePool, YetiCustomBase {
     // It also harvests rewards on the user's behalf. 
     function sendCollateralsUnwrap(address _to, address[] memory _tokens, uint[] memory _amounts, bool _collectRewards) external override returns (bool) {
         _requireCallerIsBOorTroveMorTMLorSP();
-        require(_tokens.length == _amounts.length, "sendCollateralsUnwrap: Length Mismatch");
+        require(_tokens.length == _amounts.length, "AP:Lengths");
         for (uint i = 0; i < _tokens.length; i++) {
             if (whitelist.isWrapped(_tokens[i])) {
                 IWAsset(_tokens[i]).unwrapFor(_to, _amounts[i]);
@@ -213,42 +213,47 @@ contract ActivePool is Ownable, CheckContract, IActivePool, YetiCustomBase {
     // --- 'require' functions ---
 
     function _requireCallerIsBOorTroveMorTMLorSP() internal view {
-        require(
-            msg.sender == borrowerOperationsAddress ||
-            msg.sender == troveManagerAddress ||
-            msg.sender == stabilityPoolAddress ||
-            msg.sender == troveManagerLiquidationsAddress ||
-            msg.sender == troveManagerRedemptionsAddress,
-            "ActivePool: Caller is neither BorrowerOperations nor TroveManager nor StabilityPool");
+        if (
+            msg.sender != borrowerOperationsAddress &&
+            msg.sender != troveManagerAddress &&
+            msg.sender != stabilityPoolAddress &&
+            msg.sender != troveManagerLiquidationsAddress &&
+            msg.sender != troveManagerRedemptionsAddress) {
+                _revertWrongFuncCaller();
+            }
     }
 
     function _requireCallerIsBorrowerOperationsOrDefaultPool() internal view {
-        require(
-            msg.sender == borrowerOperationsAddress ||
-            msg.sender == defaultPoolAddress,
-            "ActivePool: Caller is neither BO nor Default Pool");
+        if (msg.sender != borrowerOperationsAddress &&
+            msg.sender != defaultPoolAddress) {
+                _revertWrongFuncCaller();
+            }
     }
 
     function _requireCallerIsBOorTroveMorSP() internal view {
-        require(
-            msg.sender == borrowerOperationsAddress ||
-            msg.sender == troveManagerAddress ||
-            msg.sender == stabilityPoolAddress ||
-            msg.sender == troveManagerRedemptionsAddress,
-            "ActivePool: Caller is neither BorrowerOperations nor TroveManager nor StabilityPool");
+        if (msg.sender != borrowerOperationsAddress &&
+            msg.sender != troveManagerAddress &&
+            msg.sender != stabilityPoolAddress &&
+            msg.sender != troveManagerRedemptionsAddress) {
+                _revertWrongFuncCaller();
+            }
     }
 
     function _requireCallerIsBOorTroveM() internal view {
-        require(
-            msg.sender == borrowerOperationsAddress ||
-            msg.sender == troveManagerAddress,
-            "ActivePool: Caller is neither BorrowerOperations nor TroveManager");
+        if (msg.sender != borrowerOperationsAddress &&
+            msg.sender != troveManagerAddress) {
+                _revertWrongFuncCaller();
+            }
     }
 
     function _requireCallerIsWhitelist() internal view {
-        require(
-        msg.sender == address(whitelist),
-        "ActivePool: Caller is not whitelist");
+        if (msg.sender != address(whitelist)) {
+            _revertWrongFuncCaller();
+        }
+    }
+
+    function _revertWrongFuncCaller() internal view {
+        revert("AP: External caller not allowed");
     }
 
     // should be called by BorrowerOperations or DefaultPool
