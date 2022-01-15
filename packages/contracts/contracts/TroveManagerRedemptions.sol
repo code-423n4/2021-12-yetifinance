@@ -210,7 +210,6 @@ contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
 
                 SingleRedemptionValues memory singleRedemption = _redeemCollateralFromTrove(
                     contractsCache,
-                    _redeemer,
                     currentBorrower,
                     totals.remainingYUSD,
                     _upperPartialRedemptionHint,
@@ -336,7 +335,7 @@ contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
 
         SingleRedemptionValues memory singleRedemption;
         // Determine the remaining amount (lot) to be redeemed, capped by the entire debt of the Trove minus the liquidation reserve
-        uint troveDebt=troveManager.getTroveDebt(hints.target);
+        uint troveDebt = troveManager.getTroveDebt(hints.target);
         singleRedemption.YUSDLot = LiquityMath._min(
             totals.remainingYUSD,
             troveDebt.sub(YUSD_GAS_COMPENSATION)
@@ -346,12 +345,12 @@ contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
         (colls.tokens, colls.amounts, ) = troveManager.getCurrentTroveState(hints.target);
 
         uint256 i; //FYI: i term will be used as the index of the collateral to redeem later too
-        
+        uint256 tokensLen = colls.tokens.length;
         {//Limit scope
             //Make sure single collateral to redeem exists in trove
             bool foundCollateral;
             
-            for (i = 0; i < colls.tokens.length; i++) {
+            for (i = 0; i < tokensLen; ++i) {
                 if (colls.tokens[i] == _collToRedeem) {
                     foundCollateral = true;
                     break;
@@ -373,7 +372,7 @@ contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
             // redemption addresses are the same as coll addresses for trove
             // Calculation for how much collateral to send of each type. 
             singleRedemption.CollLot.tokens = colls.tokens;
-            singleRedemption.CollLot.amounts = new uint256[](colls.tokens.length);
+            singleRedemption.CollLot.amounts = new uint256[](tokensLen);
             
             uint tokenAmountToRedeem = singleRedemption.YUSDLot.mul(colls.amounts[i]).div(singleCollUSD);
             colls.amounts[i] = colls.amounts[i].sub(tokenAmountToRedeem);
@@ -387,10 +386,10 @@ contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
 
         
         // Decrease the debt and collateral of the current Trove according to the YUSD lot and corresponding Collateral to send
-        uint256 newDebt = troveDebt.sub(singleRedemption.YUSDLot);
+        troveDebt = troveDebt.sub(singleRedemption.YUSDLot);
         
 
-        if (newDebt == YUSD_GAS_COMPENSATION) {
+        if (troveDebt == YUSD_GAS_COMPENSATION) {
             // No debt left in the Trove (except for the liquidation reserve), therefore the trove gets closed
             troveManager.removeStakeTMR(hints.target);
             troveManager.closeTroveRedemption(hints.target);
@@ -414,7 +413,7 @@ contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
             );
         } else {
             
-            uint256 newICR = LiquityMath._computeCR(_getVC(colls.tokens, colls.amounts), newDebt);
+            uint256 newICR = LiquityMath._computeCR(_getVC(colls.tokens, colls.amounts), troveDebt);
 
             /*
             * If the provided hint is too inaccurate of date, we bail since trying to reinsert without a good hint will almost
@@ -426,7 +425,7 @@ contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
             {//Stack scope
                 if (newICR >= hints.icr.add(2e16) || 
                     newICR <= hints.icr.sub(2e16) || 
-                    _getNetDebt(newDebt) < MIN_NET_DEBT) {
+                    _getNetDebt(troveDebt) < MIN_NET_DEBT) {
                     revert("Invalid partial redemption hint or remaining debt is too low");
                     // singleRedemption.cancelledPartial = true;
                     // return singleRedemption;
@@ -439,7 +438,7 @@ contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
                     hints.lower
                 );
             }
-            troveManager.updateTroveDebt(hints.target, newDebt);
+            troveManager.updateTroveDebt(hints.target, troveDebt);
             // for (uint256 k = 0; k < colls.tokens.length; k++) {
             //     colls.amounts[k] = finalAmounts[k];
             // }
@@ -448,7 +447,7 @@ contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
 
             emit TroveUpdated(
                 hints.target,
-                newDebt,
+                troveDebt,
                 colls.tokens,
                 colls.amounts,
                 TroveManagerOperation.redeemCollateral
@@ -521,7 +520,6 @@ contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
      */
     function _redeemCollateralFromTrove(
         ContractsCache memory _contractsCache,
-        address _redeemCaller,
         address _borrower,
         uint256 _maxYUSDAmount,
         address _upperPartialRedemptionHint,
@@ -537,23 +535,27 @@ contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
         newColls memory colls;
         (colls.tokens, colls.amounts, ) = troveManager.getCurrentTroveState(_borrower);
 
-        uint256[] memory finalAmounts = new uint256[](colls.tokens.length);
+        uint256 collsLen = colls.tokens.length;
+        uint256[] memory finalAmounts = new uint256[](collsLen);
 
-        uint256 totalCollUSD = _getUSDColls(colls);
-        uint256 baseLot = singleRedemption.YUSDLot.mul(DECIMAL_PRECISION);
 
         // redemption addresses are the same as coll addresses for trove
         // Calculation for how much collateral to send of each type. 
         singleRedemption.CollLot.tokens = colls.tokens;
-        singleRedemption.CollLot.amounts = new uint256[](colls.tokens.length);
-        for (uint256 i = 0; i < colls.tokens.length; i++) {
-            uint tokenAmountToRedeem = baseLot.mul(colls.amounts[i]).div(totalCollUSD).div(1e18);
-            finalAmounts[i] = colls.amounts[i].sub(tokenAmountToRedeem);
-            singleRedemption.CollLot.amounts[i] = tokenAmountToRedeem;
-            // if it is a wrapped asset we need to reduce reward. 
-            // Later the asset will be transferred directly out, so no new reward is needed to be kept track of
-            if (whitelist.isWrapped(colls.tokens[i])) {
-                IWAsset(colls.tokens[i]).updateReward(_borrower, _redeemCaller, tokenAmountToRedeem);
+        singleRedemption.CollLot.amounts = new uint256[](collsLen);
+        { // limit scope
+
+            uint256 totalCollUSD = _getUSDColls(colls);
+            uint256 baseLot = singleRedemption.YUSDLot.mul(DECIMAL_PRECISION);
+            for (uint256 i; i < collsLen; ++i) {
+                uint tokenAmountToRedeem = baseLot.mul(colls.amounts[i]).div(totalCollUSD).div(1e18);
+                finalAmounts[i] = colls.amounts[i].sub(tokenAmountToRedeem);
+                singleRedemption.CollLot.amounts[i] = tokenAmountToRedeem;
+                // if it is a wrapped asset we need to reduce reward. 
+                // Later the asset will be transferred directly out, so no new reward is needed to be kept track of
+                if (whitelist.isWrapped(colls.tokens[i])) {
+                    IWAsset(colls.tokens[i]).updateReward(_borrower, msg.sender, tokenAmountToRedeem);
+                }
             }
         }
 
@@ -609,7 +611,8 @@ contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
             );
 
             troveManager.updateTroveDebt(_borrower, newDebt);
-            for (uint256 i = 0; i < colls.tokens.length; i++) {
+            uint256 collsLen = colls.tokens.length;
+            for (uint256 i; i < collsLen; ++i) {
                 colls.amounts[i] = finalAmounts[i];
             }
             troveManager.updateTroveCollTMR(_borrower, colls.tokens, colls.amounts);
@@ -672,7 +675,7 @@ contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
 
         /* Convert the drawn Collateral back to YUSD at face value rate (1 YUSD:1 USD), in order to get
          * the fraction of total supply that was redeemed at face value. */
-        uint256 redeemedYUSDFraction = _YUSDDrawn.mul(10**18).div(_totalYUSDSupply);
+        uint256 redeemedYUSDFraction = _YUSDDrawn.mul(10e18).div(_totalYUSDSupply);
 
         uint256 newBaseRate = decayedBaseRate.add(redeemedYUSDFraction.div(BETA));
         newBaseRate = LiquityMath._min(newBaseRate, DECIMAL_PRECISION); // cap baseRate at a maximum of 100%
@@ -736,7 +739,8 @@ contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
     }
 
     function isNonzero(newColls memory coll) internal pure returns (bool) {
-        for (uint256 i = 0; i < coll.amounts.length; i++) {
+        uint256 collsLen = coll.amounts.length;
+        for (uint256 i; i < collsLen; ++i) {
             if (coll.amounts[i] > 0) {
                 return true;
             }

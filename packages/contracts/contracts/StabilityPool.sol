@@ -558,10 +558,11 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         uint256 _debtToOffset,
         uint256 _totalYUSDDeposits
     ) internal returns (uint256[] memory AssetGainPerUnitStaked, uint256 YUSDLossPerUnitStaked) {
-        uint256[] memory CollateralNumerators = new uint256[](_amountsAdded.length);
+        uint256 amountsLen = _amountsAdded.length;
+        uint256[] memory CollateralNumerators = new uint256[](amountsLen);
         uint256 currentP = P;
 
-        for (uint256 i = 0; i < _amountsAdded.length; i++) {
+        for (uint256 i; i < amountsLen; ++i) {
             uint256 tokenIDX = whitelist.getIndex(_tokens[i]);
             CollateralNumerators[i] = _amountsAdded[i].mul(DECIMAL_PRECISION).add(
                 lastAssetError_Offset[tokenIDX]
@@ -587,11 +588,11 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         }
 
         AssetGainPerUnitStaked = new uint256[](_amountsAdded.length);
-        for (uint256 i = 0; i < _amountsAdded.length; i++) {
+        for (uint256 i; i < amountsLen; ++i) {
             AssetGainPerUnitStaked[i] = CollateralNumerators[i].mul(currentP).div(_totalYUSDDeposits);
         }
 
-        for (uint256 i = 0; i < _amountsAdded.length; i++) {
+        for (uint256 i; i < amountsLen; ++i) {
             uint256 tokenIDX = whitelist.getIndex(_tokens[i]);
             lastAssetError_Offset[tokenIDX] = CollateralNumerators[i].sub(
                 AssetGainPerUnitStaked[i].mul(_totalYUSDDeposits).div(currentP)
@@ -627,14 +628,15 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
          *
          * Since S corresponds to Collateral amount gain, and P to deposit loss, we update S first.
          */
-        for (uint256 i = 0; i < _assets.length; i++) {
+        uint256 assetsLen = _assets.length;
+        for (uint256 i; i < assetsLen; ++i) {
             address asset = _assets[i];
             
-            uint256 marginalAssetGain = _AssetGainPerUnitStaked[i];
+            // uint256 marginalAssetGain = _AssetGainPerUnitStaked[i]; only used once, named here for clarity.
             uint256 currentAssetS = epochToScaleToSum[asset][currentEpochCached][currentScaleCached];
-            uint256 newAssetS = currentAssetS.add(marginalAssetGain);
+            uint256 newAssetS = currentAssetS.add(_AssetGainPerUnitStaked[i]);
 
-            epochToScaleToSum[_assets[i]][currentEpochCached][currentScaleCached] = newAssetS;
+            epochToScaleToSum[asset][currentEpochCached][currentScaleCached] = newAssetS;
             emit S_Updated(asset, newAssetS, currentEpochCached, currentScaleCached);
         }
 
@@ -718,8 +720,9 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         returns (address[] memory assets, uint256[] memory amounts)
     {
         assets = whitelist.getValidCollateral();
-        amounts = new uint256[](assets.length);
-        for (uint256 i = 0; i < assets.length; i++) {
+        uint256 assetsLen = assets.length;
+        amounts = new uint256[](assetsLen);
+        for (uint256 i; i < assetsLen; ++i) {
             amounts[i] = _getGainFromSnapshots(initialDeposit, snapshots, assets[i]);
         }
         return (assets, amounts);
@@ -940,13 +943,16 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         address[] memory assets,
         uint256[] memory amounts
     ) internal {
-        require(assets.length == amounts.length, "SP:Length mismatch");
-        for (uint256 i = 0; i < assets.length; i++) {
+        uint256 assetsLen = assets.length;
+        require(assetsLen == amounts.length, "SP:Length mismatch");
+        uint256 thisAmounts;
+        for (uint256 i; i < assetsLen; ++i) {
+            thisAmounts = amounts[i];
             if (whitelist.isWrapped(assets[i])){
-                IWAsset(assets[i]).endTreasuryReward(amounts[i]);
-                IWAsset(assets[i]).unwrapFor(_to, amounts[i]);
+                IWAsset(assets[i]).endTreasuryReward(thisAmounts);
+                IWAsset(assets[i]).unwrapFor(_to, thisAmounts);
             } else {
-                IERC20(assets[i]).safeTransfer(_to, amounts[i]);
+                IERC20(assets[i]).safeTransfer(_to, thisAmounts);
             }
         }
         totalColl.amounts = _leftSubColls(totalColl, assets, amounts);
@@ -992,8 +998,8 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         if (_newValue == 0) {
             delete deposits[_depositor].frontEndTag;
             address[] memory colls = whitelist.getValidCollateral();
-
-            for (uint256 i = 0; i < colls.length; ++i) {
+            uint256 collsLen = colls.length;
+            for (uint256 i; i < collsLen; ++i) {
                 depositSnapshots[_depositor].S[colls[i]] = 0;
             }
             depositSnapshots[_depositor].P = 0;
@@ -1010,7 +1016,8 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         address[] memory allColls = whitelist.getValidCollateral();
 
         // Get S and G for the current epoch and current scale
-        for (uint256 i = 0; i < allColls.length; i++) {
+        uint256 allCollsLen = allColls.length;
+        for (uint256 i; i < allCollsLen; ++i) {
             address token = allColls[i];
             uint256 currentSForToken = epochToScaleToSum[token][currentEpochCached][
                 currentScaleCached

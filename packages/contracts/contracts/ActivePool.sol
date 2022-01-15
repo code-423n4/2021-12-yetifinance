@@ -126,7 +126,8 @@ contract ActivePool is Ownable, CheckContract, IActivePool, YetiCustomBase {
     * multiplying them by the corresponding price and ratio and then summing that
     */
     function getVC() external view override returns (uint totalVC) {
-        for (uint i = 0; i < poolColl.tokens.length; i++) {
+        uint len = poolColl.tokens.length;
+        for (uint256 i; i < len; ++i) {
             address collateral = poolColl.tokens[i];
             uint amount = poolColl.amounts[i];
 
@@ -158,8 +159,9 @@ contract ActivePool is Ownable, CheckContract, IActivePool, YetiCustomBase {
     // Returns true if all payments were successfully sent. Must be called by borrower operations, trove manager, or stability pool. 
     function sendCollaterals(address _to, address[] memory _tokens, uint[] memory _amounts) external override returns (bool) {
         _requireCallerIsBOorTroveMorTMLorSP();
-        require(_tokens.length == _amounts.length, "AP:Lengths");
-        for (uint i = 0; i < _tokens.length; i++) {
+        uint256 len = _tokens.length;
+        require(len == _amounts.length, "AP:Lengths");
+        for (uint256 i; i < len; ++i) {
             _sendCollateral(_to, _tokens[i], _amounts[i]); // reverts if send fails
         }
 
@@ -177,8 +179,9 @@ contract ActivePool is Ownable, CheckContract, IActivePool, YetiCustomBase {
     // It also harvests rewards on the user's behalf. 
     function sendCollateralsUnwrap(address _to, address[] memory _tokens, uint[] memory _amounts, bool _collectRewards) external override returns (bool) {
         _requireCallerIsBOorTroveMorTMLorSP();
-        require(_tokens.length == _amounts.length, "AP:Lengths");
-        for (uint i = 0; i < _tokens.length; i++) {
+        uint256 len = _tokens.length;
+        require(len == _amounts.length, "AP:Lengths");
+        for (uint256 i; i < len; ++i) {
             if (whitelist.isWrapped(_tokens[i])) {
                 IWAsset(_tokens[i]).unwrapFor(_to, _amounts[i]);
                 if (_collectRewards) {

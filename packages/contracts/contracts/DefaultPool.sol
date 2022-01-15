@@ -100,7 +100,8 @@ contract DefaultPool is Ownable, CheckContract, IDefaultPool, YetiCustomBase {
      * multiplying them by the corresponding price and ratio and then summing that
      */
     function getVC() external view override returns (uint256 totalVC) {
-        for (uint256 i = 0; i < poolColl.tokens.length; i++) {
+        uint256 tokensLen = poolColl.tokens.length;
+        for (uint256 i; i < tokensLen; ++i) {
             address collateral = poolColl.tokens[i];
             uint256 amount = poolColl.amounts[i];
 
@@ -134,8 +135,9 @@ contract DefaultPool is Ownable, CheckContract, IDefaultPool, YetiCustomBase {
     {
         _requireCallerIsTroveManager();
         address activePool = activePoolAddress;
-        require(_tokens.length == _amounts.length, "DP:Lengths of arrays mismatch");
-        for (uint256 i = 0; i < _tokens.length; i++) {
+        uint256 tokensLen = _tokens.length;
+        require(tokensLen == _amounts.length, "DP:Length mismatch");
+        for (uint256 i; i < tokensLen; ++i) {
             _sendCollateral(_tokens[i], _amounts[i]);
             if (whitelist.isWrapped(_tokens[i])) {
                 IWAsset(_tokens[i]).updateReward(yetiFinanceTreasury, _borrower, _amounts[i]);

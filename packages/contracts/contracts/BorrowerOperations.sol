@@ -268,16 +268,17 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         uint256[] memory _leverages,
         uint256[] memory _maxSlippages
     ) external override nonReentrant {
-        _requireLengthNonzero(_colls.length);
+        uint256 collsLen = _colls.length;
+        _requireLengthNonzero(collsLen);
         _requireValidDepositCollateral(_colls, _amounts);
         // Must check additional passed in arrays
-        _requireLengthsEqual(_colls.length, _leverages.length);
-        _requireLengthsEqual(_colls.length, _maxSlippages.length);
+        _requireLengthsEqual(collsLen, _leverages.length);
+        _requireLengthsEqual(collsLen, _maxSlippages.length);
         _requireNoDuplicateColls(_colls);
         uint additionalTokenAmount;
         uint additionalYUSDDebt;
         uint totalYUSDDebtFromLever;
-        for (uint i = 0; i < _colls.length; i++) {
+        for (uint256 i; i < collsLen; ++i) {
             if (_leverages[i] != 0) {
                 (additionalTokenAmount, additionalYUSDDebt) = _singleLeverUp(
                     _colls[i],
@@ -489,18 +490,19 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         params._upperHint = _upperHint;
         params._lowerHint = _lowerHint;
         params._maxFeePercentage = _maxFeePercentage;
+        uint256 collsLen = _collsIn.length;
 
         // check that all _collsIn collateral types are in the whitelist
         _requireValidDepositCollateral(params._collsIn, params._amountsIn);
         // Must check that other passed in arrays are correct length
-        _requireLengthsEqual(_collsIn.length, _leverages.length);
-        _requireLengthsEqual(_collsIn.length, _maxSlippages.length);
+        _requireLengthsEqual(collsLen, _leverages.length);
+        _requireLengthsEqual(collsLen, _maxSlippages.length);
         _requireNoDuplicateColls(params._collsIn); // Check that there is no overlap with in or out in itself
 
         uint additionalTokenAmount;
         uint additionalYUSDDebt;
         uint totalYUSDDebtFromLever;
-        for (uint i = 0; i < _collsIn.length; i++) {
+        for (uint256 i; i < collsLen; ++i) {
             if (_leverages[i] != 0) {
                 (additionalTokenAmount, additionalYUSDDebt) = _singleLeverUp(
                     _collsIn[i],
@@ -769,7 +771,8 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
             contractsCache.activePool.sendCollateralsUnwrap(msg.sender, params._collsOut, params._amountsOut, true);
 
             // 2. requires that the user has approved the contract to send its collateral if it is unlevering that amount. 
-            for (uint i = 0; i < params._collsOut.length; i++) {
+            uint256 collsLen = params._collsOut.length;
+            for (uint256 i; i < collsLen; ++i) {
                 if (params._maxSlippages[i] != 0) {
                     // add YUSD Amount from swap to total YUSD amount to repay debt
                     _singleUnleverUp(params._collsOut[i], params._amountsOut[i], params._maxSlippages[i]);
@@ -910,7 +913,8 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
             // tracks the amount of YUSD that is received from swaps. Will send the _YUSDAmount back to repay debt while keeping remainder.
             
             // requires that the user has approved the contract to send its collateral if it is unlevering that amount. 
-            for (uint i = 0; i < params._collsOut.length; i++) {
+            uint256 collsLen = params._collsOut.length;
+            for (uint256 i; i < collsLen; ++i) {
                 if (params._maxSlippages[i] != 0) {
                     // add YUSD Amount from swap to total YUSD amount to repay debt
                     _singleUnleverUp(params._collsOut[i], params._amountsOut[i], params._maxSlippages[i]);
@@ -978,8 +982,8 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         // active pool total VC post adding and removing all collaterals
         uint256 activePoolVCPost = vars.systemTotalVC.add(_VCin).sub(_VCout);
         uint256 whitelistFee;
-
-        for (uint256 i = 0; i < _tokensIn.length; i++) {
+        uint256 tokensLen = _tokensIn.length;
+        for (uint256 i; i < tokensLen; ++i) {
             vars.token = _tokensIn[i];
             // VC value of collateral of this type inputted
             vars.collateralInputVC = whitelist.getValueVC(vars.token, _amountsIn[i]);
@@ -1018,8 +1022,8 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         address[] memory _colls,
         uint256[] memory _amounts
     ) internal {
-        uint256 len = _amounts.length;
-        for (uint256 i = 0; i < len; i++) {
+        uint256 amountsLen = _amounts.length;
+        for (uint256 i; i < amountsLen; ++i) {
             address collAddress = _colls[i];
             uint256 amount = _amounts[i];
             _singleTransferCollateralIntoActivePool(
@@ -1160,8 +1164,9 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     // --- 'Require' wrapper functions ---
 
     function _requireValidDepositCollateral(address[] memory _colls, uint256[] memory _amounts) internal view {
-        _requireLengthsEqual(_colls.length, _amounts.length);
-        for (uint256 i = 0; i < _colls.length; i++) {
+        uint256 collsLen = _colls.length;
+        _requireLengthsEqual(collsLen, _amounts.length);
+        for (uint256 i; i < collsLen; ++i) {
             require(whitelist.getIsActive(_colls[i]), "BO:BadColl");
             require(_amounts[i] > 0, "BO:NoAmounts");
         }
@@ -1179,7 +1184,8 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     }
 
     function _arrayIsNonzero(uint256[] memory arr) internal pure returns (bool) {
-        for (uint256 i = 0; i < arr.length; i++) {
+        uint256 arrLen = arr.length;
+        for (uint256 i; i < arrLen; ++i) {
             if (arr[i] != 0) {
                 return true;
             }
@@ -1207,16 +1213,19 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         internal
         pure
     {
-        for (uint256 i = 0; i < _colls1.length; i++) {
-            for (uint256 j = 0; j < _colls2.length; j++) {
+        uint256 colls1Len = _colls1.length;
+        uint256 colls2Len = _colls2.length;
+        for (uint256 i; i < colls1Len; ++i) {
+            for (uint256 j; j < colls2Len; j++) {
                 require(_colls1[i] != _colls2[j], "BO:OverlapColls");
             }
         }
     }
 
     function _requireNoDuplicateColls(address[] memory _colls) internal pure {
-        for (uint256 i = 0; i < _colls.length; i++) {
-            for (uint256 j = i.add(1); j < _colls.length; j++) {
+        uint256 collsLen = _colls.length;
+        for (uint256 i; i < collsLen; ++i) {
+            for (uint256 j = i.add(1); j < collsLen; j++) {
                 require(_colls[i] != _colls[j], "BO:OverlapColls");
             }
         }
@@ -1350,14 +1359,14 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
     //     require(_finalRoutedColls.length == _amounts.length,  "_requireValidRouterParams: _finalRoutedColls length mismatch");
     //     require(_amounts.length == _routers.length, "_requireValidRouterParams: _routers length mismatch");
     //     require(_amounts.length == _minSwapAmounts.length, "_minSwapAmounts: finalRoutedColls length mismatch");
-    //     for (uint i = 0; i < _routers.length; i++) {
+    //     for (uint256 i; i < _routers.length; ++i) {
     //         require(whitelist.isValidRouter(address(_routers[i])), "_requireValidRouterParams: not a valid router");
     //     }
     // }
 
     // // requires that avax indices are in order
     // function _requireRouterAVAXIndicesInOrder(uint[] memory _indices) internal pure {
-    //     for (uint i = 0; i < _indices.length - 1; i++) {
+    //     for (uint256 i; i < _indices.length - 1; ++i) {
     //         require(_indices[i] < _indices[i.add(1)], "_requireRouterAVAXIndicesInOrder: indices out of order");
     //     }
     // }

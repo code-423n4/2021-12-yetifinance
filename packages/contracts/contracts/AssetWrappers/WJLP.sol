@@ -36,10 +36,10 @@ interface IMasterChefJoeV2 {
 contract WJLP is ERC20_8, IWAsset {
     using SafeERC20 for IERC20;
 
-    IERC20 public JLP;
-    IERC20 public JOE;
+    IERC20 public immutable JLP;
+    IERC20 public immutable JOE;
 
-    IMasterChefJoeV2 public _MasterChefJoe;
+    IMasterChefJoeV2 public immutable _MasterChefJoe;
     uint public _poolPid;
 
     address internal activePool;

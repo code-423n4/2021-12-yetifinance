@@ -254,10 +254,11 @@ contract TroveManager is TroveManagerBase, ITroveManager {
     // Yeti Finance will also be running a bot to assist with keeping the list from becoming
     // too stale.
     function updateTroves(address[] memory _borrowers, address[] memory _lowerHints, address[] memory _upperHints) external {
-        require(_borrowers.length == _lowerHints.length, "TM: borrowers length mismatch");
-        require(_lowerHints.length == _upperHints.length, "TM: hints length mismatch");
+        uint lowerHintsLen = _lowerHints.length;
+        require(_borrowers.length == lowerHintsLen, "TM: borrowers length mismatch");
+        require(lowerHintsLen == _upperHints.length, "TM: hints length mismatch");
 
-        for (uint i = 0; i < _lowerHints.length; i++) {
+        for (uint256 i; i < lowerHintsLen; ++i) {
             _updateTrove(_borrowers[i], _lowerHints[i], _upperHints[i]);
         }
     }
@@ -372,7 +373,8 @@ contract TroveManager is TroveManagerBase, ITroveManager {
 
     function _updateTroveRewardSnapshots(address _borrower) internal {
         address[] memory allColls = whitelist.getValidCollateral();
-        for (uint i = 0; i < allColls.length; i++) {
+        uint256 allCollsLen = allColls.length;
+        for (uint256 i; i < allCollsLen; ++i) {
             address asset = allColls[i];
             rewardSnapshots[_borrower].CollRewards[asset] = L_Coll[asset];
             rewardSnapshots[_borrower].YUSDDebts[asset] = L_YUSDDebt[asset];
@@ -398,7 +400,8 @@ contract TroveManager is TroveManagerBase, ITroveManager {
         address[] memory allColls = whitelist.getValidCollateral();
         pendingCollRewards.amounts = new uint[](allColls.length);
         pendingCollRewards.tokens = allColls;
-        for (uint i = 0; i < allColls.length; i++ ) {
+        uint256 allCollsLen = allColls.length;
+        for (uint256 i; i < allCollsLen; ++i) {
             address coll = allColls[i];
             uint snapshotCollReward = rewardSnapshots[_borrower].CollRewards[coll];
             uint rewardPerUnitStaked = L_Coll[coll].sub(snapshotCollReward);
@@ -421,7 +424,8 @@ contract TroveManager is TroveManagerBase, ITroveManager {
         }
         address[] memory allColls = whitelist.getValidCollateral();
 
-        for (uint i = 0; i < allColls.length; i++ ) {
+        uint256 allCollsLen = allColls.length;
+        for (uint256 i; i < allCollsLen; ++i) {
             address coll = allColls[i];
             uint snapshotYUSDDebt = rewardSnapshots[_borrower].YUSDDebts[coll];
             uint rewardPerUnitStaked = L_YUSDDebt[allColls[i]].sub(snapshotYUSDDebt);
@@ -444,7 +448,8 @@ contract TroveManager is TroveManagerBase, ITroveManager {
         */
         if (Troves[_borrower].status != Status.active) {return false;}
         address[] memory assets =  Troves[_borrower].colls.tokens;
-        for (uint i = 0; i < assets.length; i++) {
+        uint256 assetsLen = assets.length;
+        for (uint256 i; i < assetsLen; ++i) {
             address token = assets[i];
             if (rewardSnapshots[_borrower].CollRewards[token] < L_Coll[token]) {
                 return true;
@@ -484,7 +489,8 @@ contract TroveManager is TroveManagerBase, ITroveManager {
     // Remove borrower's stake from the totalStakes sum, and set their stake to 0
     function _removeStake(address _borrower) internal {
         address[] memory borrowerColls = Troves[_borrower].colls.tokens;
-        for (uint i = 0; i < borrowerColls.length; i++) {
+        uint256 borrowerCollsLen = borrowerColls.length;
+        for (uint256 i; i < borrowerCollsLen; ++i) {
             address coll = borrowerColls[i];
             uint stake = Troves[_borrower].stakes[coll];
             totalStakes[coll] = totalStakes[coll].sub(stake);
@@ -500,7 +506,8 @@ contract TroveManager is TroveManagerBase, ITroveManager {
     }
 
     function _updateStakeAndTotalStakes(address _borrower) internal {
-        for (uint i = 0; i < Troves[_borrower].colls.tokens.length; i++) {
+        uint256 troveOwnerLen = Troves[_borrower].colls.tokens.length;
+        for (uint256 i; i < troveOwnerLen; ++i) {
             address token = Troves[_borrower].colls.tokens[i];
             uint amount = Troves[_borrower].colls.amounts[i];
 
@@ -534,7 +541,8 @@ contract TroveManager is TroveManagerBase, ITroveManager {
 
     function redistributeDebtAndColl(IActivePool _activePool, IDefaultPool _defaultPool, uint _debt, address[] memory _tokens, uint[] memory _amounts) external override {
         _requireCallerIsTML();
-        require(_tokens.length == _amounts.length, "TM: len tokens amounts");
+        uint256 tokensLen = _tokens.length;
+        require(tokensLen == _amounts.length, "TM: len tokens amounts");
         if (_debt == 0) { return; }
         /*
         * Add distributed coll and debt rewards-per-unit-staked to the running totals. Division uses a "feedback"
@@ -549,7 +557,7 @@ contract TroveManager is TroveManagerBase, ITroveManager {
         */
         uint totalCollateralVC = _getVC(_tokens, _amounts); // total collateral value in VC terms
 
-        for (uint i = 0; i < _tokens.length; i++) {
+        for (uint256 i; i < tokensLen; ++i) {
             address token = _tokens[i];
             uint amount = _amounts[i];
             // Prorate debt per collateral by dividing each collateral value by cumulative collateral value and multiply by outstanding debt
@@ -560,11 +568,12 @@ contract TroveManager is TroveManagerBase, ITroveManager {
             uint YUSDDebtNumerator = proratedDebtForCollateral.mul(DECIMAL_PRECISION).add(lastYUSDDebtError_Redistribution[token]);
             if (totalStakes[token] > 0) {
                 // Get the per-unit-staked terms
-                uint CollRewardPerUnitStaked = CollNumerator.div(totalStakes[token]);
-                uint YUSDDebtRewardPerUnitStaked = YUSDDebtNumerator.div(totalStakes[token].mul(10 ** (18 - dec)));
+                uint256 thisTotalStakes = totalStakes[token];
+                uint CollRewardPerUnitStaked = CollNumerator.div(thisTotalStakes);
+                uint YUSDDebtRewardPerUnitStaked = YUSDDebtNumerator.div(thisTotalStakes.mul(10 ** (18 - dec)));
 
-                lastCollError_Redistribution[token] = CollNumerator.sub(CollRewardPerUnitStaked.mul(totalStakes[token]));
-                lastYUSDDebtError_Redistribution[token] = YUSDDebtNumerator.sub(YUSDDebtRewardPerUnitStaked.mul(totalStakes[token].mul(10 ** (18 - dec))));
+                lastCollError_Redistribution[token] = CollNumerator.sub(CollRewardPerUnitStaked.mul(thisTotalStakes));
+                lastYUSDDebtError_Redistribution[token] = YUSDDebtNumerator.sub(YUSDDebtRewardPerUnitStaked.mul(thisTotalStakes.mul(10 ** (18 - dec))));
 
                 // Add per-unit-staked terms to the running totals
                 L_Coll[token] = L_Coll[token].add(CollRewardPerUnitStaked);
@@ -606,9 +615,12 @@ contract TroveManager is TroveManagerBase, ITroveManager {
         Troves[_borrower].debt = 0;
 
         address[] memory allColls = whitelist.getValidCollateral();
-        for (uint i = 0; i < allColls.length; i++) {
-            rewardSnapshots[_borrower].CollRewards[allColls[i]] = 0;
-            rewardSnapshots[_borrower].YUSDDebts[allColls[i]] = 0;
+        uint allCollsLen = allColls.length;
+        address thisAllColls;
+        for (uint256 i; i < allCollsLen; ++i) {
+            thisAllColls = allColls[i];
+            rewardSnapshots[_borrower].CollRewards[thisAllColls] = 0;
+            rewardSnapshots[_borrower].YUSDDebts[thisAllColls] = 0;
         }
 
         _removeTroveOwner(_borrower, TroveOwnersArrayLength);
@@ -627,7 +639,8 @@ contract TroveManager is TroveManagerBase, ITroveManager {
     */
     function updateSystemSnapshots_excludeCollRemainder(IActivePool _activePool, address[] memory _tokens, uint[] memory _amounts) external override {
         _requireCallerIsTML();
-        for (uint i = 0; i < _tokens.length; i++) {
+        uint256 tokensLen = _tokens.length;
+        for (uint256 i; i < tokensLen; ++i) {
             address token = _tokens[i];
             totalStakesSnapshot[token] = totalStakes[token];
 

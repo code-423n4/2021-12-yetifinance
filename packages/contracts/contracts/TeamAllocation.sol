@@ -69,7 +69,7 @@ contract TeamAllocation {
     function sendAllocatedYETI() external {
         require(yetiSet, "sendAllocatedYETI: yeti team address not set");
         require(!allocationClaimed, "sendAllocatedYETI: allocation claimed");
-        for (uint i = 0; i < 7; i++) {
+        for (uint256 i; i < 7; ++i) {
             address member = team[i];
             uint amount = allocations[i];
             YETI.safeTransfer(member, amount);

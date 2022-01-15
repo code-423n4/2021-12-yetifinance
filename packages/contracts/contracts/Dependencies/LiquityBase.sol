@@ -59,7 +59,7 @@ contract LiquityBase is ILiquityBase, YetiCustomBase {
         require(_coll.tokens.length == _coll.amounts.length, "Not same length");
 
         uint[] memory amounts = new uint[](_coll.tokens.length);
-        for (uint i = 0; i < _coll.tokens.length; i++) {
+        for (uint256 i; i < _coll.tokens.length; ++i) {
             amounts[i] = _coll.amounts[i] / PERCENT_DIVISOR;
         }
         return newColls(_coll.tokens, amounts);
@@ -92,8 +92,9 @@ contract LiquityBase is ILiquityBase, YetiCustomBase {
 
 
     function _getVC(address[] memory _tokens, uint[] memory _amounts) internal view returns (uint totalVC) {
-        require(_tokens.length == _amounts.length, "Not same length");
-        for (uint i = 0; i < _tokens.length; i++) {
+        uint256 tokensLen = _tokens.length;
+        require(tokensLen == _amounts.length, "Not same length");
+        for (uint256 i; i < tokensLen; ++i) {
             uint tokenVC = whitelist.getValueVC(_tokens[i], _amounts[i]);
             totalVC = totalVC.add(tokenVC);
         }
@@ -102,7 +103,8 @@ contract LiquityBase is ILiquityBase, YetiCustomBase {
 
 
     function _getVCColls(newColls memory _colls) internal view returns (uint VC) {
-        for (uint i = 0; i < _colls.tokens.length; i++) {
+        uint256 tokensLen = _colls.tokens.length;
+        for (uint256 i; i < tokensLen; ++i) {
             uint valueVC = whitelist.getValueVC(_colls.tokens[i], _colls.amounts[i]);
             VC = VC.add(valueVC);
         }
@@ -111,7 +113,8 @@ contract LiquityBase is ILiquityBase, YetiCustomBase {
 
 
     function _getUSDColls(newColls memory _colls) internal view returns (uint USDValue) {
-        for (uint i = 0; i < _colls.tokens.length; i++) {
+        uint256 tokensLen = _colls.tokens.length;
+        for (uint256 i; i < tokensLen; ++i) {
             uint valueUSD = whitelist.getValueUSD(_colls.tokens[i], _colls.amounts[i]);
             USDValue = USDValue.add(valueUSD);
         }
@@ -140,22 +143,11 @@ contract LiquityBase is ILiquityBase, YetiCustomBase {
         require(feePercentage <= _maxFeePercentage, "Fee > max");
     }
 
-
-    // get Colls struct for the given tokens and amounts
-    function _getColls(address[] memory tokens, uint[] memory amounts) internal view returns (newColls memory coll) {
-        require(tokens.length == amounts.length, "Not same length");
-        coll.tokens = tokens;
-        for (uint i = 0; i < tokens.length; i++) {
-            coll.amounts[whitelist.getIndex(tokens[i])] = amounts[i];
-        }
-        return coll;
-    }
-
-
     // checks coll has a nonzero balance of at least one token in coll.tokens
-    function _CollsIsNonZero(newColls memory coll) internal pure returns (bool) {
-        for (uint i = 0; i < coll.tokens.length; i++) {
-            if (coll.amounts[i] > 0) {
+    function _CollsIsNonZero(newColls memory _colls) internal pure returns (bool) {
+        uint256 tokensLen = _colls.tokens.length;
+        for (uint256 i; i < tokensLen; ++i) {
+            if (_colls.amounts[i] > 0) {
                 return true;
             }
         }
@@ -163,10 +155,11 @@ contract LiquityBase is ILiquityBase, YetiCustomBase {
     }
 
 
-    function _sendColl(address _to, newColls memory _coll) internal returns (bool) {
-        for (uint i = 0; i < _coll.tokens.length; i++) {
-            IERC20 token = IERC20(_coll.tokens[i]);
-            if (!token.transfer(_to, _coll.amounts[i])) {
+    function _sendColl(address _to, newColls memory _colls) internal returns (bool) {
+        uint256 tokensLen = _colls.tokens.length;
+        for (uint256 i; i < tokensLen; ++i) {
+            IERC20 token = IERC20(_colls.tokens[i]);
+            if (!token.transfer(_to, _colls.amounts[i])) {
                 return false;
             }
         }
