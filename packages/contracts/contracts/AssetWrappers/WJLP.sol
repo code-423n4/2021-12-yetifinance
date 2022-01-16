@@ -48,6 +48,8 @@ contract WJLP is ERC20_8, IWAsset {
     address internal defaultPool;
     address internal stabilityPool;
     address internal YetiFinanceTreasury;
+    address internal borrowerOperations;
+    address internal collSurplusPool;
 
     bool addressesSet;
 
@@ -55,7 +57,11 @@ contract WJLP is ERC20_8, IWAsset {
         uint256 amount; // How many LP tokens the user has provided.
         uint256 rewardDebt; // Reward debt. See explanation below.
         uint256 unclaimedJOEReward;
+        uint256 amountInYeti;
         //
+        // This explanation is from the Master Chef V2 contracts, which we use here to essentially 
+        // keep track of rewards which are owned by this contract but actually belong to users 
+        // which have wrapped LP tokens. 
         // We do some fancy math here. Basically, any point in time, the amount of JOEs
         // entitled to a user but is pending to be distributed is:
         //
@@ -85,6 +91,10 @@ contract WJLP is ERC20_8, IWAsset {
         IMasterChefJoeV2 MasterChefJoe,
         uint256 poolPid) {
 
+        checkContract(address(_JLP));
+        checkContract(address(_JOE));
+        checkContract(address(MasterChefJoe));
+
         _symbol = ERC20_symbol;
         _name = ERC20_name;
         _decimals = ERC20_decimals;
@@ -102,8 +112,18 @@ contract WJLP is ERC20_8, IWAsset {
         address _TMR,
         address _defaultPool,
         address _stabilityPool,
-        address _YetiFinanceTreasury) external {
+        address _YetiFinanceTreasury, 
+        address _borrowerOperations, 
+        address _collSurplusPool) external {
         require(!addressesSet, "setAddresses: Addresses already set");
+        checkContract(_activePool);
+        checkContract(_TML);
+        checkContract(_TMR);
+        checkContract(_defaultPool);
+        checkContract(_stabilityPool);
+        checkContract(_YetiFinanceTreasury);
+        checkContract(_borrowerOperations);
+        checkContract(_collSurplusPool);
         activePool = _activePool;
         TML = _TML;
         TMR = _TMR;
@@ -138,52 +158,104 @@ contract WJLP is ERC20_8, IWAsset {
         _mint(_to, _amount);
     }
 
+    // External function intended for users to unwrap manually their LP tokens. 
     function unwrap(uint _amount) external override {
+        // Claim pending reward for unwrapper
+        _sendJoeReward(msg.sender, msg.sender);
+
+        // Decrease rewards by the same amount user is unwrapping. Ensures they have enough reward balance. 
+        _userUpdate(msg.sender, _amount, false);
+
+        // Withdraw LP tokens from Master chef contract
         _MasterChefJoe.withdraw(_poolPid, _amount);
-        // msg.sender is either Active Pool or Stability Pool
-        // each one has the ability to unwrap and burn WAssets they own and
-        // send them to someone else
+        
+        // Rid of WJLP tokens from wallet 
         _burn(msg.sender, _amount);
+
+        // Transfer withdrawn JLP tokens to withdrawer. 
         JLP.safeTransfer(msg.sender, _amount);
     }
 
+    // Override function which allows us to check the amount of LP tokens a user actually has rewards for, and update 
+    // that amount so that a user can't keep depositing into the protocol using the same reward amount
+    function transferFrom(address _from, address _to, uint _amount) public override returns (bool success) {
+        if (msg.sender == borrowerOperations || msg.sender == activePool || msg.sender == defaultPool) {
+            UserInfo memory user = userInfo[_from];
+            require(user.amount - user.amountInYeti >= _amount, "Reward balance not sufficient to transfer into Yeti Finance");
+            user.amountInYeti += _amount;
+        }
+        return super.transferFrom(_from, _to, _amount);
+    }
+
+    // Override function which allows us to check the amount of LP tokens a user actually has rewards for, and update 
+    // that amount so that a user can't keep depositing into the protocol using the same reward amount
+    function transfer(address _to, uint _amount) public override returns (bool success) {
+        if (msg.sender == borrowerOperations || msg.sender == activePool || msg.sender == defaultPool) {
+            UserInfo memory user = userInfo[msg.sender];
+            require(user.amount - user.amountInYeti >= _amount, "Reward balance not sufficient to transfer into Yeti Finance");
+            user.amountInYeti += _amount;
+        }
+        return super.transfer(_to, _amount);
+    }
 
     // Only callable by ActivePool or StabilityPool
-    // Used to provide unwrap assets during:
+    // Used to unwrap assets during:
     // 1. Sending 0.5% liquidation reward to liquidators
     // 2. Sending back redeemed assets
     // In both cases, the wrapped asset is first sent to the liquidator or redeemer respectively,
     // then this function is called with _for equal to the the liquidator or redeemer address
     // Prior to this being called, the user whose assets we are burning should have their rewards updated
+    // This function also claims rewards when unwrapping so they are automatically sent to the original owner,
+    // and also reduces the reward balance before unwrapping is complete. 
     function unwrapFor(address _to, uint _amount) external override {
-        _requireCallerIsAPorSP();
+        _requireCallerIsPool();
+
+        // Claim pending reward for original owner
+        _sendJoeReward(_to, _to);
+
+        // Decrease rewards by the same amount user is unwrapping. Ensures they have enough reward balance. 
+        _userUpdate(_to, _amount, false);
+        userInfo[_to].amountInYeti -= _amount;
+
+        // Withdraw LP tokens from Master chef contract
         _MasterChefJoe.withdraw(_poolPid, _amount);
+
         // msg.sender is either Active Pool or Stability Pool
         // each one has the ability to unwrap and burn WAssets they own and
         // send them to someone else
         _burn(msg.sender, _amount);
-        JLP.safeTransfer(_to, _amount);
 
+        // Transfer withdrawn JLP tokens to new owner. 
+        JLP.safeTransfer(_to, _amount);
     }
 
     // When funds are transferred into the stabilityPool on liquidation,
     // the rewards these funds are earning are allocated Yeti Finance Treasury.
     // But when an stabilityPool depositor wants to withdraw their collateral,
     // the wAsset is unwrapped and the rewards are no longer accruing to the Yeti Finance Treasury
-    function endTreasuryReward(uint _amount) external override {
-        _requireCallerIsSP();
-        _userUpdate(YetiFinanceTreasury, _amount, false);
+    function endTreasuryReward(address _to, uint _amount) external override {
+        _requireCallerIsSPorDP();
+        address cachedTreasury = YetiFinanceTreasury;
+        // Claim reward first
+        _sendJoeReward(cachedTreasury, cachedTreasury);
+
+        // Then update new owner of rewards.
+        _updateReward(cachedTreasury, _to, _amount);
     }
 
     // Decreases _from's amount of LP tokens earning yield by _amount
     // And increases _to's amount of LP tokens earning yield by _amount
     // If _to is address(0), then doesn't increase anyone's amount
     function updateReward(address _from, address _to, uint _amount) external override {
-        _requireCallerIsLRD();
+        _requireCallerIsLRDorBO();
+        _updateReward(_from, _to, _amount);
+    }
+
+    function _updateReward(address _from, address _to, uint _amount) internal {
         _userUpdate(_from, _amount, false);
-        if (address(_to) != address(0)) {
-            _userUpdate(_to, _amount, true);
-        }
+        userInfo[_from].amountInYeti -= _amount;
+        _userUpdate(_to, _amount, true);
+        userInfo[_to].amountInYeti += _amount;
     }
 
     // checks total pending JOE rewards for _for
@@ -214,15 +286,6 @@ contract WJLP is ERC20_8, IWAsset {
     // Claims msg.sender's pending rewards and sends to _to address
     function claimReward(address _to) external override {
         _sendJoeReward(msg.sender, _to);
-    }
-
-
-    // Only callable by ActivePool.
-    // Claims reward on behalf of a borrower as part of the process
-    // of withdrawing a wrapped asset from borrower's trove
-    function claimRewardFor(address _for) external override {
-        _requireCallerIsActivePool();
-        _sendJoeReward(_for, _for);
     }
 
 
@@ -278,9 +341,15 @@ contract WJLP is ERC20_8, IWAsset {
 
     // ===== Check Caller Require View Functions =====
 
-    function _requireCallerIsAPorSP() internal view {
-        require((msg.sender == activePool || msg.sender == stabilityPool),
+    function _requireCallerIsPool() internal view {
+        require((msg.sender == activePool || msg.sender == stabilityPool || msg.sender == collSurplusPool),
             "Caller is not active pool or stability pool"
+        );
+    }
+
+    function _requireCallerIsSPorDP() internal view {
+        require((msg.sender == stabilityPool || msg.sender == defaultPool),
+            "Caller is not stability pool or default pool"
         );
     }
 
@@ -291,17 +360,27 @@ contract WJLP is ERC20_8, IWAsset {
     }
 
     // liquidation redemption default pool
-    function _requireCallerIsLRD() internal view {
+    function _requireCallerIsLRDorBO() internal view {
         require(
             (msg.sender == TML ||
              msg.sender == TMR ||
-             msg.sender == defaultPool),
+             msg.sender == defaultPool || 
+             msg.sender == borrowerOperations),
             "Caller is not LRD"
         );
     }
 
     function _requireCallerIsSP() internal view {
         require(msg.sender == stabilityPool, "Caller is not stability pool");
+    }
+
+    function checkContract(address _account) internal view {
+        require(_account != address(0), "Account cannot be zero address");
+
+        uint256 size;
+        // solhint-disable-next-line no-inline-assembly
+        assembly { size := extcodesize(_account) }
+        require(size != 0, "Account code size cannot be zero");
     }
 
 }

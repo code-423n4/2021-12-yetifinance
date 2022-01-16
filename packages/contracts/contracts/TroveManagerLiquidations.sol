@@ -407,9 +407,6 @@ contract TroveManagerLiquidations is TroveManagerBase, ITroveManagerLiquidations
             singleLiquidation.entireTroveColl
         );
 
-        // WAssets sent as liquidation reward will be unstaked and no longer accrue rewards
-        _updateWAssetsRewardOwner(singleLiquidation.collGasCompensation, _borrower, address(0));
-
         singleLiquidation.YUSDGasCompensation = YUSD_GAS_COMPENSATION;
 
         vars.collToLiquidate.tokens = singleLiquidation.entireTroveColl.tokens;
@@ -486,9 +483,6 @@ contract TroveManagerLiquidations is TroveManagerBase, ITroveManagerLiquidations
         singleLiquidation.collGasCompensation = _getCollGasCompensation(
             singleLiquidation.entireTroveColl
         );
-
-        // WAssets sent as liquidation reward will be unstaked and no longer accrue rewards
-        _updateWAssetsRewardOwner(singleLiquidation.collGasCompensation, _borrower, address(0));
 
         singleLiquidation.YUSDGasCompensation = YUSD_GAS_COMPENSATION;
 
@@ -851,7 +845,7 @@ contract TroveManagerLiquidations is TroveManagerBase, ITroveManagerLiquidations
             yusdTokenContract.returnFromPool(gasPoolAddress, _liquidator, _YUSD);
         }
 
-        _activePool.sendCollateralsUnwrap(_liquidator, _tokens, _amounts, false);
+        _activePool.sendCollateralsUnwrap(_liquidator, _tokens, _amounts);
     }
 
     /*

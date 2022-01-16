@@ -180,16 +180,14 @@ contract ActivePool is Ownable, CheckContract, IActivePool, YetiCustomBase {
     // Returns true if all payments were successfully sent. Must be called by borrower operations, trove manager, or stability pool.
     // This function als ounwraps the collaterals and sends them to _to, if they are wrapped assets. If collect rewards is set to true,
     // It also harvests rewards on the user's behalf. 
-    function sendCollateralsUnwrap(address _to, address[] calldata _tokens, uint[] calldata _amounts, bool _collectRewards) external override returns (bool) {
+    function sendCollateralsUnwrap(address _to, address[] calldata _tokens, uint[] calldata _amounts) external override returns (bool) {
         _requireCallerIsBOorTroveMorTMLorSP();
         uint256 len = _tokens.length;
         require(len == _amounts.length, "AP:Lengths");
         for (uint256 i; i < len; ++i) {
             if (whitelist.isWrapped(_tokens[i])) {
+                // Collects rewards automatically for that amount and unwraps for the original borrower. 
                 IWAsset(_tokens[i]).unwrapFor(_to, _amounts[i]);
-                if (_collectRewards) {
-                    IWAsset(_tokens[i]).claimRewardFor(_to);
-                }
             } else {
                 _sendCollateral(_to, _tokens[i], _amounts[i]); // reverts if send fails
             }

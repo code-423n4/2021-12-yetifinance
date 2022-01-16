@@ -16,11 +16,9 @@ interface IWAsset {
 
     function claimReward(address _to) external;
 
-    function claimRewardFor(address _for) external;
-
     function getPendingRewards(address _for) external view returns (address[] memory tokens, uint[] memory amounts);
 
     function getUserInfo(address _user) external returns (uint, uint, uint);
 
-    function endTreasuryReward(uint _amount) external;
+    function endTreasuryReward(address _to, uint _amount) external;
 }

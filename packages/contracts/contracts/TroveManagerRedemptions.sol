@@ -266,8 +266,7 @@ contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
         contractsCache.activePool.sendCollateralsUnwrap(
             _redeemer,
             totals.CollsDrawn.tokens,
-            totals.CollsDrawn.amounts,
-            false
+            totals.CollsDrawn.amounts
         );
     }
 
@@ -319,17 +318,6 @@ contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
         require(troveManager.getCurrentICR(hints.target) >= MCR, "TMR:Trove is underwater");
         troveManager.applyPendingRewards(hints.target);
 
-        // SingleRedemptionValues memory singleRedemption = _redeemCollateralFromTrove(
-        //     contractsCache,
-        //     _redeemer,
-        //     currentBorrower,
-        //     totals.remainingYUSD,
-        //     _upperPartialRedemptionHint,
-        //     _lowerPartialRedemptionHint,
-        //     _partialRedemptionHintICR
-        // );
-
-
         // Stitched in _redeemCollateralFromTrove
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -377,11 +365,6 @@ contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
             uint tokenAmountToRedeem = singleRedemption.YUSDLot.mul(colls.amounts[i]).div(singleCollUSD);
             colls.amounts[i] = colls.amounts[i].sub(tokenAmountToRedeem);
             singleRedemption.CollLot.amounts[i] = tokenAmountToRedeem;
-            // if it is a wrapped asset we need to reduce reward. 
-            // Later the asset will be transferred directly out, so no new reward is needed to be kept track of
-            if (whitelist.isWrapped(colls.tokens[i])) {
-                IWAsset(colls.tokens[i]).updateReward(hints.target, msg.sender, tokenAmountToRedeem);
-            }
         }
 
         
@@ -500,8 +483,7 @@ contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
         contractsCache.activePool.sendCollateralsUnwrap(
             msg.sender,
             totals.CollsDrawn.tokens,
-            totals.CollsDrawn.amounts,
-            false
+            totals.CollsDrawn.amounts
         );
     }
 
@@ -551,11 +533,6 @@ contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
                 uint tokenAmountToRedeem = baseLot.mul(colls.amounts[i]).div(totalCollUSD).div(1e18);
                 finalAmounts[i] = colls.amounts[i].sub(tokenAmountToRedeem);
                 singleRedemption.CollLot.amounts[i] = tokenAmountToRedeem;
-                // if it is a wrapped asset we need to reduce reward. 
-                // Later the asset will be transferred directly out, so no new reward is needed to be kept track of
-                if (whitelist.isWrapped(colls.tokens[i])) {
-                    IWAsset(colls.tokens[i]).updateReward(_borrower, msg.sender, tokenAmountToRedeem);
-                }
             }
         }
 

@@ -97,7 +97,7 @@ contract WAAVE is ERC20_8, IWAsset {
 
     function aavePerShare() public view returns (uint) {
         if (_totalSupply==0) {
-            return 1;
+            return 1e18;
         }
         return 1e18*aToken.balanceOf(address(this))/_totalSupply;
     }
@@ -134,7 +134,7 @@ contract WAAVE is ERC20_8, IWAsset {
     // the rewards these funds are earning are allocated Yeti Finance Treasury.
     // But when an stabilityPool depositor wants to withdraw their collateral,
     // the wAsset is unwrapped and the rewards are no longer accruing to the Yeti Finance Treasury
-    function endTreasuryReward(uint _amount) external override {
+    function endTreasuryReward(address _to, uint _amount) external override {
         _requireCallerIsSP();
     }
 
@@ -177,14 +177,6 @@ contract WAAVE is ERC20_8, IWAsset {
         // _sendReward(msg.sender, _to);
     }
 
-
-    // Only callable by ActivePool.
-    // Claims reward on behalf of a borrower as part of the process
-    // of withdrawing a wrapped asset from borrower's trove
-    function claimRewardFor(address _for) external override {
-        _requireCallerIsActivePool();
-
-    }
 
 
   

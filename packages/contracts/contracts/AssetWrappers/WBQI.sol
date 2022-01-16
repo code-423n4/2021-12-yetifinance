@@ -181,9 +181,9 @@ contract WBQI is ERC20_8, IWAsset {
     // the rewards these funds are earning are allocated Yeti Finance Treasury.
     // But when an stabilityPool depositor wants to withdraw their collateral,
     // the wAsset is unwrapped and the rewards are no longer accruing to the Yeti Finance Treasury
-    function endTreasuryReward(uint _amount) external override {
+    function endTreasuryReward(address _to, uint _amount) external override {
         _requireCallerIsSP();
-        
+        // TODO 
         accumulateRewards(YetiFinanceTreasury);
         userInfo[YetiFinanceTreasury].amount = userInfo[YetiFinanceTreasury].amount - _amount;
     }
@@ -227,14 +227,6 @@ contract WBQI is ERC20_8, IWAsset {
         _sendReward(msg.sender, _to);
     }
 
-
-    // Only callable by ActivePool.
-    // Claims reward on behalf of a borrower as part of the process
-    // of withdrawing a wrapped asset from borrower's trove
-    function claimRewardFor(address _for) external override {
-        _requireCallerIsActivePool();
-        _sendReward(_for, _for);
-    }
 
 
     function _sendReward(address _rewardOwner, address _to) internal {

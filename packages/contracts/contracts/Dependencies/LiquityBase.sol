@@ -149,18 +149,6 @@ contract LiquityBase is ILiquityBase, YetiCustomBase {
     }
 
 
-    function _sendColl(address _to, newColls memory _colls) internal returns (bool) {
-        uint256 tokensLen = _colls.tokens.length;
-        for (uint256 i; i < tokensLen; ++i) {
-            IERC20 token = IERC20(_colls.tokens[i]);
-            if (!token.transfer(_to, _colls.amounts[i])) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-
     // Check whether or not the system *would be* in Recovery Mode, given the entire system coll and debt.
     // returns true if the system would be in recovery mode and false if not
     function _checkPotentialRecoveryMode(uint _entireSystemColl, uint _entireSystemDebt)

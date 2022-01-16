@@ -945,13 +945,17 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         uint256 assetsLen = assets.length;
         require(assetsLen == amounts.length, "SP:Length mismatch");
         uint256 thisAmounts;
+        address thisAsset;
         for (uint256 i; i < assetsLen; ++i) {
             thisAmounts = amounts[i];
-            if (whitelist.isWrapped(assets[i])){
-                IWAsset(assets[i]).endTreasuryReward(thisAmounts);
-                IWAsset(assets[i]).unwrapFor(_to, thisAmounts);
+            thisAsset = assets[i];
+            if (whitelist.isWrapped(thisAsset)) {
+                // In this case update the rewards from the treasury to the caller 
+                IWAsset(thisAsset).endTreasuryReward(_to, thisAmounts);
+                // unwrapFor ends the rewards for the caller and transfers the tokens to the _to param. 
+                IWAsset(thisAsset).unwrapFor(_to, thisAmounts);
             } else {
-                IERC20(assets[i]).safeTransfer(_to, thisAmounts);
+                IERC20(thisAsset).safeTransfer(_to, thisAmounts);
             }
         }
         totalColl.amounts = _leftSubColls(totalColl, assets, amounts);

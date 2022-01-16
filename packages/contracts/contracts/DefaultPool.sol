@@ -141,9 +141,21 @@ contract DefaultPool is Ownable, CheckContract, IDefaultPool, YetiCustomBase {
             thisAmounts = _amounts[i];
             if(thisAmounts != 0) {
                 thisToken = _tokens[i];
-                _sendCollateral(thisToken, thisAmounts);
+                
+                // If asset is wrapped, then that means it came from the active pool (originally) and we need to update rewards from 
+                // the treasury which would have owned the rewards, to the new borrower who will be accumulating this new 
+                // reward. 
                 if (whitelist.isWrapped(thisToken)) {
-                    IWAsset(thisToken).updateReward(yetiFinanceTreasury, _borrower, thisAmounts);
+                    // This call claims the tokens for the treasury and also transfers them to the default pool as an intermediary so 
+                    // that it can transfer.
+                    IWAsset(thisToken).endTreasuryReward(address(this), thisAmounts);
+                    // Call transfer
+                    _sendCollateral(thisToken, thisAmounts);
+                    // Then finally transfer rewards to the borrower
+                    IWAsset(thisToken).updateReward(address(this), _borrower, thisAmounts);
+                } else {
+                    // Otherwise just send. 
+                    _sendCollateral(thisToken, thisAmounts);
                 }
             }
         }
