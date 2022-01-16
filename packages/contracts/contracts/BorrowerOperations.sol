@@ -340,7 +340,6 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         // route will swap the tokens and transfer it to the active pool automatically 
         _finalTokenAmount = router.route(address(this), address(yusdToken), _token, _additionalYUSDDebt, slippageAdjustedValue);
         // TODO do checks of raw balance? Currently is abstracted so the router handles it.
-        return (_finalTokenAmount, _additionalYUSDDebt);
     }
 
 
@@ -828,7 +827,6 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         uint256 slippageAdjustedValue = VCofCollateral.mul(DECIMAL_PRECISION.sub(_maxSlippage)).div(1e18);
         _finalYUSDAmount = router.unRoute(msg.sender, _token, address(yusdToken), _amount, slippageAdjustedValue);
         // TODO do checks of raw balances?
-        return _finalYUSDAmount;
     }
 
 
@@ -1012,7 +1010,6 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         }
         _requireUserAcceptsFee(YUSDFee, _maxFeePercentageFactor, _maxFeePercentage);
         _triggerDepositFee(_contractsCache.yusdToken, YUSDFee);
-        return YUSDFee;
     }
 
     // Transfer in collateral and send to ActivePool
@@ -1106,7 +1103,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         uint256[] memory _amountsIn,
         address[] memory _tokensOut,
         uint256[] memory _amountsOut
-    ) internal view returns (address[] memory finalColls, uint256[] memory finalAmounts) {
+    ) internal view returns (address[] memory, uint256[] memory) {
         _requireValidDepositCollateral(_tokensIn, _amountsIn);
         _requireValidDepositCollateral(_tokensOut, _amountsOut);
 

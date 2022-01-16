@@ -626,8 +626,6 @@ contract TroveManagerRedemptions is TroveManagerBase, ITroveManagerRedemptions {
                 TroveManagerOperation.redeemCollateral
             );
         }
-
-        return singleRedemption;
     }
 
     /*

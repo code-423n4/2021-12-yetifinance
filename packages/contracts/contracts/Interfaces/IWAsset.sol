@@ -16,7 +16,7 @@ interface IWAsset  {
 
     function claimRewardFor(address _for) external;
 
-    function getPendingRewards(address _for) external returns (address[] memory tokens, uint[] memory amounts);
+    function getPendingRewards(address _for) external returns (address[] memory, uint[] memory);
 
     function endTreasuryReward(uint _amount) external;
 }

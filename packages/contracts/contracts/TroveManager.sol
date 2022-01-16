@@ -327,8 +327,6 @@ contract TroveManager is TroveManagerBase, ITroveManager, ReentrancyGuard {
         
         uint currentYUSDDebt = Troves[_borrower].debt.add(pendingYUSDDebtReward);
         newColls memory currentColls = _sumColls(Troves[_borrower].colls, pendingCollReward);
-        
-        return (currentColls, currentYUSDDebt);
     }
 
     // Add the borrowers's coll and debt rewards earned from redistributions, to their Trove
@@ -414,7 +412,6 @@ contract TroveManager is TroveManagerBase, ITroveManager, ReentrancyGuard {
             uint assetCollReward = stake.mul(rewardPerUnitStaked).div(10 ** dec);
             pendingCollRewards.amounts[i] = assetCollReward; // i is correct index here
         }
-        return pendingCollRewards;
     }
 
     // Get the borrower's pending accumulated YUSD reward, earned by their stake
@@ -436,8 +433,6 @@ contract TroveManager is TroveManagerBase, ITroveManager, ReentrancyGuard {
             uint assetYUSDDebtReward = stake.mul(rewardPerUnitStaked).div(DECIMAL_PRECISION);
             pendingYUSDDebtReward = pendingYUSDDebtReward.add(assetYUSDDebtReward);
         }
-
-        return pendingYUSDDebtReward;
     }
 
     function hasPendingRewards(address _borrower) public view override returns (bool) {
@@ -653,7 +648,7 @@ contract TroveManager is TroveManagerBase, ITroveManager, ReentrancyGuard {
     }
 
     // Push the owner's address to the Trove owners list, and record the corresponding array index on the Trove struct
-    function addTroveOwnerToArray(address _borrower) external override returns (uint index) {
+    function addTroveOwnerToArray(address _borrower) external override returns (uint) {
         _requireCallerIsBorrowerOperations();
         return _addTroveOwnerToArray(_borrower);
     }
@@ -667,7 +662,6 @@ contract TroveManager is TroveManagerBase, ITroveManager, ReentrancyGuard {
         // Record the index of the new Troveowner on their Trove struct
         index = uint128(TroveOwners.length.sub(1));
         Troves[_borrower].arrayIndex = index;
-        return index;
     }
 
     /*

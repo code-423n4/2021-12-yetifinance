@@ -23,6 +23,4 @@ interface IWAsset {
     function getUserInfo(address _user) external returns (uint, uint, uint);
 
     function endTreasuryReward(uint _amount) external;
-
-    // function decompose(uint _amount) external returns (address[] memory tokens, uint[] memory amounts);
 }

@@ -599,7 +599,6 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
             );
         }
 
-        return (AssetGainPerUnitStaked, YUSDLossPerUnitStaked);
     }
 
     // Update the Stability Pool reward sum S and product P
@@ -692,12 +691,13 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
      * Given by the formula:  E = d0 * (S - S(0))/P(0)
      * where S(0) and P(0) are the depositor's snapshots of the sum S and product P, respectively.
      * d0 is the last recorded deposit value.
+     * returns assets, amounts
      */
     function getDepositorGains(address _depositor)
         public
         view
         override
-        returns (address[] memory assets, uint256[] memory amounts)
+        returns (address[] memory, uint256[] memory)
     {
         uint256 initialDeposit = deposits[_depositor].initialValue;
 
@@ -725,7 +725,6 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
         for (uint256 i; i < assetsLen; ++i) {
             amounts[i] = _getGainFromSnapshots(initialDeposit, snapshots, assets[i]);
         }
-        return (assets, amounts);
     }
 
     // gets the gain in S for a given asset
