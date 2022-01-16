@@ -271,8 +271,8 @@ contract sYETIToken is IERC20, Domain, BoringOwnable {
         require(validRouters[_routerAddress] == true, "Invalid router passed in");
         require(yusdToken.approve(_routerAddress, 0));
         require(yusdToken.increaseAllowance(_routerAddress, _YUSDToSell));
-        uint256[] memory amounts = IsYETIRouter(_routerAddress).swap(_YUSDToSell, _YETIOutMin, address(this));
         lastBuybackTime = block.timestamp;
+        uint256[] memory amounts = IsYETIRouter(_routerAddress).swap(_YUSDToSell, _YETIOutMin, address(this));
         // amounts[0] is the amount of YUSD that was sold, and amounts[1] is the amount of YETI that was gained in return. So the price is amounts[0] / amounts[1]
         lastBuybackPrice = div(amounts[0].mul(1e18), amounts[1]);
         emit BuyBackExecuted(_YUSDToSell, amounts[0], amounts[1]);
