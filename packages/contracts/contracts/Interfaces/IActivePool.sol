@@ -16,6 +16,7 @@ interface IActivePool is IPool {
     
     function sendCollaterals(address _to, address[] memory _tokens, uint[] memory _amounts) external returns (bool);
     function sendCollateralsUnwrap(
+        address _from,
         address _to,
         address[] memory _tokens,
         uint[] memory _amounts) external returns (bool);

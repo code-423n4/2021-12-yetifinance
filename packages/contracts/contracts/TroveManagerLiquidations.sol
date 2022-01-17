@@ -306,6 +306,10 @@ contract TroveManagerLiquidations is TroveManagerBase, ITroveManagerLiquidations
                 vars.remainingYUSDInStabPool = vars.remainingYUSDInStabPool.sub(
                     singleLiquidation.debtToOffset
                 );
+
+                // If wrapped assets exist then update the reward to this contract temporarily
+                _updateWAssetsRewardOwner(singleLiquidation.collGasCompensation, vars.user, address(this));
+
                 vars.entireSystemDebt = vars.entireSystemDebt.sub(singleLiquidation.debtToOffset);
 
                 uint256 collToSendToSpVc = _getVCColls(singleLiquidation.collToSendToSP);
@@ -338,6 +342,9 @@ contract TroveManagerLiquidations is TroveManagerBase, ITroveManagerLiquidations
                     singleLiquidation.debtToOffset
                 );
 
+                // If wrapped assets exist then update the reward to this contract temporarily
+                _updateWAssetsRewardOwner(singleLiquidation.collGasCompensation, vars.user, address(this));
+
                 // Add liquidation values to their respective running totals
                 totals = _addLiquidationValuesToTotals(totals, singleLiquidation);
             } else continue; // In Normal Mode skip troves with ICR >= MCR
@@ -368,6 +375,9 @@ contract TroveManagerLiquidations is TroveManagerBase, ITroveManagerLiquidations
                 vars.remainingYUSDInStabPool = vars.remainingYUSDInStabPool.sub(
                     singleLiquidation.debtToOffset
                 );
+
+                // If wrapped assets exist then update the reward to this contract temporarily
+                _updateWAssetsRewardOwner(singleLiquidation.collGasCompensation, vars.user, address(this));
 
                 // Add liquidation values to their respective running totals
                 totals = _addLiquidationValuesToTotals(totals, singleLiquidation);
@@ -845,7 +855,8 @@ contract TroveManagerLiquidations is TroveManagerBase, ITroveManagerLiquidations
             yusdTokenContract.returnFromPool(gasPoolAddress, _liquidator, _YUSD);
         }
 
-        _activePool.sendCollateralsUnwrap(_liquidator, _tokens, _amounts);
+        // This contract owns the rewards temporarily until the liquidation is complete
+        _activePool.sendCollateralsUnwrap(address(this), _liquidator, _tokens, _amounts);
     }
 
     /*
@@ -865,5 +876,17 @@ contract TroveManagerLiquidations is TroveManagerBase, ITroveManagerLiquidations
 
     function _requireCallerisTroveManager() internal view {
         require(msg.sender == troveManagerAddress, "Caller not TM");
+    }
+
+
+    // Return the amount of collateral to be drawn from a trove's collateral and sent as gas compensation.
+    function _getCollGasCompensation(newColls memory _coll) internal pure returns (newColls memory) {
+        require(_coll.tokens.length == _coll.amounts.length, "Not same length");
+
+        uint[] memory amounts = new uint[](_coll.tokens.length);
+        for (uint256 i; i < _coll.tokens.length; ++i) {
+            amounts[i] = _coll.amounts[i] / PERCENT_DIVISOR;
+        }
+        return newColls(_coll.tokens, amounts);
     }
 }

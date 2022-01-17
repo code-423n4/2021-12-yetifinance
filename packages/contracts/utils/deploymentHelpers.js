@@ -655,7 +655,9 @@ class DeploymentHelper {
       contracts.troveManagerRedemptions.address,
       contracts.defaultPool.address,
       contracts.stabilityPool.address,
-      YETIContracts.yetiFinanceTreasury.address
+      YETIContracts.yetiFinanceTreasury.address,
+      contracts.borrowerOperations.address,
+      contracts.collSurplusPool.address
     )
 
     await contracts.PriceCurveAVAX.setAddresses(contracts.whitelist.address)

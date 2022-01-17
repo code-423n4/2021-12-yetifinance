@@ -130,6 +130,8 @@ contract WJLP is ERC20_8, IWAsset {
         defaultPool = _defaultPool;
         stabilityPool = _stabilityPool;
         YetiFinanceTreasury = _YetiFinanceTreasury;
+        borrowerOperations = _borrowerOperations;
+        collSurplusPool = _collSurplusPool;
         addressesSet = true;
     }
 
@@ -140,11 +142,17 @@ contract WJLP is ERC20_8, IWAsset {
     // to mint WAssets which it sends to _to. It also updates
     // _rewardOwner's reward tracking such that it now has the right to
     // future yields from the newly minted WAssets
-    function wrap(uint _amount, address _to, address _rewardRecipient) external override {
-        JLP.safeTransferFrom(msg.sender, address(this), _amount);
+    function wrap(uint _amount, address _from, address _to, address _rewardRecipient) external override {
+        if (msg.sender != borrowerOperations) {
+            // Unless the caller is borrower operations, msg.sender and _from cannot 
+            // be different. 
+            require(msg.sender == _from, "WJLP: msg.sender and _from must be the same");
+        }
 
-        require(JLP.approve(address(_MasterChefJoe), 0));
-        require(JLP.increaseAllowance(address(_MasterChefJoe), _amount), "wrap: failed to increase allowance");
+        JLP.transferFrom(_from, address(this), _amount);
+
+        JLP.safeApprove(address(_MasterChefJoe), 0);
+        JLP.safeIncreaseAllowance(address(_MasterChefJoe), _amount);
 
         // stake LP tokens in Trader Joe's.
         // In process of depositing, all this contract's
@@ -192,9 +200,11 @@ contract WJLP is ERC20_8, IWAsset {
     // that amount so that a user can't keep depositing into the protocol using the same reward amount
     function transfer(address _to, uint _amount) public override returns (bool success) {
         if (msg.sender == borrowerOperations || msg.sender == activePool || msg.sender == defaultPool) {
-            UserInfo memory user = userInfo[msg.sender];
-            require(user.amount - user.amountInYeti >= _amount, "Reward balance not sufficient to transfer into Yeti Finance");
-            user.amountInYeti += _amount;
+            if (_to != stabilityPool && _to != defaultPool && _to != collSurplusPool){
+                UserInfo memory user = userInfo[msg.sender];
+                require(user.amount - user.amountInYeti >= _amount, "Reward balance not sufficient to transfer into Yeti Finance");
+                user.amountInYeti += _amount;
+            }
         }
         return super.transfer(_to, _amount);
     }
@@ -208,15 +218,16 @@ contract WJLP is ERC20_8, IWAsset {
     // Prior to this being called, the user whose assets we are burning should have their rewards updated
     // This function also claims rewards when unwrapping so they are automatically sent to the original owner,
     // and also reduces the reward balance before unwrapping is complete. 
-    function unwrapFor(address _to, uint _amount) external override {
+    // _from has the current rewards. 
+    function unwrapFor(address _from, address _to, uint _amount) external override {
         _requireCallerIsPool();
 
         // Claim pending reward for original owner
-        _sendJoeReward(_to, _to);
+        _sendJoeReward(_from, _from);
 
         // Decrease rewards by the same amount user is unwrapping. Ensures they have enough reward balance. 
-        _userUpdate(_to, _amount, false);
-        userInfo[_to].amountInYeti -= _amount;
+        _userUpdate(_from, _amount, false);
+        userInfo[_from].amountInYeti -= _amount;
 
         // Withdraw LP tokens from Master chef contract
         _MasterChefJoe.withdraw(_poolPid, _amount);

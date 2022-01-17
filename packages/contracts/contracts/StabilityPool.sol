@@ -951,9 +951,9 @@ contract StabilityPool is LiquityBase, Ownable, CheckContract, IStabilityPool {
             thisAsset = assets[i];
             if (whitelist.isWrapped(thisAsset)) {
                 // In this case update the rewards from the treasury to the caller 
-                IWAsset(thisAsset).endTreasuryReward(_to, thisAmounts);
+                IWAsset(thisAsset).endTreasuryReward(address(this), thisAmounts);
                 // unwrapFor ends the rewards for the caller and transfers the tokens to the _to param. 
-                IWAsset(thisAsset).unwrapFor(_to, thisAmounts);
+                IWAsset(thisAsset).unwrapFor(address(this), _to, thisAmounts);
             } else {
                 IERC20(thisAsset).safeTransfer(_to, thisAmounts);
             }

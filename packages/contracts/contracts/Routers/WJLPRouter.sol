@@ -95,7 +95,7 @@ contract WJLPRouter is IYetiRouter {
         address _fromUser,
         address _owner
     ) internal {
-        WJLP.wrap(_amount, activePoolAddress, _owner);
+        WJLP.wrap(_amount, address(this), activePoolAddress, _owner);
     }
 
     // takes avax and zaps it into the specific JLP token.

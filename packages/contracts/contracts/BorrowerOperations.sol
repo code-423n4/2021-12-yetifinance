@@ -770,7 +770,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         // in case of unlever up
         if (params._isUnlever) {
             // 1. withdraw the collateral from the active pool and perform the swap using single unlever up and corresponding router
-            contractsCache.activePool.sendCollateralsUnwrap(msg.sender, params._collsOut, params._amountsOut);
+            contractsCache.activePool.sendCollateralsUnwrap(msg.sender, msg.sender, params._collsOut, params._amountsOut);
 
             // 2. requires that the user has approved the contract to send its collateral if it is unlevering that amount. 
             uint256 collsLen = params._collsOut.length;
@@ -807,7 +807,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
             );
 
             // transfer withdrawn collateral to msg.sender from ActivePool
-            activePool.sendCollateralsUnwrap(msg.sender, params._collsOut, params._amountsOut);
+            activePool.sendCollateralsUnwrap(msg.sender, msg.sender, params._collsOut, params._amountsOut);
         }
     }
 
@@ -911,7 +911,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         uint finalYUSDAmount;
         uint YUSDAmount;
         if (params._isUnlever) {
-            contractsCache.activePool.sendCollateralsUnwrap(msg.sender, colls, amounts);
+            contractsCache.activePool.sendCollateralsUnwrap(msg.sender, msg.sender, colls, amounts);
             // tracks the amount of YUSD that is received from swaps. Will send the _YUSDAmount back to repay debt while keeping remainder.
             
             // requires that the user has approved the contract to send its collateral if it is unlevering that amount. 
@@ -944,7 +944,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         // Send the collateral back to the user
         // Also sends the rewards
         if (!params._isUnlever) {
-            contractsCache.activePool.sendCollateralsUnwrap(msg.sender, colls, amounts);
+            contractsCache.activePool.sendCollateralsUnwrap(msg.sender, msg.sender, colls, amounts);
         }
     }
 
@@ -1043,7 +1043,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         if (whitelist.isWrapped(_coll)) {
             // If wrapped asset then it wraps it and sends the wrapped version to the active pool, 
             // and updates reward balance to the new owner. 
-            IWAsset(_coll).wrap(_amount, address(activePool), _from); 
+            IWAsset(_coll).wrap(_amount, _from, address(activePool), _from); 
         } else {
             require(IERC20(_coll).transferFrom(_from, address(activePool), _amount), "BO:TransferCollsFailed");
         }

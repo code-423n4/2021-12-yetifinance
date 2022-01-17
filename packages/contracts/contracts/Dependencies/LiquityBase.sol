@@ -54,16 +54,6 @@ contract LiquityBase is ILiquityBase, YetiCustomBase {
     }
 
 
-    // Return the amount of collateral to be drawn from a trove's collateral and sent as gas compensation.
-    function _getCollGasCompensation(newColls memory _coll) internal pure returns (newColls memory) {
-        require(_coll.tokens.length == _coll.amounts.length, "Not same length");
-
-        uint[] memory amounts = new uint[](_coll.tokens.length);
-        for (uint256 i; i < _coll.tokens.length; ++i) {
-            amounts[i] = _coll.amounts[i] / PERCENT_DIVISOR;
-        }
-        return newColls(_coll.tokens, amounts);
-    }
 
     // Return the system's Total Virtual Coin Balance
     // Virtual Coins are a way to keep track of the system collateralization given

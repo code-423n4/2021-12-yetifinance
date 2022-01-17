@@ -201,7 +201,7 @@ contract CollSurplusPool is Ownable, CheckContract, ICollSurplusPool, LiquityBas
             if (whitelist.isWrapped(token)) {
                 // Collects rewards automatically for that amount and unwraps for the original borrower. 
                 // CSP actually owns these assets so it transfers it from this contract to the _to param. 
-                IWAsset(token).unwrapFor(_to, _colls.amounts[i]);
+                IWAsset(token).unwrapFor(_to, _to, _colls.amounts[i]);
             } else {
                 // Otherwise transfer like normal ERC20
                 if (!IERC20(token).transfer(_to, _colls.amounts[i])) {

@@ -107,7 +107,7 @@ contract WBQI is ERC20_8, IWAsset {
     // to mint WAssets which it sends to _to. It also updates
     // _rewardOwner's reward tracking such that it now has the right to
     // future yields from the newly minted WAssets
-    function wrap(uint _amount, address _to, address _rewardRecipient) external override {
+    function wrap(uint _amount, address _from, address _to, address _rewardRecipient) external override {
         
         //Update rewards
 
@@ -164,7 +164,7 @@ contract WBQI is ERC20_8, IWAsset {
     // In both cases, the wrapped asset is first sent to the liquidator or redeemer respectively,
     // then this function is called with _for equal to the the liquidator or redeemer address
     // Prior to this being called, the user whose assets we are burning should have their rewards updated
-    function unwrapFor(address _to, uint _amount) external override {
+    function unwrapFor(address _to, address _from, uint _amount) external override {
         _requireCallerIsAPorSP();
         // accumulateRewards(msg.sender);
         // _MasterChefJoe.withdraw(_poolPid, _amount);
