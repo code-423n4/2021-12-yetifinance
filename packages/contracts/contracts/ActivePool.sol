@@ -183,15 +183,34 @@ contract ActivePool is Ownable, CheckContract, IActivePool, YetiCustomBase {
     // _from is where the reward balance is, _to is where to send the tokens. 
     function sendCollateralsUnwrap(address _from, address _to, address[] calldata _tokens, uint[] calldata _amounts) external override returns (bool) {
         _requireCallerIsBOorTroveMorTMLorSP();
-        uint256 len = _tokens.length;
-        require(len == _amounts.length, "AP:Lengths");
-        for (uint256 i; i < len; ++i) {
+        uint256 tokensLen = _tokens.length;
+        require(tokensLen == _amounts.length, "AP:Lengths");
+        for (uint256 i; i < tokensLen; ++i) {
             if (whitelist.isWrapped(_tokens[i])) {
                 // Collects rewards automatically for that amount and unwraps for the original borrower. 
                 IWAsset(_tokens[i]).unwrapFor(_from, _to, _amounts[i]);
             } else {
                 _sendCollateral(_to, _tokens[i], _amounts[i]); // reverts if send fails
             }
+        }
+        return true;
+    }
+
+    // Function for sending single collateral. Currently only used by borrower operations unlever up functionality
+    function sendSingleCollateral(address _to, address _token, uint256 _amount) external override returns (bool) {
+        _requireCallerIsBorrowerOperations();
+        _sendCollateral(_to, _token, _amount); // reverts if send fails
+        return true;
+    }
+
+    // Function for sending single collateral and unwrapping. Currently only used by borrower operations unlever up functionality
+    function sendSingleCollateralUnwrap(address _from, address _to, address _token, uint256 _amount) external override returns (bool) {
+        _requireCallerIsBorrowerOperations();
+        if (whitelist.isWrapped(_token)) {
+            // Collects rewards automatically for that amount and unwraps for the original borrower. 
+            IWAsset(_token).unwrapFor(_from, _to, _amount);
+        } else {
+            _sendCollateral(_to, _token, _amount); // reverts if send fails
         }
         return true;
     }
@@ -231,6 +250,12 @@ contract ActivePool is Ownable, CheckContract, IActivePool, YetiCustomBase {
     function _requireCallerIsBorrowerOperationsOrDefaultPool() internal view {
         if (msg.sender != borrowerOperationsAddress &&
             msg.sender != defaultPoolAddress) {
+                _revertWrongFuncCaller();
+            }
+    }
+
+    function _requireCallerIsBorrowerOperations() internal view {
+        if (msg.sender != borrowerOperationsAddress) {
                 _revertWrongFuncCaller();
             }
     }

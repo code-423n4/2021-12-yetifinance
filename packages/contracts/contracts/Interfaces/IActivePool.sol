@@ -20,6 +20,11 @@ interface IActivePool is IPool {
         address _to,
         address[] memory _tokens,
         uint[] memory _amounts) external returns (bool);
+
+    function sendSingleCollateral(address _to, address _token, uint256 _amount) external returns (bool);
+
+    function sendSingleCollateralUnwrap(address _from, address _to, address _token, uint256 _amount) external returns (bool);
+
     function getCollateralVC(address collateralAddress) external view returns (uint);
     function addCollateralType(address _collateral) external;
 }

@@ -135,10 +135,15 @@ contract WJLP is ERC20_8, IWAsset {
     /* ========== New Functions =============== */
 
     // Can be called by anyone.
-    // This function pulls in _amount base tokens from _from, then stakes them in
-    // to mint WAssets which it sends to _to. It also updates
-    // _rewardOwner's reward tracking such that it now has the right to
-    // future yields from the newly minted WAssets
+    // This function pulls in _amount of base JLP tokens from _from, and stakes 
+    // them in the reward contract, while updating the reward balance for that user. 
+    // Sends reward balance to _rewardRecipient, and the ability to withdraw from the 
+    // contract and get your JLP back is tracked by wJLP balance, and given to _to. 
+    // If the caller is not borrower operations, then _from and msg.sender must be 
+    // the same to make it so you must be the one wrapping your tokens. 
+    // Intended for use by Yeti Finance so that users can collateralize their LP tokens 
+    // while gaining yield. So the protocol owns wJLP while the user owns the reward balance 
+    // and can claim their JOE rewards any time. 
     function wrap(uint _amount, address _from, address _to, address _rewardRecipient) external override {
         if (msg.sender != borrowerOperations) {
             // Unless the caller is borrower operations, msg.sender and _from cannot 
