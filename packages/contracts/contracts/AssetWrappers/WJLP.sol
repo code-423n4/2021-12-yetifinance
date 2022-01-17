@@ -78,9 +78,6 @@ contract WJLP is ERC20_8, IWAsset {
     // Info of each user that stakes LP tokens.
     mapping(address => UserInfo) userInfo;
 
-    // Types of minting
-    mapping(uint => address) mintType;
-
     /* ========== INITIALIZER ========== */
 
     constructor(string memory ERC20_symbol,

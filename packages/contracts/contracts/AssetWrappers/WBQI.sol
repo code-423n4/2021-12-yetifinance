@@ -48,10 +48,6 @@ contract WBQI is ERC20_8, IWAsset {
     // Info of each user that stakes LP tokens.
     mapping(address => UserInfo) userInfo;
 
-    // Types of minting
-    mapping(uint => address) mintType;
-
-
     // Global rewards (numerator) that accounts for rewards/share paid out
     // Basically balanceOf(this)-globalAVAXRewardPending=cumulativePendingRewards
     uint public globalAVAXRewardPending;
