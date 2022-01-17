@@ -337,13 +337,12 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         
         yusdToken.mint(address(this), _additionalYUSDDebt);
         yusdToken.approve(address(router), _additionalYUSDDebt);
-        // route will swap the tokens and transfer it to the active pool automatically 
+        // route will swap the tokens and transfer it to the active pool automatically. Router will send to active pool and 
+        // reward balance will be sent to the user if wrapped asset. 
+        IERC20 erc20Token = IERC20(_token);
+        uint256 balanceBefore = erc20Token.balanceOf(address(activePool));
         _finalTokenAmount = router.route(address(this), address(yusdToken), _token, _additionalYUSDDebt, slippageAdjustedValue);
-        // If wrapped token, then trnasfer reward balance from router to borrower so it is kept track properly. 
-        if (whitelist.isWrapped(_token)) {
-            IWAsset(_token).updateReward(address(router), msg.sender, _finalTokenAmount);
-        }
-        // TODO do checks of raw balance? Currently is abstracted so the router handles it.
+        require(erc20Token.balanceOf(address(activePool)) == balanceBefore.add(_finalTokenAmount), "BO:RouteLeverUpNotSent");
     }
 
 
@@ -779,7 +778,6 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
                 if (params._maxSlippages[i] != 0) {
                     // add YUSD Amount from swap to total YUSD amount to repay debt
                     _singleUnleverUp(params._collsOut[i], params._amountsOut[i], params._maxSlippages[i]);
-                    // TODO confirm amount transfered. Should we be transfering directly to active pool?
                 } 
             }
             // 3. update the trove with the new collateral and debt, repaying the total amount of YUSD specified. 
@@ -829,8 +827,10 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
 
         uint VCofCollateral = whitelist.getValueVC(_token, _amount);
         uint256 slippageAdjustedValue = VCofCollateral.mul(DECIMAL_PRECISION.sub(_maxSlippage)).div(1e18);
-        _finalYUSDAmount = router.unRoute(msg.sender, _token, address(yusdToken), _amount, slippageAdjustedValue);
-        // TODO do checks of raw balances?
+        IERC20 yusdTokenCached = yusdToken;
+        uint256 balanceBefore = yusdToken.balanceOf(msg.sender);
+        _finalYUSDAmount = router.unRoute(msg.sender, _token, address(yusdTokenCached), _amount, slippageAdjustedValue);
+        require(yusdTokenCached.balanceOf(msg.sender) == balanceBefore.add(_finalYUSDAmount), "BO:YUSDNotSentUnLever");
     }
 
 
@@ -920,7 +920,6 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
                 if (params._maxSlippages[i] != 0) {
                     // add YUSD Amount from swap to total YUSD amount to repay debt
                     _singleUnleverUp(params._collsOut[i], params._amountsOut[i], params._maxSlippages[i]);
-                    // TODO confirm amount transfered. Should we transfer directly to user?
                 } 
             }   
         }
@@ -1041,11 +1040,13 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         address _coll,
         uint256 _amount
     ) internal {
-        IERC20 coll = IERC20(_coll);
-        // If wrapped asset, then transferFrom checks reward balances to ensure there is enough to transfer in before allowing
-        // transfer of this asset. 
-        bool transferredToActivePool = coll.transferFrom(_from, address(activePool), _amount);
-        require(transferredToActivePool, "BO:TransferCollsFailed");
+        if (whitelist.isWrapped(_coll)) {
+            // If wrapped asset then it wraps it and sends the wrapped version to the active pool, 
+            // and updates reward balance to the new owner. 
+            IWAsset(_coll).wrap(_amount, address(activePool), _from); 
+        } else {
+            require(IERC20(_coll).transferFrom(_from, address(activePool), _amount), "BO:TransferCollsFailed");
+        }
     }
 
     /**

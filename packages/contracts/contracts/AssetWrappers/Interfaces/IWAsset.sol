@@ -6,7 +6,7 @@ pragma solidity 0.8.7;
 // Wrapped Asset
 interface IWAsset {
 
-    function wrap(uint _amount, address _to) external;
+    function wrap(uint _amount, address _to, address _rewardOwner) external;
 
     function unwrap(uint amount) external;
 

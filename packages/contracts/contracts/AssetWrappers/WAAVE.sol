@@ -87,7 +87,7 @@ contract WAAVE is ERC20_8, IWAsset {
     // to mint WAssets which it sends to _to. It also updates
     // _rewardOwner's reward tracking such that it now has the right to
     // future yields from the newly minted WAssets
-    function wrap(uint _amount, address _to) external override {
+    function wrap(uint _amount, address _to, address _rewardRecipient) external override {
         
         _mint(_to, 1e18*_amount/aavePerShare());
         aToken.transferFrom(msg.sender, address(this), _amount);

@@ -140,9 +140,7 @@ contract WJLP is ERC20_8, IWAsset {
     // to mint WAssets which it sends to _to. It also updates
     // _rewardOwner's reward tracking such that it now has the right to
     // future yields from the newly minted WAssets
-    function wrap(uint _amount, address _to) external override {
-        JLP.transferFrom(msg.sender, address(this), _amount);
-        require(JLP.approve(address(_MasterChefJoe), 0));
+    function wrap(uint _amount, address _to, address _rewardRecipient) external override {
         JLP.safeTransferFrom(msg.sender, address(this), _amount);
 
         require(JLP.approve(address(_MasterChefJoe), 0));
@@ -154,8 +152,11 @@ contract WJLP is ERC20_8, IWAsset {
         _MasterChefJoe.deposit(_poolPid, _amount);
 
         // update user reward tracking
-        _userUpdate(msg.sender, _amount, true);
+        _userUpdate(_rewardRecipient, _amount, true);
         _mint(_to, _amount);
+        if (_to == activePool) {
+            userInfo[_rewardRecipient].amountInYeti += _amount;
+        }
     }
 
     // External function intended for users to unwrap manually their LP tokens. 
@@ -235,12 +236,9 @@ contract WJLP is ERC20_8, IWAsset {
     // the wAsset is unwrapped and the rewards are no longer accruing to the Yeti Finance Treasury
     function endTreasuryReward(address _to, uint _amount) external override {
         _requireCallerIsSPorDP();
-        address cachedTreasury = YetiFinanceTreasury;
-        // Claim reward first
-        _sendJoeReward(cachedTreasury, cachedTreasury);
 
         // Then update new owner of rewards.
-        _updateReward(cachedTreasury, _to, _amount);
+        _updateReward(YetiFinanceTreasury, _to, _amount);
     }
 
     // Decreases _from's amount of LP tokens earning yield by _amount
@@ -252,6 +250,8 @@ contract WJLP is ERC20_8, IWAsset {
     }
 
     function _updateReward(address _from, address _to, uint _amount) internal {
+        // Claim any outstanding reward first 
+        _sendJoeReward(_from, _from);
         _userUpdate(_from, _amount, false);
         userInfo[_from].amountInYeti -= _amount;
         _userUpdate(_to, _amount, true);
