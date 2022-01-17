@@ -1456,7 +1456,7 @@ contract('BorrowerOperations', async accounts => {
             // it("") test max fee max(new debt in, collateral in)
         })
 
-        describe.only('Lever up', async () => {
+        describe('Lever up', async () => {
             beforeEach(async () => {
                 joeRouter = new ethers.Contract("0x60aE616a2155Ee3d9A68541Ba4544862310933d4", abi = routerABI, signer = await hre.ethers.getSigner(H));
                 await yusdToken.unprotectedMint(H, dec(100000000, 18));

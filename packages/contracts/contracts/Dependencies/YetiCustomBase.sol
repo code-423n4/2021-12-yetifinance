@@ -103,7 +103,7 @@ contract YetiCustomBase is BaseMath {
     ) internal view returns (uint[] memory) {
         uint[] memory sumAmounts = _getArrayCopy(_coll1.amounts);
 
-        uint256 coll1Len = _coll1.tokens.length;
+        uint256 coll1Len = _tokens.length;
         // assumes that sumAmounts length = whitelist tokens length.
         for (uint256 i; i < coll1Len; ++i) {
             uint tokenIndex = whitelist.getIndex(_tokens[i]);

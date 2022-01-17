@@ -82,7 +82,7 @@ library LiquityMath {
     // new collateral ratio is 10**18 times the collateral ratio. (150% => 1.5e18)
     function _computeCR(uint _coll, uint _debt) internal pure returns (uint) {
         if (_debt != 0) {
-            uint newCollRatio = _coll.mul(10e18).div(_debt);
+            uint newCollRatio = _coll.mul(1e18).div(_debt);
             return newCollRatio;
         }
         // Return the maximal value for uint256 if the Trove has a debt of 0. Represents "infinite" CR.
