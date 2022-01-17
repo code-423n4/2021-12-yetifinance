@@ -7,8 +7,8 @@ pragma solidity 0.6.11;
 interface IWAsset  {
 
     function wrap(uint _amount, address _from, address _to, address _rewardOwner) external;
-
-    function unwrapFor(address _for, uint amount) external;
+    
+    function unwrapFor(address _from, address _to, uint amount) external;
 
     function updateReward(address from, address to, uint amount) external;
 
@@ -18,5 +18,5 @@ interface IWAsset  {
 
     function getPendingRewards(address _for) external returns (address[] memory, uint[] memory);
 
-    function endTreasuryReward(uint _amount) external;
+    function endTreasuryReward(address _to, uint _amount) external;
 }

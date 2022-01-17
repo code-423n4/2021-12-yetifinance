@@ -16,6 +16,7 @@ import "./Dependencies/Ownable.sol";
 import "./Dependencies/CheckContract.sol";
 import "./Dependencies/SafeMath.sol";
 import "./Dependencies/ReentrancyGuard.sol";
+import "./Interfaces/IWAsset.sol";
 
 /** 
  * BorrowerOperations is the contract that handles most of external facing trove activities that 
@@ -322,7 +323,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         IYetiRouter router = IYetiRouter(whitelist.getDefaultRouterAddress(_token));
         // leverage is 5e18 for 5x leverage. Minus 1 for what the user already has in collateral value.
         uint _additionalTokenAmount = _amount.mul(_leverage.sub(1e18)).div(1e18); 
-        _additionalYUSDDebt = whitelist.getValueVC(_token, _additionalTokenAmount);
+        _additionalYUSDDebt = whitelist.getValueUSD(_token, _additionalTokenAmount);
 
         // 1/(1-1/ICR) = leverage. (1 - 1/ICR) = 1/leverage
         // 1 - 1/leverage = 1/ICR. ICR = 1/(1 - 1/leverage) = (1/((leverage-1)/leverage)) = leverage / (leverage - 1)
@@ -336,9 +337,12 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         
         yusdToken.mint(address(this), _additionalYUSDDebt);
         yusdToken.approve(address(router), _additionalYUSDDebt);
-        // route will swap the tokens and transfer it to the active pool automatically 
+        // route will swap the tokens and transfer it to the active pool automatically. Router will send to active pool and 
+        // reward balance will be sent to the user if wrapped asset. 
+        IERC20 erc20Token = IERC20(_token);
+        uint256 balanceBefore = erc20Token.balanceOf(address(activePool));
         _finalTokenAmount = router.route(address(this), address(yusdToken), _token, _additionalYUSDDebt, slippageAdjustedValue);
-        // TODO do checks of raw balance? Currently is abstracted so the router handles it.
+        require(erc20Token.balanceOf(address(activePool)) == balanceBefore.add(_finalTokenAmount), "BO:RouteLeverUpNotSent");
     }
 
 
@@ -765,19 +769,10 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
 
         // in case of unlever up
         if (params._isUnlever) {
-            // 1. withdraw the collateral from the active pool and perform the swap using single unlever up and corresponding router
-            contractsCache.activePool.sendCollateralsUnwrap(msg.sender, params._collsOut, params._amountsOut, true);
+            // 1. Withdraw the collateral from active pool and perform swap using single unlever up and corresponding router. 
+            _unleverColls(contractsCache.activePool, params._collsOut, params._amountsOut, params._maxSlippages);
 
-            // 2. requires that the user has approved the contract to send its collateral if it is unlevering that amount. 
-            uint256 collsLen = params._collsOut.length;
-            for (uint256 i; i < collsLen; ++i) {
-                if (params._maxSlippages[i] != 0) {
-                    // add YUSD Amount from swap to total YUSD amount to repay debt
-                    _singleUnleverUp(params._collsOut[i], params._amountsOut[i], params._maxSlippages[i]);
-                    // TODO confirm amount transfered. Should we be transfering directly to active pool?
-                } 
-            }
-            // 3. update the trove with the new collateral and debt, repaying the total amount of YUSD specified. 
+            // 2. update the trove with the new collateral and debt, repaying the total amount of YUSD specified. 
             // if not enough coll sold for YUSD, must cover from user balance
             _requireAtLeastMinNetDebt(_getNetDebt(vars.debt).sub(params._YUSDChange));
             _requireValidYUSDRepayment(vars.debt, params._YUSDChange);
@@ -804,7 +799,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
             );
 
             // transfer withdrawn collateral to msg.sender from ActivePool
-            activePool.sendCollateralsUnwrap(msg.sender, params._collsOut, params._amountsOut, true);
+            activePool.sendCollateralsUnwrap(msg.sender, msg.sender, params._collsOut, params._amountsOut);
         }
     }
 
@@ -820,12 +815,34 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         // It should actually transfer to the owner, who will have bOps pre approved
         // cause of original approve
         IYetiRouter router = IYetiRouter(whitelist.getDefaultRouterAddress(_token));
-        // then calculate VC amount of expected YUSD output based on amount of token to sell
+        // then calculate value amount of expected YUSD output based on amount of token to sell
 
-        uint VCofCollateral = whitelist.getValueVC(_token, _amount);
-        uint256 slippageAdjustedValue = VCofCollateral.mul(DECIMAL_PRECISION.sub(_maxSlippage)).div(1e18);
-        _finalYUSDAmount = router.unRoute(msg.sender, _token, address(yusdToken), _amount, slippageAdjustedValue);
-        // TODO do checks of raw balances?
+        uint valueOfCollateral = whitelist.getValueUSD(_token, _amount);
+        uint256 slippageAdjustedValue = valueOfCollateral.mul(DECIMAL_PRECISION.sub(_maxSlippage)).div(1e18);
+        IERC20 yusdTokenCached = yusdToken;
+        require(IERC20(_token).approve(address(router), valueOfCollateral));
+        uint256 balanceBefore = yusdToken.balanceOf(address(this));
+        _finalYUSDAmount = router.unRoute(address(this), _token, address(yusdTokenCached), _amount, slippageAdjustedValue);
+        require(yusdTokenCached.balanceOf(address(this)) == balanceBefore.add(_finalYUSDAmount), "BO:YUSDNotSentUnLever");
+    }
+
+    // Takes the colls and amounts, transfer non levered from the active pool to the user, and unlevered to this contract 
+    // temporarily. Then takes the unlevered ones and calls relevant router to swap them to the user. 
+    function _unleverColls(
+        IActivePool _activePool, 
+        address[] memory _colls, 
+        uint256[] memory _amounts, 
+        uint256[] memory _maxSlippages
+    ) internal {
+        uint256 collsLen = _colls.length;
+        for (uint256 i; i < collsLen; ++i) {
+            if (_maxSlippages[i] != 0) {
+                _activePool.sendSingleCollateral(address(this), _colls[i], _amounts[i]);
+                _singleUnleverUp(_colls[i], _amounts[i], _maxSlippages[i]);
+            } else {
+                _activePool.sendSingleCollateralUnwrap(msg.sender, msg.sender, _colls[i], _amounts[i]);
+            }
+        }
     }
 
 
@@ -906,18 +923,9 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         uint finalYUSDAmount;
         uint YUSDAmount;
         if (params._isUnlever) {
-            contractsCache.activePool.sendCollateralsUnwrap(msg.sender, colls, amounts, true);
+            // Withdraw the collateral from active pool and perform swap using single unlever up and corresponding router. 
+            _unleverColls(contractsCache.activePool, colls, amounts, params._maxSlippages);
             // tracks the amount of YUSD that is received from swaps. Will send the _YUSDAmount back to repay debt while keeping remainder.
-            
-            // requires that the user has approved the contract to send its collateral if it is unlevering that amount. 
-            uint256 collsLen = params._collsOut.length;
-            for (uint256 i; i < collsLen; ++i) {
-                if (params._maxSlippages[i] != 0) {
-                    // add YUSD Amount from swap to total YUSD amount to repay debt
-                    _singleUnleverUp(params._collsOut[i], params._amountsOut[i], params._maxSlippages[i]);
-                    // TODO confirm amount transfered. Should we transfer directly to user?
-                } 
-            }   
         }
 
         // do check after unlever (if applies)
@@ -940,7 +948,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         // Send the collateral back to the user
         // Also sends the rewards
         if (!params._isUnlever) {
-            contractsCache.activePool.sendCollateralsUnwrap(msg.sender, colls, amounts, true);
+            contractsCache.activePool.sendCollateralsUnwrap(msg.sender, msg.sender, colls, amounts);
         }
     }
 
@@ -1036,9 +1044,13 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         address _coll,
         uint256 _amount
     ) internal {
-        IERC20 coll = IERC20(_coll);
-        bool transferredToActivePool = coll.transferFrom(_from, address(activePool), _amount);
-        require(transferredToActivePool, "BO:TransferCollsFailed");
+        if (whitelist.isWrapped(_coll)) {
+            // If wrapped asset then it wraps it and sends the wrapped version to the active pool, 
+            // and updates reward balance to the new owner. 
+            IWAsset(_coll).wrap(_amount, _from, address(activePool), _from); 
+        } else {
+            require(IERC20(_coll).transferFrom(_from, address(activePool), _amount), "BO:TransferCollsFailed");
+        }
     }
 
     /**

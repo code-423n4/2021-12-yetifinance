@@ -180,19 +180,37 @@ contract ActivePool is Ownable, CheckContract, IActivePool, YetiCustomBase {
     // Returns true if all payments were successfully sent. Must be called by borrower operations, trove manager, or stability pool.
     // This function als ounwraps the collaterals and sends them to _to, if they are wrapped assets. If collect rewards is set to true,
     // It also harvests rewards on the user's behalf. 
-    function sendCollateralsUnwrap(address _to, address[] calldata _tokens, uint[] calldata _amounts, bool _collectRewards) external override returns (bool) {
+    // _from is where the reward balance is, _to is where to send the tokens. 
+    function sendCollateralsUnwrap(address _from, address _to, address[] calldata _tokens, uint[] calldata _amounts) external override returns (bool) {
         _requireCallerIsBOorTroveMorTMLorSP();
-        uint256 len = _tokens.length;
-        require(len == _amounts.length, "AP:Lengths");
-        for (uint256 i; i < len; ++i) {
+        uint256 tokensLen = _tokens.length;
+        require(tokensLen == _amounts.length, "AP:Lengths");
+        for (uint256 i; i < tokensLen; ++i) {
             if (whitelist.isWrapped(_tokens[i])) {
-                IWAsset(_tokens[i]).unwrapFor(_to, _amounts[i]);
-                if (_collectRewards) {
-                    IWAsset(_tokens[i]).claimRewardFor(_to);
-                }
+                // Collects rewards automatically for that amount and unwraps for the original borrower. 
+                IWAsset(_tokens[i]).unwrapFor(_from, _to, _amounts[i]);
             } else {
                 _sendCollateral(_to, _tokens[i], _amounts[i]); // reverts if send fails
             }
+        }
+        return true;
+    }
+
+    // Function for sending single collateral. Currently only used by borrower operations unlever up functionality
+    function sendSingleCollateral(address _to, address _token, uint256 _amount) external override returns (bool) {
+        _requireCallerIsBorrowerOperations();
+        _sendCollateral(_to, _token, _amount); // reverts if send fails
+        return true;
+    }
+
+    // Function for sending single collateral and unwrapping. Currently only used by borrower operations unlever up functionality
+    function sendSingleCollateralUnwrap(address _from, address _to, address _token, uint256 _amount) external override returns (bool) {
+        _requireCallerIsBorrowerOperations();
+        if (whitelist.isWrapped(_token)) {
+            // Collects rewards automatically for that amount and unwraps for the original borrower. 
+            IWAsset(_token).unwrapFor(_from, _to, _amount);
+        } else {
+            _sendCollateral(_to, _token, _amount); // reverts if send fails
         }
         return true;
     }
@@ -232,6 +250,12 @@ contract ActivePool is Ownable, CheckContract, IActivePool, YetiCustomBase {
     function _requireCallerIsBorrowerOperationsOrDefaultPool() internal view {
         if (msg.sender != borrowerOperationsAddress &&
             msg.sender != defaultPoolAddress) {
+                _revertWrongFuncCaller();
+            }
+    }
+
+    function _requireCallerIsBorrowerOperations() internal view {
+        if (msg.sender != borrowerOperationsAddress) {
                 _revertWrongFuncCaller();
             }
     }
