@@ -203,16 +203,16 @@ contract TroveManager is TroveManagerBase, ITroveManager, ReentrancyGuard {
 
         address[] memory borrowers = new address[](1);
         borrowers[0] = _borrower;
-        batchLiquidateTroves(borrowers, msg.sender);
+        // calls this.batchLiquidateTroves so nonReentrant works correctly
+        troveManagerLiquidations.batchLiquidateTroves(borrowers, msg.sender);
     }
 
     /*
     * Attempt to liquidate a custom list of troves provided by the caller.
     */
-    function batchLiquidateTroves(address[] memory _troveArray, address _liquidator) public override nonReentrant {
+    function batchLiquidateTroves(address[] memory _troveArray, address _liquidator) external override nonReentrant {
         troveManagerLiquidations.batchLiquidateTroves(_troveArray, _liquidator);
     }
-
 
     // --- Liquidation helper functions ---
 
@@ -325,8 +325,8 @@ contract TroveManager is TroveManagerBase, ITroveManager, ReentrancyGuard {
         newColls memory pendingCollReward = _getPendingCollRewards(_borrower);
         uint pendingYUSDDebtReward = getPendingYUSDDebtReward(_borrower);
         
-        uint currentYUSDDebt = Troves[_borrower].debt.add(pendingYUSDDebtReward);
-        newColls memory currentColls = _sumColls(Troves[_borrower].colls, pendingCollReward);
+        YUSDdebt = Troves[_borrower].debt.add(pendingYUSDDebtReward);
+        colls = _sumColls(Troves[_borrower].colls, pendingCollReward);
     }
 
     // Add the borrowers's coll and debt rewards earned from redistributions, to their Trove

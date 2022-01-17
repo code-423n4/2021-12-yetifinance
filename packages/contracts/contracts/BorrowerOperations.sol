@@ -17,7 +17,6 @@ import "./Dependencies/CheckContract.sol";
 import "./Dependencies/SafeMath.sol";
 import "./Dependencies/ReentrancyGuard.sol";
 
-
 /** 
  * BorrowerOperations is the contract that handles most of external facing trove activities that 
  * a user would make with their own trove, like opening, closing, adjusting, increasing leverage, etc.
@@ -323,7 +322,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         IYetiRouter router = IYetiRouter(whitelist.getDefaultRouterAddress(_token));
         // leverage is 5e18 for 5x leverage. Minus 1 for what the user already has in collateral value.
         uint _additionalTokenAmount = _amount.mul(_leverage.sub(1e18)).div(1e18); 
-        uint _additionalYUSDDebt = whitelist.getValueVC(_token, _additionalTokenAmount);
+        _additionalYUSDDebt = whitelist.getValueVC(_token, _additionalTokenAmount);
 
         // 1/(1-1/ICR) = leverage. (1 - 1/ICR) = 1/leverage
         // 1 - 1/leverage = 1/ICR. ICR = 1/(1 - 1/leverage) = (1/((leverage-1)/leverage)) = leverage / (leverage - 1)
@@ -492,7 +491,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         uint256 collsLen = _collsIn.length;
 
         // check that all _collsIn collateral types are in the whitelist
-        _requireValidDepositCollateral(_collsIn, params._amountsIn);
+        _requireValidDepositCollateral(_collsIn, _amountsIn);
         // Must check that other passed in arrays are correct length
         _requireLengthsEqual(collsLen, _leverages.length);
         _requireLengthsEqual(collsLen, _maxSlippages.length);
@@ -1342,7 +1341,7 @@ contract BorrowerOperations is LiquityBase, Ownable, CheckContract, IBorrowerOpe
         pure
     {
         // Alwawys require max fee to be less than 100%, and if not in recovery mode then max fee must be greater than 0.5%
-        if (_maxFeePercentage <= DECIMAL_PRECISION || (!_isRecoveryMode && _maxFeePercentage >= BORROWING_FEE_FLOOR)) {
+        if (_maxFeePercentage > DECIMAL_PRECISION || (!_isRecoveryMode && _maxFeePercentage < BORROWING_FEE_FLOOR)) {
             revert("BO:InvalidMaxFee");
         }
     }
