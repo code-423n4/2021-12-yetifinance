@@ -1,5 +1,5 @@
 # Yeti Finance contest details
-- $95,000 USDC main award pot
+- $85,000 USDC main award pot
 - $5,000 USDC gas optimization award pot
 - Join [C4 Discord](https://discord.gg/code4rena) to register
 - Submit findings [using the C4 form](https://code4rena.com/contests/2021-12-yeti-finance-contest/submit)
